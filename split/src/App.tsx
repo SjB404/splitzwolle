@@ -1,12 +1,12 @@
-import { useState } from 'react'
+import LoginTest from './pages/login'
 import './App.css'
 import "./index.css"
 function App() {
 
   return (
     <>
-    <h1 className=''></h1>
-     
+
+    <LoginTest />
     </>
   )
 }
