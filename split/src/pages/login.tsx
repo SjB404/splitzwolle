@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 
 const API_BASE = "http://localhost:3000/api";
 
-async function apiPost(path, body) {
+async function apiPost(path: string, body) {
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
   try {
     const res = await fetch(`${API_BASE}${cleanPath}`, {
@@ -27,7 +27,7 @@ async function apiPost(path, body) {
         error:
           err instanceof Error
             ? err.message
-            : "Kan geen verbinding maken met de server.",
+            : "cannot connect to server",
       },
     };
   }
@@ -160,8 +160,8 @@ export default function LoginPage() {
   const [regError, setRegError] = useState(null);
   const [regResult, setRegResult] = useState(null);
 
-  // Set once the browser is redirected back from /api/auth/google/callback
-  const [googleStatus, setGoogleStatus] = useState(null); // "success" | "error" | null
+
+  const [googleStatus, setGoogleStatus] = useState(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);

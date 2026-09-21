@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import { verify } from "otplib";
 import mysql, { RowDataPacket } from "mysql2/promise";
-import { signToken } from "./jwt";
+import { signToken } from "./jwt.ts";
 
 interface UserRow extends RowDataPacket {
   id: string;
@@ -49,7 +49,6 @@ router.post("/login", async (req: Request, res: Response) => {
       });
     }
 
-
     if (user.two_factor_enabled) {
       if (!token) {
         return res.status(200).json({
@@ -58,7 +57,6 @@ router.post("/login", async (req: Request, res: Response) => {
         });
       }
 
-      // Make sure secret exists
       if (!user.two_factor_secret) {
         console.error(
           `User ${user.id} has two_factor_enabled but no secret`

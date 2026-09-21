@@ -1,7 +1,7 @@
 import { Router } from "express";
-import registerRouter from "./register.ts";
-import loginRouter from "./login.ts";
-import googleRouter from "./googleAuth.ts";
+import registerRouter from "./login/register.ts";
+import loginRouter from "./login/login.ts";
+import googleRouter from "./login/googleAuth.ts";
 
 const router = Router();
 

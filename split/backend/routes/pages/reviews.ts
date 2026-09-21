@@ -13,7 +13,7 @@ const pool = mysql.createPool({
   queueLimit: 0,
 });
 
-router.get("/reviews", async (req: Request, res: Response) => {
+router.get("/reviews/view", async (req: Request, res: Response) => {
   const { routeID } = req.query;
   const connection = await pool.getConnection();
 

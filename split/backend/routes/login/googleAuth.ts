@@ -27,20 +27,17 @@ interface UserRow extends RowDataPacket {
   role: string;
 }
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!;
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!;
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const GOOGLE_REDIRECT_URI =
   process.env.GOOGLE_REDIRECT_URI || "http://localhost:3000/api/auth/google/callback";
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
-
-console.log(GOOGLE_CLIENT_ID)
 const oauthClient = new OAuth2Client(
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
   GOOGLE_REDIRECT_URI
 );
 
-// Step 1: send the browser to Google's consent screen
 router.get("/google", (req: Request, res: Response) => {
   const url = oauthClient.generateAuthUrl({
     access_type: "offline",
@@ -86,9 +83,6 @@ router.get("/google/callback", async (req: Request, res: Response) => {
     let user = rows[0];
 
     if (!user) {
-      // No account with this email yet -> create one. Google-only accounts
-      // still need a `password` value since that column isn't nullable, so
-      // we store an unusable random hash; these users can only sign in via Google.
       const id = randomUUID();
       const randomPasswordHash = await bcrypt.hash(randomUUID(), 10);
 

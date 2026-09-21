@@ -72,8 +72,6 @@ router.post("/register", async (req: Request, res: Response) => {
 
     const token = signToken({ id, email, role: role ?? "user" });
 
-    // httpOnly cookie so the browser sends it automatically on future
-    // requests (the frontend already fetches with credentials: "include").
     res.cookie("token", token, {
       httpOnly: true,
       sameSite: "lax",
