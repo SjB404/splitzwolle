@@ -7,7 +7,7 @@ The single source of truth for the visual language of this project.
 > holds the distilled Material 3 spec (component metrics, motion, accessibility). This file is
 > what the project *decided*; where the two differ, §16 says so and why.
 
-> Last updated: 2026-09-14
+> Last updated: 2026-09-18
 
 ---
 
@@ -97,11 +97,15 @@ Tailwind utility of the same name:
 ### Icons
 
 - Icons are **Material Symbols** rendered with BeerCSS's `<i>` element
-  (`<i className="text-base">search</i>`), via the `<Icon>` helper in `homePage.jsx`.
+  (`<i className="text-base">search</i>`), via the `<Icon>` helper in `src/components/icon.jsx`.
 - The font is a **Google Fonts subset**, linked in `index.html`. **Adding a new icon means
-  adding its name to that URL first** — otherwise the ligature renders as literal text.
-- Size with Tailwind `font-size` utilities (`text-base`, `text-xl`), not with BeerCSS's
-  `i.small` / `i.large`.
+  adding its name to that URL first** — otherwise the ligature renders as literal text. That
+  includes the glyphs BeerCSS's own components draw (`check_box`, `check_box_outline_blank`,
+  `check` for the checkbox and the switch) — a missing name shows up as a clipped word, not as
+  an empty box.
+- A *filled* Material Symbol (the rating stars) is BeerCSS's `i.fill`, which flips the `FILL`
+  axis: `className="fill text-base text-accent"`. Colour alone would leave a filled and an empty
+  star differing only in lightness.
 
 ### Deliberately not imported
 
@@ -111,6 +115,10 @@ BeerCSS is imported piecewise from `beercss/src/cdn/…`:
 - `settings/dark.css` is skipped — it ships BeerCSS's own purple dark palette. The dark theme is
   defined from Deltion colors in `src/index.css` instead, and BeerCSS is told which one is active
   by the `light` / `dark` class on `<body>`.
+- `elements/selection.css` is imported **extra**, because BeerCSS 5's `elements/all.css` does not
+  pull it in. Without it the Material 3 checkbox, radio and switch fall back to the browser's own
+  controls (a native checkbox is not a `tap-target` and does not follow the roles). It joins the
+  same `beercss` layer, so the cascade order is unchanged.
 
 ### Themes
 
@@ -125,8 +133,9 @@ read roles, so they never branch on the theme.
 | `src/components/themeToggle.jsx` | Owns the state, writes the `<body>` class and persists the choice to `localStorage` |
 
 Adding a theme-aware colour means adding a **role** to both blocks in `src/index.css`, not a
-fixed colour in a component. The one inline `useEffect` in the codebase lives in `ThemeToggle`,
-because `<body>` is outside the React tree.
+fixed colour in a component. Three effects exist in the whole codebase, and each syncs with
+something outside React because it has to: `ThemeToggle` (the `<body>` class and `localStorage`),
+`ScrollToTop` (the scroll position after a route change) and `PageTitle` (`document.title`).
 
 ---
 
@@ -491,10 +500,40 @@ to its content and centres itself — which silently breaks the page gutter. Eve
 With that in place, the logo, hero copy, section headings, card artwork and footer brand all
 start on the same 20px (mobile) / 32px (desktop) gutter.
 
+### Pages & routing
+
+The app is **client-routed** (`react-router-dom` — see §15 for why it was added). `src/App.tsx`
+maps paths to pages and wraps the content pages in `AppLayout` (bar → `main` → footer); the login
+page is deliberately **outside** that shell. The paths themselves live in
+`src/data/navigation.js`, so the router, the top bar and the footer cannot disagree about a URL.
+
+The shell is the only place `<main>` appears, and it carries `p-0`:
+
+```jsx
+<div>
+  <header className="app-bar sticky top-0 z-50 bg-bar text-on-bar px-0">…</header>
+  <main className="p-0"><Outlet /></main>
+  <footer className="inverse-surface">…</footer>
+</div>
+```
+
+Every content page opens with `PageHeader` — the hero's band shape without the artwork: eyebrow,
+`h1`, lead paragraph, and whatever the page needs next (`children`). It sets the document title too,
+so a page is named in the tab, in history and for a screen reader.
+
+A page owns its route, the state its sections share, and the order they appear in — not their
+markup. The bands, columns and cards it is built from live in `src/sections/`, and anything a second
+page can use is promoted to `src/components/`. §13 ("Where a piece lives") has the four homes and
+the rule for moving a piece up.
+
+`ScrollToTop` puts a route change back at the top, and honours a `#hash` instead — which is what
+makes "Contact" (`/#contact`) and "Registreren" (`/inloggen#registreren`) work from any page.
+
 ### Sections
 
-- Anchored sections clear the sticky header via `section[id] { scroll-margin-block-start: 5rem }`
-  in `index.css` — do not add `scroll-mt-*` per section.
+- Anchored sections clear the sticky header via `:is(section, footer)[id] { scroll-margin-block-start: 5rem }`
+  in `index.css` — do not add `scroll-mt-*` per section. The footer is in that rule because the top
+  bar's "Contact" link lands on it from any page (`/#contact`) and would otherwise sit under the bar.
 - Sections **alternate band → surface → band**: the hero and the footer are `inverse-surface`, the
   content between them is `surface`. In light mode that is paper (`sand-200`) against white — a real
   step, because a 2% tint made the whole page read as white (§3). Cards sitting *on* a band take
@@ -512,8 +551,10 @@ start on the same 20px (mobile) / 32px (desktop) gutter.
 
 ## 7. Components
 
-Prefer a BeerCSS component over hand-built styles. These are the canonical shapes used in
-`homePage.jsx`.
+Prefer a BeerCSS component over hand-built styles. These are the canonical shapes, as they appear in
+`src/sections/hero.jsx` and the pages around it. The shapes that more than one page needs are already
+components — `MapPanel`, `FilterPanel`, `SearchField`, `EmptyState`, `Breadcrumb`, `MapLegend`,
+`SectionHeading`, `PageHeader` — so look for one before writing the markup again (§13).
 
 ```jsx
 // Filled action — a bare <button> is already Deltion-orange with navy text.
@@ -589,18 +630,63 @@ Prefer a BeerCSS component over hand-built styles. These are the canonical shape
 <span className="chip surface-container-lowest absolute right-4 top-4 text-[11px] font-semibold">…</span>
 
 // Range slider (BeerCSS Material 3 slider — the empty <span /> is the filled track)
-// On a phone the surrounding panel is **static under the artwork**; only from `sm`
+// On a phone the surrounding panel is **static under the map**; only from `sm`
 // up does it become an overlay on the map. An overlay covered a third of a
 // 350px-wide map and hid the very thing it controls.
+// The map-layer switch beside it moves this same value, and the range stays
+// **uncontrolled** (§10) — so the switch re-mounts it (`key={sliderKey}`) instead of
+// writing to it. Writing to the node would leave React's value tracker behind, and the
+// next drag onto that same number would be swallowed as "no change". A re-mounted input
+// never fires the event BeerCSS listens for, so the track is repainted through its own
+// API (`globalThis.__BeerCssGlobals__.slider.updateAllSliders()`) on the next frame.
 <label className="slider w-full">
   <span className="sr-only">Schakel tussen de historische en de actuele kaart</span>
-  <input type="range" min="0" max="100" defaultValue={35} onChange={…} />
+  <input key={sliderKey} type="range" min="0" max="100" defaultValue={position} onChange={…} />
   <span />
 </label>
 
 // Band (hero, footer) — `inverse-surface` is the inverted canvas tone, so it is paper in
 // light mode and navy in dark mode. Its contents use the ink utilities like any other section.
 <section className="inverse-surface">…</section>
+
+// Filter chip — outlined when off, `--secondary-container` when on (the role §3 assigns to a
+// selected chip). `border-transparent` takes off the outline a filled chip should not have, and
+// `medium` (40px) + `tap-target` reach the 48px hit area without a bigger visual.
+<button type="button" aria-pressed={active}
+        className={`chip medium tap-target ripple ${active ? "secondary-container border-transparent" : ""}`}>
+  <Icon name="park" className="text-base" />Parken
+</button>
+
+// Checkbox and switch — BeerCSS components (see §2 on selection.css). Both keep the real input
+// as the control: it is the 48px hit area and the thing a screen reader announces, while the
+// `<span>` next to it draws the box/track. The switch's span holds no text, so it is `aria-hidden`.
+<label className="checkbox"><input type="checkbox" aria-label="Onthoud mij" /><span>Onthoud mij</span></label>
+<label className="switch flex-none"><input type="checkbox" aria-label="…" /><span aria-hidden="true" /></label>
+
+// A link that has to look like a button carries BeerCSS's `.button` too — a bare `<a>` is an
+// inline-flex box with no height, padding or fill, so `className="ripple"` alone is a text link.
+<Link to={ROUTES_PATH} className="button border text-ink ripple">Alle routes bekijken</Link>
+
+// Star rating — BeerCSS's `i.fill` flips the Material Symbols FILL axis; empty stars take the
+// muted ink (§3: never opacity). Wrapped in role="img" + aria-label by components/starRating.jsx.
+<Icon name="star" className="fill text-base text-accent" />
+
+// Review histogram — the Material 3 linear progress, tinted by `--primary` (orange on paper,
+// blue on navy). The count beside it carries the information, so the bar is aria-hidden.
+<progress className="medium flex-1" value={count} max={total} aria-hidden="true" />
+
+// Breadcrumb — a plain <nav>. BeerCSS leaves `nav` unstyled apart from flex + a 1rem gap.
+<nav aria-label="Kruimelpad" className="flex flex-wrap items-center gap-2 text-sm text-ink-muted">…</nav>
+
+// Select with a floating label and a chevron. The label floats because it follows the `select`
+// in the markup, and the chevron sits in the field's trailing slot because it is *not* the first
+// child (BeerCSS places the first icon as a prefix). `suffix` reserves the room — see
+// components/filterSelect.jsx for the whole component.
+<div className="field round border label suffix s12 m6 l3">
+  <select id="route-theme" value={theme} onChange={…}>…</select>
+  <label htmlFor="route-theme">Type route</label>
+  <Icon name="expand_more" />
+</div>
 ```
 
 **Color classes come from either system, but only one per element:** BeerCSS on components
@@ -609,33 +695,53 @@ Prefer a BeerCSS component over hand-built styles. These are the canonical shape
 
 ---
 
-## 8. Map artwork
+## 8. Maps
 
-Maps are **inline SVG**, never raster images, and are the one place where the palette is applied
-through Tailwind paint utilities so no hex value appears in JSX.
+Every map surface is **a picture with a drawing on top**: the imagery is a real export of Zwolle
+(files in `src/assets/maps/`, exported by `src/data/maps.js`) and everything the app knows about the
+map — a route line, its stops, a pin — is an SVG overlay from `components/mapArtwork.jsx`.
+
+**Where an image lives.** An asset a component imports belongs in `src/assets/…` and is *imported*,
+so Vite fingerprints the filename and a redeployed map can never be served from a stale cache.
+`public/` is only for files whose *path* is the contract (the favicon, `robots.txt`). The map files
+are kebab-case and say what they contain: `zwolle-historic-1652.png`, `zwolle-satellite.png`,
+`zwolle-satellite-places.png`, `zwolle-satellite-places-terrain.png`,
+`zwolle-satellite-places-terrain-roads.png`.
+
+**One coordinate system.** Overlay points are in 0–100 space and are scaled onto the imagery's own
+viewBox (`1520 × 984`). `object-cover` on the `<img>` and `preserveAspectRatio="xMidYMid slice"` on
+the overlay both centre-crop the same source aspect — that is what keeps the drawn route on the
+right rooftop when a card frame crops the picture.
 
 ```jsx
-<rect width="610" height="390" className="fill-sand-100" />
-<g className="stroke-sand-300" strokeWidth="1.5">…</g>
-<polyline className="stroke-orange-500" … />
-<circle className="fill-orange-500 stroke-white" strokeWidth="2.5" />
+<MapImage image={MAP_IMAGES.roads} className="h-full w-full object-cover" decorative />
+<RouteOverlay path={route.path} />
 ```
 
-- `viewBox="0 0 610 390"` (hero) or `0 0 600 420` (cards), `className="block h-auto w-full"`.
-- Card artwork uses `preserveAspectRatio="xMidYMid slice"` to fill a fixed-height frame
-  (`h-52`, stepping up to `xl:h-64` where the columns are wide enough that a 2:1 frame would crop
-  away the water band).
-- **Toen layer:** `fill-sand-100` base, `fill-sand-200` blocks, `stroke-sand-300` street grid.
-- **Nu layer:** `fill-haze-100` / `fill-haze-200` water, `stroke-haze-300` streets.
-- **Route:** `stroke-orange-500`, `strokeWidth` 3.5 (hero) / 4 (cards), round caps and joins,
-  `strokeDasharray="9 9"` (hero) / `"11 11"` (cards).
-- **Stops:** a `fill-orange-500` dot with a white halo (`strokeWidth` 2.5–3, radius 5.5–6) backed
-  by a larger same-color glow circle at `opacity` 0.2–0.22.
-- **Layer swap:** the historic group carries `.historic-layer` and an inline
-  `--historic-opacity` custom property (`1 - position / 100`); `index.css` owns the transition.
-  Only CSS custom properties may be set inline.
-- **Controls over artwork** get a solid `surface` panel (never a gradient scrim); labels that must
-  survive cropping live in the React layer as chips, not as `<text>`.
+- **`MapImage`** owns the `<img>`: `width`/`height` so the page cannot reflow while a multi-megabyte
+  PNG arrives, `loading="lazy"` for anything below the fold, `priority` (eager + `fetchPriority`)
+  for the one picture that is on the first screen, and `decorative` for a picture the surrounding
+  text already describes.
+- **Overlays are `pointer-events-none` + `aria-hidden`**, and the `<img>`'s `alt` carries the
+  meaning (`alt="Kaart van Zwolle met de route …"`). Choosing a route or a place happens in the
+  React layer — the cards — never on the map itself (§11).
+- **Route drawing:** a white **casing** under the accent line (`stroke-white` at 16 units, then
+  `stroke-orange-500` at 9, dashed, round caps and joins), stops as a `fill-orange-500` dot with a
+  white halo and a glow at `opacity` 0.22. A single orange line disappears into the red roofs and
+  the dark water of a photograph; the casing is the map-design answer, and it adds no colour that is
+  not already in the palette.
+- **The historic/current swap** is a cross-fade of two stacked pictures: the historic one carries
+  `.historic-layer` and inherits `--historic-opacity` (`1 - position / 100`) from the card, which
+  `index.css` turns into an opacity transition. Only CSS custom properties may be set inline.
+- **A round place thumbnail** is an SVG whose `viewBox` *is* the crop window (`PoiCrop`) — no CSS
+  positioning maths, and the frame can stay a circle.
+- **Controls over a map** get a solid `surface` panel or a chip (never a gradient scrim), and text
+  that has to survive cropping lives in the React layer, never as `<text>` in the artwork.
+- **Weight is the open item.** Each export is ~3.5 MB. Re-encoding them as WebP at the same
+  dimensions would cut that to roughly a tenth with no visible difference, but the build cannot do
+  it (Vite copies assets as they are) — so it is a job for whoever owns the imagery. Until then,
+  only the pictures a page actually renders are fetched: the hero's two, one per map below it, and
+  none at all on the pages that show no map.
 
 ---
 
@@ -714,7 +820,7 @@ for the length of its animation.
   animation obeys the same rule as the CSS: transforms and the menu's height are dropped, opacity
   fades still play.
 - **Curves and durations come from the tokens**, not from Motion's defaults: `MOTION_TRANSITION`
-  in `homePage.jsx` is 200ms on `[0.2, 0, 0, 1]` — the same values as `--ease-standard` and the
+  in `src/motion.js` is 200ms on `[0.2, 0, 0, 1]` — the same values as `--ease-standard` and the
   Tailwind default. A bespoke spring or easing is a smell.
 - **CSS first.** If a one-shot entrance can be a keyframe (the hero), it stays a keyframe: no
   JavaScript, no hydration cost. Reach for Motion only when state is involved.
@@ -811,19 +917,60 @@ Smoothness is measured, not assumed:
 The visual language above only holds up if the code holds up. These are the habits that keep it
 there — they apply to every file under `split/src/`.
 
+### Where a piece lives
+
+A piece only ever moves one way: **up**. It starts in the page it was written for, and it is
+promoted the moment a second page needs it — never copied.
+
+| Home | Holds | Rule |
+| --- | --- | --- |
+| `src/pages/` | one file per route, `<name>Page.jsx`, the default export `App.tsx` mounts | resolves the route, owns the state its sections share, and lists the sections in order. It owns a band only when that band holds more than one section. |
+| `src/sections/` | the pieces a page is assembled from: a band, a grid column, a card, a row | **page-scoped**. One component per file, named after the component. |
+| `src/components/` | what two or more pages share, plus the app-level primitives (`AppLayout`, `Navbar`, `Footer`, `ScrollToTop`) | **shared**. Promoted here from `sections/`; a section that turns out to be generic (`MapPanel`, `EmptyState`) belongs here. |
+| `src/data/` | the content and the pure helpers over it | **no JSX**. |
+
+The test is the name. If it needs its page in it ("the planner's map"), it is a section
+(`planMap.jsx`). If the name stands on its own (`MapPanel`, `EmptyState`), it is a component — and
+it was probably already used twice.
+
+A page should read as a table of contents: the header band, then the sections in order. If a page
+file is more than about a hundred lines of markup, a section is still hiding inside it.
+
 ### Naming
 
 | Thing | Convention | Example |
 | --- | --- | --- |
-| Component / page file | **camelCase**, one component per file | `homePage.jsx`, `mapArtwork.jsx`, `themeToggle.jsx` |
-| Component / wrapper file | named for what it renders | `HeroMapArtwork`, `RouteArtwork`, `ThemeToggle`, `Icon` |
-| Content constants | **SCREAMING_SNAKE_CASE**, declared above the component that uses them | `NAV_LINKS`, `ROUTES`, `HERO_ROUTE`, `ROUTE_PREVIEW_COUNT` |
+| Page file | **camelCase** + `Page`, in `src/pages/` | `homePage.jsx`, `routeDetailPage.jsx` |
+| Section / component file | **camelCase**, one component per file, named exactly for the component | `heroMap.jsx` → `HeroMap`, `mapPanel.jsx` → `MapPanel` |
+| Content constants | **SCREAMING_SNAKE_CASE**, declared above the component that uses them | `NAV_LINKS`, `HERO_ROUTE`, `ROUTE_PREVIEW_COUNT` |
 | Props, state, locals | **camelCase**, no abbreviations | `historicOpacity`, `visibleRoutes`, `menuOpen` |
 | Custom CSS class | **kebab-case**, only in `index.css` | `.historic-layer` |
 | CSS variable | **kebab-case** custom property | `--surface-container-low`, `--historic-opacity` |
+| Content module | camelCase file, one topic per file, in `src/data/` | `routes.js`, `pointsOfInterest.js`, `navigation.js` |
+| `Poi` | the established short form for a point of interest | `PoiCard`, `PoiOverlay`, `POI_CATEGORIES`, `filterPointsOfInterest` |
+
+The **suffix says what the thing is**, so a file name can be read without opening it:
+
+| Suffix | Means | Examples |
+| --- | --- | --- |
+| `…Page` | a route's entry point, in `pages/` | `homePage.jsx`, `planningPage.jsx` |
+| `…Preview` | a home-page strip showing a slice of another page, with the link to it | `PopularRoutesPreview`, `PointsOfInterestPreview` |
+| `…Panel` | a framed surface holding a control group or artwork | `MapPanel`, `FilterPanel`, `LoginBrandPanel` |
+| `…Card` | one record on a bordered surface | `RouteCard`, `ReviewCard`, `PoiCard` |
+| `…Row` | one record in a vertical list | `SavedRouteRow` |
+| `…List` | a heading plus the records under it | `SavedRouteList` |
+| `…Form` | the inputs that submit something | `ReviewForm` |
+| `…Filters` | the controls that narrow a list | `RouteFilters`, `PoiFilters` |
+| `…Results` | what a filter left behind, empty state included | `RouteResults`, `PoiResults` |
+| `…Map` | a map panel plus the key that explains it | `PlanMap` |
+| `…Facts` / `…Summary` / `…Story` / `…Stops` | the named column of one page | `RouteFacts`, `RouteSummary`, `RouteStory`, `RouteStops` |
+| `…Overlay` / `…Image` / `…Crop` | artwork: SVG drawn over a map picture, the picture, a cropped piece of it | `RouteOverlay`, `MapImage`, `PoiCrop` |
 
 - Default-export the one public piece of a file; use named exports for siblings (`mapArtwork.jsx`
-  exports `HeroMapArtwork` and `RouteArtwork`).
+  exports `MapImage`, `RouteOverlay`, `PlanningOverlay`, `PoiOverlay` and `PoiCrop`, because they
+  are all the same kind of thing — artwork — and none of them owns the file).
+- A section that is not one of the shapes above is simply named after what it renders
+  (`HeroMap`, `SavedRouteList`), never after where it sits or who uses it.
 - Data that the JSX maps over is a named constant, not an array literal buried in the markup.
 - Never invent a class name that Tailwind or BeerCSS already owns (see the collision table in §2).
 
@@ -831,18 +978,43 @@ there — they apply to every file under `split/src/`.
 
 - Comment **why**, not what. "`-me-2` pulls the glyph onto the gutter" earns its place; "set the
   margin" does not.
-- Every component file opens with a block explaining what it owns and any integration quirk.
-- Every non-obvious class combination next to framework behaviour gets a note — the BeerCSS
-  quirks in this file all exist because something silently did the wrong thing once.
-- Mark deliberate deviations (`/* widened on purpose */`) so the next reader does not "fix" them.
+- **Assume the reader has never seen the file** and does not know this design system. Short
+  sentences, plain words. If a comment needs a paragraph, the code under it is probably doing too
+  much.
+- **Everything lowercase**, except where the case carries meaning: an identifier (`MapPanel`,
+  `--historic-opacity`), a file name (`index.html`), a proper noun (BeerCSS, Tailwind, Deltion,
+  Zwolle) or a quoted UI string. A sentence that opens with one of those keeps its case.
+- Open a component file with a short block saying what the piece is and what it owns; for a
+  section, which page uses it.
+- Note the non-obvious class next to framework behaviour — every BeerCSS quirk in this file exists
+  because something silently did the wrong thing once.
+- Mark deliberate deviations so the next reader does not "fix" them.
+
+**No decoration.** Nothing is drawn around a comment: no `-----` rules, no boxes, no `*` down the
+left edge of a multi-line block. Plain lines that start at column zero:
+
+```jsx
+/*
+routefilters — the filter card above the route overview.
+
+the card itself is FilterPanel; this file owns what goes in it.
+
+the page keeps the filter state, so this component reports a change as a
+(key, value) pair instead of writing it.
+*/
+```
 
 ### React practice
 
 - Function components and hooks only; one responsibility per component.
-- Extract to `src/components/` once a piece is shared: `Icon`, the map artwork, `ThemeToggle`.
+- Extract to `src/components/` once a piece is shared — see "Where a piece lives" above for the four
+  homes and the promotion rule. `Icon`, the map artwork, `ThemeToggle`, `MapPanel` and `EmptyState`
+  are the shapes that got there.
 - Destructure props in the signature and default them (`function Icon({ name, className = "" })`).
 - Derive, don't duplicate: no state that can be computed (`visibleRoutes` from `showAll`).
-- Effects only to sync with something outside React. There is exactly one, in `ThemeToggle`.
+- Effects only to sync with something outside React. There are three, and each one has to be:
+  `ThemeToggle` (the `<body>` class + `localStorage`), `ScrollToTop` (the scroll position) and
+  `PageTitle` (`document.title`).
 - Key lists by a stable id; never the array index.
 - Inline `style` only for CSS custom properties; everything else is a class.
 
@@ -983,6 +1155,9 @@ there — they apply to every file under `split/src/`.
 **The stack is closed: no new dependencies.** Decided 2026-09-14, after evaluating the candidates
 below. This section exists so the decision is visible instead of re-argued.
 
+The one trigger §15 wrote down has since fired — the app became multi-page on 2026-09-18 — so
+`react-router-dom` was installed then. Nothing else has moved.
+
 ### Rules
 
 - **The M3 roles are hand-authored, not generated.** `index.css` derives all ~40 roles in both
@@ -1027,10 +1202,27 @@ tokens in §10, and a library will not make the ripple, the card lift or the her
 | Package | Covers |
 | --- | --- |
 | `beercss` | Material 3 components, 12-column grid, slider, ripple, Material Symbols |
+| `react-router-dom` | Client-side routes: the pages, the active nav link, the breadcrumbs (see below) |
 | `motion` | Enter/exit and list animations (menu, route grid) — `LazyMotion` + `domAnimation`, `m.*` components |
 | `tailwindcss` + `@tailwindcss/vite` | Layout utilities, the ink/hairline aliases, the token pipeline |
 | `react` / `react-dom` | UI runtime |
 | `express`, `mysql2`, `jsonwebtoken`, `bcryptjs` | Declared for `backend/index.mjs` — the collaborator's side, currently unused by the UI |
+
+### Routing (added 2026-09-18)
+
+The trigger was written down in advance: *react-router-dom — "revisit the moment a nav link points
+at a page that is not this one"*. The app is now six pages (`/`, `/routes`, `/routes/:routeId`,
+`/planning`, `/points-of-interest`, `/inloggen`) plus a catch-all, so it fired.
+
+Why the library and not a hand-rolled hash router: the routes are real URLs that get linked to,
+shared and bookmarked, and back/forward, active-link state and breadcrumbs all have to behave.
+That is more than the ten lines §13's rule allows before a dependency is justified.
+
+- Paths live in `src/data/navigation.js`; `App.tsx` maps them to pages and `AppLayout` gives the
+  content pages their shell.
+- `BrowserRouter` (clean URLs, no `#`) expects the host to serve `index.html` for unknown paths.
+  Vite's dev server and `vite preview` both do; **a static host needs an SPA fallback** (or the
+  router has to move to `HashRouter`), otherwise a deep link 404s on load.
 
 ### Evaluated and declined
 
@@ -1039,10 +1231,11 @@ tokens in §10, and a library will not make the ripple, the card lift or the her
 | `material-dynamic-colors` | Generating the full M3 palette from one seed colour (already present as BeerCSS's transitive dependency) | **No** — the roles are hand-authored from the Deltion huisstijl; generating them would trade the design for an approximation |
 | `@material/web` | Google's official M3 web components | **No** — duplicates BeerCSS wholesale; two M3 implementations would fight over tokens and naming |
 | `@tanstack/react-query` | Server-state caching | **No** — there is no API to consume, and the backend is the collaborator's |
-| `react-router-dom` | Client-side routes | Not yet — the nav links are in-page `#` anchors; revisit the moment one points at a page that is not this one |
+| `react-router-dom` | Client-side routes | **Installed 2026-09-18** — the trigger fired with the multi-page app, see above |
 | `leaflet` + `react-leaflet` | Real interactive tile maps | Not yet — revisit if the hand-drawn inline SVG is replaced by a real map |
 | `vitest` + `@testing-library/react` | Unit and component tests | Not yet — revisit when logic moves out of the hero slider and needs a guarantee |
 | `clsx` | Conditional class strings | Not yet — revisit if a class string grows past two conditional branches |
+| A date/format library | Dutch date and number formatting | **No** — `src/format.js` is four functions (~25 lines) and `Intl`/`toLocaleString` already cover the rest |
 
 ---
 

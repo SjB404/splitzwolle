@@ -1,63 +1,65 @@
-/* ======================================================================
-   Zwolle Routes — design tokens
-   Deltion huisstijl: blue · orange · white
-   ====================================================================== */
+/*
+zwolle routes — design tokens.
 
-/* Cascade order. `overrides` is declared first on purpose — see the layer at the
-   bottom of this block. BeerCSS must sit above Tailwind's preflight (otherwise
-   the reset flattens every Material 3 component) and below the utilities (so
-   Tailwind's layout and spacing classes still win). */
+deltion huisstijl: blue, orange, white. every colour below is derived from the two seeds
+further down, so re-branding the app is a two line edit.
+*/
+
+/* cascade order. overrides is declared first on purpose, and the layer at the bottom of
+   this file explains why. beerCSS has to sit above tailwind's preflight, or the reset
+   flattens every material 3 component, and below the utilities, so tailwind's layout and
+   spacing classes still win. */
 @layer overrides, theme, base, beercss, components, utilities;
 
 @import "tailwindcss";
 
-/* BeerCSS, imported piecewise:
-   - `settings/font.css` is skipped: it bundles all three Material Symbols
-     families (~1.4 MB). The one icon family we use is a Google Fonts subset
-     loaded in index.html.
-   - `settings/dark.css` is skipped: it ships BeerCSS's own purple dark palette.
-     The dark theme is defined below from Deltion colors instead, and BeerCSS is
-     told which one is active by the `light`/`dark` class on <body>. */
+/* beerCSS, imported piece by piece:
+   - settings/font.css is skipped: it bundles all three material symbols families, about
+     1.4 mb. the one family this app uses is a google fonts subset loaded in index.html.
+   - settings/dark.css is skipped: it ships beerCSS's own purple dark palette. the dark
+     theme below is built from the deltion colours instead, and beerCSS is told which one
+     is active by the light/dark class on <body>. */
 @import "beercss/src/cdn/settings/reset.css" layer(beercss);
 @import "beercss/src/cdn/settings/global.css" layer(beercss);
 @import "beercss/src/cdn/settings/light.css" layer(beercss);
 @import "beercss/src/cdn/settings/theme.css" layer(beercss);
 @import "beercss/src/cdn/helpers/all.css" layer(beercss);
 @import "beercss/src/cdn/elements/all.css" layer(beercss);
+/* beerCSS 5's elements/all.css does not pull in selection.css, so the material 3 checkbox,
+   radio and switch fall back to the browser's own controls. this app uses checkboxes (the
+   planner) and a switch (the login form), so it is imported here, into the same layer,
+   which leaves the cascade order unchanged. */
+@import "beercss/src/cdn/elements/selection.css" layer(beercss);
 
-/* `static` keeps every token in the built CSS, so the Material 3 role block
-   below can reference them with var() even when no utility uses them. */
+/* static keeps every token in the built css, so the role block below can reference them
+   with var() even when no utility uses them. */
 @theme static {
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-display: "Montserrat", ui-sans-serif, system-ui, -apple-system, sans-serif;
 
-  /* ======================================================================
-     The two brand colours — everything else is derived from these.
+  /* the two brand colours, and everything else is derived from them.
 
-     Deltion blue `#282C6D` and Deltion orange `#F68221` are the entire palette:
-     every surface, hairline, accent and dark-mode step below is a *shade* of one
-     of them. Re-branding the app means editing these two lines and nothing else.
+     deltion blue #282C6D and deltion orange #F68221 are the whole palette: every surface,
+     hairline, accent and dark step below is a shade of one of them. re-branding the app
+     means editing these two lines.
 
-     They are mixed in `oklab` — perceptually even, and the hue does not drift as
-     a shade lightens — toward white for the light steps, and toward black for the
-     deep *blue* steps only. Mixing orange toward black gives brown, so the orange
-     ramp **stops at the brand value**: see below.
-     ====================================================================== */
+     they are mixed in oklab, which is perceptually even and does not let the hue drift as
+     a shade lightens: toward white for the light steps, and toward black for the deep blue
+     steps only. mixing orange toward black gives brown, so the orange ramp stops at the
+     brand value. */
   --seed-orange: #f68221;
   --seed-blue: #282c6d;
 
-  /* Orange — the accent ramp, and only its light half.
+  /* orange, the accent ramp, and only its light half.
 
-     A darkened orange reads as brown: it stops looking like the brand and starts
-     looking like mud. So the ramp goes *lighter* than `#f68221` and never darker,
-     which has one consequence worth stating plainly: on a **light** surface orange
-     is a fill colour, never text — a legible orange there has already turned brown.
-     On the deep navy of the dark theme the true `#f68221` measures 7.4:1, so it
-     carries the headings and accents there at full strength.
+     a darkened orange reads as brown: it stops looking like the brand and starts looking
+     like mud. so the ramp only goes lighter than #f68221, never darker. one consequence is
+     worth stating plainly: on a light surface orange is a fill, never text, because a
+     legible orange there has already turned brown. on the dark theme's navy the true
+     #f68221 measures 7.4:1, so it carries headings and accents at full strength.
 
-     50–100 are the tints (selection, unselected buttons, quiet chips),
-     200–400 are decoration (map water, tints on artwork),
-     500 is the brand orange itself: the bar, filled actions, indicators. */
+     50-100 are the tints (selection, unselected buttons, quiet chips), 200-400 are
+     decoration, and 500 is the brand orange itself: the bar, filled actions, indicators. */
   --color-orange-50: color-mix(in oklab, var(--seed-orange) 6%, white);
   --color-orange-100: color-mix(in oklab, var(--seed-orange) 15%, white);
   --color-orange-200: color-mix(in oklab, var(--seed-orange) 28%, white);
@@ -65,7 +67,7 @@
   --color-orange-400: color-mix(in oklab, var(--seed-orange) 72%, white);
   --color-orange-500: var(--seed-orange);
 
-  /* Blue — the structure ramp: canvases, body text, dark-mode surfaces. */
+  /* blue, the structure ramp: canvases, body text, dark surfaces */
   --color-blue-50: color-mix(in oklab, var(--seed-blue) 5%, white);
   --color-blue-100: color-mix(in oklab, var(--seed-blue) 12%, white);
   --color-blue-200: color-mix(in oklab, var(--seed-blue) 22%, white);
@@ -78,51 +80,47 @@
   --color-blue-900: color-mix(in oklab, var(--seed-blue) 54%, black);
   --color-blue-950: color-mix(in oklab, var(--seed-blue) 40%, black);
 
-  /* Navy — the dark theme's structural surfaces: the deep end of the blue ramp
-     with a third of its chroma taken out.
+  /* navy, the dark theme's structural surfaces: the deep end of the blue ramp with a third
+     of its colour taken out.
 
-     Fading `#282c6d` toward black keeps its full chroma ratio, so at canvas depth
-     it reads as a vivid, *pure* blue once it covers a whole screen. The dark theme
-     wants a greyer, duskier navy instead, so each step is the same tuned blue with
-     its chroma scaled: `oklch(from …)` carries `l` (lightness) and `h` (hue) over
-     untouched and only shrinks `c`. The ramp is still derived, so re-branding by
-     editing the two seeds above keeps working. */
+     fading #282c6d toward black keeps its full chroma ratio, so at canvas depth it reads as
+     a vivid pure blue once it covers a whole screen. the dark theme wants a duskier navy,
+     so each step carries its lightness and hue over untouched and only shrinks the chroma.
+     the ramp is still derived, so re-branding by editing the two seeds keeps working. */
   --color-navy-600: oklch(from var(--color-blue-600) l calc(c * 0.62) h);
   --color-navy-700: oklch(from var(--color-blue-700) l calc(c * 0.62) h);
   --color-navy-800: oklch(from var(--color-blue-800) l calc(c * 0.62) h);
   --color-navy-900: oklch(from var(--color-blue-900) l calc(c * 0.62) h);
   --color-navy-950: oklch(from var(--color-blue-950) l calc(c * 0.62) h);
 
-  /* Paper — the warm neutrals behind the historic layer: orange at low strength
-     over white, which is what makes the light theme read warm without adding a
-     third hue to the palette. */
+  /* paper, the warm neutrals behind the historic layer: orange at low strength over white,
+     which makes the light theme read warm without adding a third hue to the palette */
   --color-sand-50: color-mix(in oklab, var(--seed-orange) 4%, white);
   --color-sand-100: color-mix(in oklab, var(--seed-orange) 9%, white);
   --color-sand-200: color-mix(in oklab, var(--seed-orange) 15%, white);
   --color-sand-300: color-mix(in oklab, var(--seed-orange) 23%, white);
 
-  /* Water — the cool neutrals behind the present-day layer, from the blue seed. */
+  /* water, the cool neutrals behind the present-day layer, from the blue seed */
   --color-haze-100: color-mix(in oklab, var(--seed-blue) 8%, white);
   --color-haze-200: color-mix(in oklab, var(--seed-blue) 13%, white);
   --color-haze-300: color-mix(in oklab, var(--seed-blue) 20%, white);
 
-  /* Material 3 motion curves. `static` so `var(--ease-standard)` always resolves
-     in hand-written CSS, and so Tailwind's `ease-standard` / `ease-exit`
-     utilities exist. Durations stay with BeerCSS's `--speed1/2/3` (100/200/300ms). */
+  /* the app's two motion curves. static so var(--ease-standard) always resolves in
+     hand-written css, and so tailwind's ease-standard / ease-exit utilities exist.
+     durations stay with beerCSS's --speed1/2/3 (100/200/300ms). */
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
 }
 
-/* Material 3 default motion for every Tailwind `transition-*` utility: 200ms on
-   the standard curve. Set once here so no component has to name a duration or a
-   curve — changing the app's motion is a one-line edit. */
+/* the default for every tailwind transition-* utility: 200ms, set once here so no component
+   has to name a duration or a curve */
 @theme {
   --default-transition-duration: 200ms;
   --default-transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
 
-  /* The app's one entrance: the hero's columns rise into place once on load.
-     Declared as a theme animation so `motion-safe:animate-rise` is a utility,
-     and gated with `motion-safe:` at the call site (§10). */
+  /* the app's one entrance: the hero's columns rise into place once on load. declared as a
+     theme animation so motion-safe:animate-rise is a utility, and gated with motion-safe:
+     at the call site. */
   --animate-rise: rise 0.45s var(--ease-standard) both;
 
   @keyframes rise {
@@ -133,9 +131,9 @@
   }
 }
 
-/* Semantic text and hairline utilities, aliased onto the Material 3 roles below.
-   `inline` makes Tailwind emit the *value* (`color: var(--on-surface)`) rather
-   than a copy of it, so `text-ink` follows whichever theme <body> carries. */
+/* semantic text and hairline utilities, aliased onto the roles below. inline makes tailwind
+   emit the value (color: var(--on-surface)) instead of a copy of it, so text-ink follows
+   whichever theme <body> carries. */
 @theme inline {
   --color-ink: var(--on-surface);
   --color-ink-muted: var(--on-surface-variant);
@@ -148,70 +146,67 @@
   --color-on-avatar: var(--on-avatar);
 }
 
-/* ----------------------------------------------------------------------
-   Material 3 color roles.
-   BeerCSS reads these variables for every component, so this block — not
-   the components — decides how the app looks. Every value comes from the
-   Deltion palette above; nothing here is invented.
+/*
+material 3 colour roles.
 
-   The selector mirrors BeerCSS's own `:root, body.light`: it re-declares
-   every role on `body.light`, so we have to match it or its default purple
-   palette wins on <body>.
-   ---------------------------------------------------------------------- */
+beerCSS reads these variables for every component, so this block decides how the app looks,
+not the components. every value comes from the palette above.
+
+the selector mirrors beerCSS's own :root, body.light, because beerCSS re-declares every
+role on body.light: we have to match it, or its default purple palette wins on <body>.
+*/
 :root,
 body.light {
   color-scheme: light;
 
-  /* Primary — Deltion orange: fills, selection, indicators, route lines.
+  /* primary — deltion orange: fills, selection, indicators, route lines.
 
-     Text **on** the brand orange is white, and the pairing is deliberately narrow:
-     white is only used over `orange-500` itself, where the fill is unmissable. On
-     the light tints (`orange-100`, `--primary-container` below) the text goes back
-     to Deltion blue, because white on a tint is unreadable.
+     text on the brand orange is white, and that pairing is deliberately narrow: white is
+     only used over orange-500 itself, where the fill is unmissable. on the light tints
+     (orange-100, --primary-container) the text goes back to deltion blue, because white on
+     a tint is unreadable.
 
-     Worth knowing: white on `#f68221` measures 2.6:1 and blue-950 on it measures
-     7.8:1, so this is the one place the app chooses the brand's own combination over
-     the accessible one. A darker orange would fix the ratio, but every darkened
-     orange is brown — the ramp stops at the brand value for that reason. */
+     worth knowing: white on #f68221 measures 2.6:1 and blue-950 on it measures 7.8:1, so
+     this is the one place the app picks the brand's own combination over the accessible
+     one. a darker orange would fix the ratio, but every darkened orange is brown. */
   --primary: var(--color-orange-500);
   --on-primary: #ffffff;
   --primary-container: var(--color-orange-100);
   --on-primary-container: var(--color-blue-900);
   --inverse-primary: var(--color-orange-500);
 
-  /* Secondary — Deltion blue: structure and quiet surfaces. `secondary-container`
-     is the "selected" tone (BeerCSS `.fill`, the active row in the mobile menu);
-     it is a warm orange tint here because light mode is orange-led. */
+  /* secondary — deltion blue: structure and quiet surfaces. secondary-container is the
+     "selected" tone (beerCSS .fill, the active row in the mobile menu), and it is a warm
+     orange tint here because light mode is orange led. */
   --secondary: var(--color-blue-500);
   --on-secondary: #ffffff;
   --secondary-container: var(--color-orange-100);
   --on-secondary-container: var(--color-blue-900);
 
-  /* Tertiary — the historic paper layer. */
+  /* tertiary — the historic paper layer */
   --tertiary: var(--color-sand-300);
   --on-tertiary: var(--color-blue-900);
   --tertiary-container: var(--color-sand-200);
   --on-tertiary-container: var(--color-blue-900);
 
-  /* Error — Material 3 defaults, deliberately left alone. */
+  /* error — material 3 defaults, deliberately left alone */
   --error: #ba1a1a;
   --on-error: #ffffff;
   --error-container: #ffdad6;
   --on-error-container: #410002;
 
-  /* Headings and accents are the deep Deltion blue — the same colour as body copy,
-     at full strength — because orange text is not an option: every orange that is
-     dark enough to read on paper has already turned brown. Orange stays where it
-     looks good, as a fill: the bar, the selected button, the light tints. */
+  /* headings and accents are the deep deltion blue, the same colour as body copy but at
+     full strength, because orange text is not an option: every orange dark enough to read
+     on paper has already turned brown. orange stays where it looks good, as a fill. */
   --heading: var(--color-blue-500);
   --accent-text: var(--color-blue-500);
 
-  /* Surfaces — white bands, warm canvas, white cards.
-     `--inverse-surface` (the hero and footer bands) is pure white; the content
-     between them sits on warm paper, so the page alternates. Cards are white too,
-     which is what lets them read on the paper canvas. The canvas is `sand-200`
-     rather than `sand-50` because a 4% tint over white is invisible — the
-     alternation has to be visible to exist. */
+  /* surfaces — white bands, warm canvas, white cards.
+
+     --inverse-surface (the hero and footer bands) is pure white, and the content between
+     them sits on warm paper, so the page alternates. cards are white too, which is what
+     lets them read on the paper canvas. the canvas is sand-200 and not sand-50 because a 4%
+     tint over white is invisible: the alternation has to be visible to exist. */
   --background: var(--color-sand-200);
   --on-background: var(--color-blue-900);
   --surface: var(--color-sand-200);
@@ -226,23 +221,23 @@ body.light {
   --surface-container-high: var(--color-sand-200);
   --surface-container-highest: var(--color-sand-300);
 
-  /* Lines — `--outline-variant` is every hairline in the UI (`border-line`), so it
-     has to read on white *and* on paper. */
+  /* lines — --outline-variant is every hairline in the ui (border-line), so it has to read
+     on white and on paper */
   --outline: var(--color-blue-400);
   --outline-variant: var(--color-haze-300);
 
-  /* Inverse — the full-bleed bands (hero, footer). White in light mode. */
+  /* inverse — the full bleed bands (hero, footer). white in light mode. */
   --inverse-surface: #ffffff;
   --inverse-on-surface: var(--color-blue-900);
   --inverse-primary: var(--accent-text);
 
-  /* The top bar wears the true Deltion orange, with white on it: the bar is the
-     brand's loudest surface and white is what the huisstijl puts there. (Blue on
-     orange would be 7.8:1, but it reads as a different palette — see `--primary`.) */
+  /* the top bar wears the true deltion orange with white on it: the bar is the brand's
+     loudest surface, and white is what the huisstijl puts there. blue on orange would be
+     7.8:1, but it reads as a different palette, see --primary. */
   --bar: var(--color-orange-500);
   --on-bar: #ffffff;
 
-  /* The avatar always wears the opposite brand colour to the bar it sits on. */
+  /* the avatar always wears the opposite brand colour to the bar it sits on */
   --avatar: var(--color-blue-500);
   --on-avatar: #ffffff;
 
@@ -252,53 +247,53 @@ body.light {
   --font: var(--font-sans);
 }
 
-/* ----------------------------------------------------------------------
-   Dark theme — the same Material 3 roles for `body.dark`.
+/*
+the dark theme.
 
-   Material 3 inverts the tonal roles in dark mode: the accent is lifted a
-   step so it still reads, and the surfaces step *up* in lightness instead of
-   down. Everything is derived from the Deltion palette; the surface steps are
-   mixed with the cool haze tone so they stay distinguishable in a dark room.
-   ---------------------------------------------------------------------- */
+material 3 inverts the tonal roles here: the accent is lifted a step so it still reads,
+and the surfaces step up in lightness instead of down. everything comes from the deltion
+palette, and the surface steps are mixed with the cool haze tone so they stay apart in a
+dark room.
+*/
 body.dark {
   color-scheme: dark;
 
-  /* Primary — Deltion blue: in this theme the buttons, the selection and the state
-     layers are all blue, and orange is what sits on top as an accent. */
+  /* primary — deltion blue: in this theme the buttons, the selection and the state
+     layers are all blue, and orange is what sits on top as an accent */
   --primary: var(--color-blue-300);
   --on-primary: var(--color-blue-950);
   --primary-container: var(--color-blue-800);
   --on-primary-container: var(--color-blue-100);
   --inverse-primary: var(--color-orange-500);
 
-  /* Secondary — Deltion blue, as a light cool tone. */
+  /* secondary — deltion blue, as a light cool tone */
   --secondary: var(--color-blue-300);
   --on-secondary: var(--color-blue-950);
   --secondary-container: var(--color-blue-800);
   --on-secondary-container: var(--color-blue-100);
 
-  /* Tertiary — the historic paper, inverted. */
+  /* tertiary — the historic paper, inverted */
   --tertiary: var(--color-sand-300);
   --on-tertiary: var(--color-blue-950);
   --tertiary-container: var(--color-blue-800);
   --on-tertiary-container: var(--color-sand-200);
 
-  /* Error — Material 3 defaults, deliberately left alone. */
+  /* error — material 3 defaults, deliberately left alone */
   --error: #ffb4ab;
   --on-error: #690005;
   --error-container: #93000a;
   --on-error-container: #ffdad6;
 
-  /* Headings and accents are the **true brand orange**, undiluted: `#f68221` on
-     the deep navy measures 7.4:1, so the full-strength accent is legible at every
-     size here. On paper the same orange would be 2.6:1 and would have to be
-     darkened until it went brown — which is why the light theme writes in blue
-     instead. Dark mode is where the orange gets to be orange. */
+  /* headings and accents are the true brand orange, undiluted: #f68221 on the deep navy
+     measures 7.4:1, so at full strength it is legible at every size. on paper the same
+     orange would be 2.6:1 and would have to be darkened until it went brown, which is why
+     the light theme writes in blue instead. dark mode is where the orange gets to be
+     orange. */
   --heading: var(--color-orange-500);
   --accent-text: var(--color-orange-500);
 
-  /* Surfaces — the navy ramp, stepping up in lightness instead of down. The steps
-     are wide enough to stay visible on a dark screen, where a shadow cannot help. */
+  /* surfaces — the navy ramp, stepping up in lightness instead of down. the steps are wide
+     enough to stay visible on a dark screen, where a shadow cannot help. */
   --background: var(--color-navy-900);
   --on-background: var(--color-haze-100);
   --surface: var(--color-navy-900);
@@ -313,32 +308,31 @@ body.dark {
   --surface-container-high: var(--color-navy-600);
   --surface-container-highest: color-mix(in oklab, var(--color-navy-600) 80%, white);
 
-  /* Lines — lifted off the surface so borders stay visible. */
+  /* lines — lifted off the surface so borders stay visible */
   --outline: var(--color-blue-400);
   --outline-variant: color-mix(in oklab, var(--color-haze-100) 20%, var(--color-navy-900));
 
-  /* Inverse — the hero and footer bands, one step deeper than the canvas, so they
-     still read as bands. Light mode inverts this: its bands are the white ones. */
+  /* inverse — the hero and footer bands, one step deeper than the canvas so they still read
+     as bands. light mode is the other way round: its bands are the white ones. */
   --inverse-surface: var(--color-navy-950);
   --inverse-on-surface: var(--color-haze-100);
   --inverse-primary: var(--accent-text);
 
-  /* The bar flips to the brand's blue here: dark mode is blue-led, and the orange
-     moves into the logo, the active link and the avatar instead. */
+  /* the bar flips to the brand's blue here, because dark mode is blue led. the orange moves
+     into the logo, the active link and the avatar instead. */
   --bar: var(--color-navy-950);
   --on-bar: var(--color-haze-100);
   --avatar: var(--color-orange-500);
   --on-avatar: var(--color-blue-950);
 
-  /* Scrim and shadow stay black in both themes (that is what Material 3 asks
-     for), but they are declared here too so every role exists in both blocks —
-     a role missing from the dark block silently inherits the light value. */
+  /* material 3 keeps scrim and shadow black in both themes, but they are declared here too so
+     every role exists in both blocks. a role missing from the dark block would silently
+     inherit the light value. */
   --shadow: #000000;
   --scrim: #000000;
 
-  /* BeerCSS's neutral state layer / slider track: a light tint reads as
-     "inactive" on dark, where the default grey would look brighter than the
-     surface it sits on. */
+  /* beerCSS's neutral state layer and slider track: a light tint reads as inactive on dark,
+     where the default grey would look brighter than the surface it sits on */
   --active: color-mix(in oklab, var(--color-haze-100) 14%, transparent);
 }
 
@@ -347,7 +341,7 @@ body.dark {
     scroll-behavior: smooth;
   }
 
-  /* Headings are Montserrat; everything else is Inter. */
+  /* headings are montserrat, everything else is inter */
   :is(h1, h2, h3, h4, h5, h6) {
     font-family: var(--font-display);
   }
@@ -356,62 +350,58 @@ body.dark {
     @apply font-sans antialiased;
   }
 
-  /* Material 3 focus ring: 2px `primary`, offset so it clears the control's own
-     edge. BeerCSS already draws the 2px primary outline; this only adds the
-     offset (which it then does not have to be won back from later). */
+  /* material 3 focus ring: 2px primary, offset so it clears the control's own edge.
+     beerCSS already draws the 2px primary outline, so this only adds the offset. */
   :focus-visible {
     outline-offset: 2px;
   }
 }
 
-/* ----------------------------------------------------------------------
-   Our own component-level overrides.
+/*
+our own component level overrides.
 
-   `components` is declared *after* `beercss`, so a normal declaration here beats
-   the framework's own — and Tailwind utilities (a later layer still) can override
-   it again. That is the layer to reach for before `!important` (§2).
-   ---------------------------------------------------------------------- */
+components is declared after beercss, so a normal declaration here beats the framework's
+own, and tailwind utilities (a later layer still) can override it again. this is the layer
+to reach for before !important.
+*/
 @layer components {
-  /* Headings wear the accent colour, which is what makes the light theme read
-     orange-led and the dark one blue-led with orange highlights. BeerCSS paints
-     h1–h6 with `--on-surface`, and it lives in a later layer than `base`, so this
-     cannot be done from `base`. */
+  /* headings wear the accent colour, which is what makes the light theme read orange led and
+     the dark one blue led with orange highlights. beerCSS paints h1 to h6 with --on-surface
+     from a later layer than base, so this cannot be done from base. */
   :is(h1, h2, h3, h4, h5, h6) {
     color: var(--heading);
   }
 }
 
-/* Anchored sections must clear the sticky header. */
-section[id] {
+/* anchored sections have to clear the sticky header, and the footer is one of them because
+   that is where the top bar's "Contact" link lands */
+:is(section, footer)[id] {
   scroll-margin-block-start: 5rem;
 }
 
-/* ======================================================================
-   Framework overrides
+/*
+framework overrides.
 
-   This layer is declared *before* every other one, which is the whole point:
-   for `!important` declarations the cascade **reverses**, so an important rule in
-   an earlier layer beats one in a later layer. That is the only way to take a
-   property back from BeerCSS, which declares a few of them itself (button radii,
-   for one) — and it keeps every framework override in one readable place.
-   A normal (non-important) declaration here would be the weakest in the file, so
-   everything in this layer carries the flag.
-   ====================================================================== */
+this layer is declared before every other one, which is the whole point: for !important
+declarations the cascade reverses, so an important rule in an earlier layer beats one in a
+later layer. that is the only way to take a property back from beerCSS, which declares a
+few of them itself (button radii, for one), and it keeps every override in one readable
+place. a normal declaration here would be the weakest in the file, so everything in this
+layer carries the flag.
+*/
 @layer overrides {
-  /* Connected button group (BeerCSS's `nav.group.connected`) — the map layer
-     switch. BeerCSS gets the grouping right: one row, 2px seams, `.active` on the
-     selected segment. Three things it leaves wrong for this palette, fixed here:
+  /* the connected button group (beerCSS's nav.group.connected) is the map layer switch.
+     beerCSS gets the grouping right: one row, 2px seams, .active on the selected segment.
+     three things it leaves wrong for this palette, fixed here:
 
-     1. The unselected segment is painted with a surface step, which on paper reads
-        as "nothing at all". It takes `--primary-container` instead, so in light
-        mode the unselected button is a **light orange** and the selected one is the
-        brand orange; in dark mode both are blue, which is what the dark theme's
-        buttons are made of.
-     2. The selected segment gets `--primary` / `--on-primary` — the brand pairing
-        (blue on orange in light, deep blue on light blue in dark) rather than
-        BeerCSS's own one-notch tonal step, which is invisible.
-     3. Its shape is two rounded rectangles. Material 3 wants the outer corners
-        rounded and the seam between the segments square. */
+     1. the unselected segment is painted with a surface step, which on paper reads as
+        nothing at all. it takes --primary-container instead, so in light mode the
+        unselected button is a light orange and the selected one is the brand orange, and
+        in dark mode both are blue, which is what this theme's buttons are made of.
+     2. the selected segment gets --primary / --on-primary, the brand pairing, instead of
+        beerCSS's own one notch tonal step, which is invisible.
+     3. its shape is two rounded rectangles. material 3 wants the outer corners rounded and
+        the seam between the segments square. */
   nav.group.connected > :is(.button, button):not(.active) {
     background-color: var(--primary-container) !important;
     color: var(--on-primary-container) !important;
@@ -422,9 +412,9 @@ section[id] {
     color: var(--on-primary) !important;
   }
 
-  /* Outer corners: Material 3's `corner_full` (the pill BeerCSS already uses for
-     its buttons — `2rem`), so both ends of the group agree. BeerCSS gives the
-     leading segment a pill and the trailing one 8px, which reads as a mistake. */
+  /* outer corners: material 3's corner_full, the pill beerCSS already uses for its buttons
+     (2rem), so both ends of the group agree. beerCSS gives the leading segment a pill and
+     the trailing one 8px, which reads as a mistake. */
   nav.group.connected > :is(.button, button):first-child {
     border-start-start-radius: 2rem !important;
     border-end-start-radius: 2rem !important;
@@ -439,20 +429,18 @@ section[id] {
     border-end-start-radius: 0 !important;
   }
 
-  /* No elevation anywhere. The design separates surfaces with tone and hairlines;
-     a 2px-offset shadow on a 12px-radius card reads as a smudged edge, or worse,
-     as a gradient — which the brief rules out entirely. BeerCSS puts one on every
-     `article`, hence the override. */
+  /* no elevation anywhere. the design separates surfaces with tone and hairlines, and a
+     2px offset shadow on a 12px radius card reads as a smudged edge or worse, as a
+     gradient, which the brief rules out. beerCSS puts one on every article, hence this. */
   article {
     box-shadow: none !important;
   }
 }
 
-/* Material 3 minimum touch target: 48×48px. BeerCSS draws icon buttons at 40px,
-   and growing them would overrun the 320px bar, so the *hit* area is extended
-   past the visual edge instead — the pattern the M3 spec itself recommends for
-   small controls. `::before` is used because BeerCSS already owns `::after` on
-   buttons for its state layer. */
+/* material 3's minimum touch target is 48x48px. beerCSS draws icon buttons at 40px, and
+   growing them would overrun the 320px bar, so the hit area is extended past the visual
+   edge instead, which is the pattern the spec itself recommends for small controls.
+   ::before is used because beerCSS already owns ::after on buttons for its state layer. */
 .tap-target {
   position: relative;
 }
@@ -463,25 +451,26 @@ section[id] {
   border-radius: inherit;
 }
 
-/* Fade the historic map layer out as the slider moves to "Actueel".
-   The opacity itself is a CSS custom property set from the React layer. */
+/* fades the historic map picture out as the slider moves to "Actueel". the layer is an img
+   stacked on the current map, and its opacity is a custom property set by the React layer,
+   so dragging the slider patches one declaration instead of re-rendering the stack. */
 .historic-layer {
   opacity: var(--historic-opacity, 1);
   transition: opacity var(--speed2, 0.2s) var(--ease-standard);
 }
 
-/* Material 3 asks for non-essential motion to stop when the OS requests it.
+/* material 3 asks for non essential motion to stop when the OS requests it.
 
-   That preference is about **movement**, so:
-     - keyframes go (BeerCSS's ripple expansion is the main one here),
-     - movement written as a utility is gated at the call site with Tailwind's
-       `motion-safe:` (the card lift, the hero entrance),
-     - colour and opacity feedback stays: the hover/press state layers are what
-       make a control feel alive, and a UI that goes completely inert reads as
-       broken instead of calm.
+   that preference is about movement, so:
+     - keyframes go (beerCSS's ripple expansion is the main one here),
+     - movement written as a utility is gated at the call site with tailwind's
+       motion-safe: (the card lift, the hero entrance),
+     - colour and opacity feedback stays, because the hover and press state layers are what
+       make a control feel alive, and a ui that goes completely inert reads as broken
+       rather than calm.
 
-   `!important` is normally banned here (§13); this is its one sanctioned use,
-   because it has to outrank framework animations declared later in the cascade. */
+   !important is normally banned in this project. this is its one sanctioned use, because it
+   has to outrank framework animations declared later in the cascade. */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

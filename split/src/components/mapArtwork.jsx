@@ -1,176 +1,285 @@
-/* ---------------------------------------------------------------------------
- * Map artwork — the hand-drawn "toen en nu" illustrations.
- *
- * These are inline SVG rather than images because the two layers have to stay
- * addressable: the React layer fades the historic layer out as the slider moves
- * towards "Actueel".
- *
- * Painting conventions (docs/DESIGN.md §8) — Tailwind paint utilities only, so
- * no hex value ever appears in JSX. Every colour is a shade of the two Deltion
- * brand colours (§3): the historic layer is paper (orange at low strength over
- * white), the present-day layer is water (blue at low strength), and the route is
- * the pure accent.
- *
- *   paper              fill-sand-100      historic blocks   fill-sand-200
- *   historic streets   stroke-sand-300    historic label    fill-blue-700
- *   present-day water  fill-haze-100/200  present streets   stroke-haze-300
- *   route line         stroke-orange-500  stops             fill-orange-500
- *
- * Both pieces are decorative artwork, so they are marked `aria-hidden` or given
- * an accessible name by the caller.
- * ------------------------------------------------------------------------- */
+/*
+map artwork — the pictures a map is built on, plus the layer the app draws over them.
+
+the pictures come from data/maps.js (files in src/assets/maps/): a 1652 engraving and
+some aerial photography. everything the app itself has to say about a map — a route
+line, its stops, a pin — is drawn as svg on top, because a drawing can be redrawn when
+the data changes and a photograph cannot.
+
+one coordinate system: points arrive in 0-100 space and get scaled onto the picture
+here, so the same route draws the same way on the hero, on a card and in the planner.
+preserveAspectRatio="slice" on the svg and object-cover on the img both centre crop
+the same source, which is what keeps the drawn line on the map when a frame crops it.
+
+the route is a white casing under an orange line. a single orange line disappears into
+the red roofs and dark water of a photo, and a casing is the map design answer that
+adds no colour of its own.
+
+the overlays take no pointer events and are aria-hidden: picking a route happens in the
+cards, and the picture's own alt carries what the map means.
+
+the historic/current cross fade is not here. the caller stacks the two pictures and
+fades the top one with the inherited --historic-opacity variable.
+*/
 
 import { memo } from "react";
+import { MAP_SIZE } from "../data/maps.js";
 
-/* A route point in 0–100 space, scaled onto the artwork's viewBox. */
-const ARTWORK_SCALE = { x: 6, y: 4.2 };
+/* the scale from 0-100 space onto the picture's own size, which is the unit both the
+   img and the svg are measured in */
+const MAP_SCALE = { x: MAP_SIZE.width / 100, y: MAP_SIZE.height / 100 };
 
-/* Stops are drawn as a glow, a dot with a white halo, and (on the hero) a
-   label on the first stop. */
-function RouteStop({ cx, cy, glow, radius, haloWidth, label }) {
+/* route thickness, in the picture's own units, one set for every surface. the hero
+   shows the picture at about 640px and a card crops it into a 380px frame, and those
+   two ratios put the same line at a similar optical weight, which is why there is no
+   per surface size any more. */
+const ROUTE_STYLE = { route: 9, casing: 16, dash: "20 18", stop: 11, glow: 24, halo: 5 };
+
+/* how much of the picture a round place thumbnail shows, in picture units */
+const THUMB_ZOOM = 190;
+
+function scalePoints(points, scale) {
+  return points.map(([x, y]) => [x * scale.x, y * scale.y]);
+}
+
+/* a polyline wants "x,y x,y ...", which is the one place the pairs get flattened
+   instead of drawn as separate elements */
+function toPolyline(points) {
+  return points.map(([x, y]) => `${x},${y}`).join(" ");
+}
+
+/*
+the picture itself.
+
+width and height are declared so the page cannot reflow while a multi-megabyte png
+arrives, and priority marks the one image that is part of the first screen (the
+hero's). everything else loads lazily.
+
+image:      an entry from MAP_IMAGES
+className:  sizing, and the default lets the picture decide its own height
+priority:   true for a first screen image
+decorative: true when the text around it already describes the map
+alt:        overrides the picture's own description, for a map that shows something
+            specific (a named route, the current selection)
+*/
+export const MapImage = memo(function MapImage({
+  image,
+  className = "h-auto w-full",
+  priority = false,
+  decorative = false,
+  alt,
+}) {
+  return (
+    <img
+      src={image.src}
+      alt={decorative ? "" : (alt ?? image.alt)}
+      aria-hidden={decorative ? "true" : undefined}
+      width={MAP_SIZE.width}
+      height={MAP_SIZE.height}
+      decoding="async"
+      loading={priority ? "eager" : "lazy"}
+      fetchPriority={priority ? "high" : "auto"}
+      className={`block ${className}`}
+    />
+  );
+});
+
+/* the shared shell for every overlay: full bleed over the picture, cropped the same
+   way object-cover crops it, and out of the accessibility tree */
+function MapOverlay({ children }) {
+  return (
+    <svg
+      viewBox={`0 0 ${MAP_SIZE.width} ${MAP_SIZE.height}`}
+      preserveAspectRatio="xMidYMid slice"
+      className="pointer-events-none absolute inset-0 h-full w-full"
+      aria-hidden="true"
+    >
+      {children}
+    </svg>
+  );
+}
+
+/* a stop: a soft glow, then the dot with a white halo, so it reads on the engraving and
+   on the photo alike */
+function RouteStop({ cx, cy }) {
   return (
     <g>
-      <circle cx={cx} cy={cy} r={glow} className="fill-orange-500" opacity="0.22" />
       <circle
         cx={cx}
         cy={cy}
-        r={radius}
-        className="fill-orange-500 stroke-white"
-        strokeWidth={haloWidth}
+        r={ROUTE_STYLE.glow}
+        className="fill-orange-500"
+        opacity="0.22"
       />
-      {label && (
-        <text
-          x={cx + 16}
-          y={cy + 5}
-          className="fill-blue-700 font-sans"
-          fontSize="13"
-          fontWeight="600"
-        >
-          {label}
-        </text>
-      )}
+      <circle
+        cx={cx}
+        cy={cy}
+        r={ROUTE_STYLE.stop}
+        className="fill-orange-500 stroke-white"
+        strokeWidth={ROUTE_STYLE.halo}
+      />
     </g>
   );
 }
 
-/**
- * Hero illustration (viewBox 610 × 390): the street grid of the historic map on
- * top of the present-day water, with the route drawn over both.
- *
- * The historic layer's opacity is **not a prop**: it reads the inherited
- * `--historic-opacity` custom property, which the caller sets on a wrapping
- * element. Together with `memo` that means dragging the "Historisch ⇄ Actueel"
- * slider patches one style declaration instead of re-rendering the ~90 SVG nodes
- * — the difference between a smooth slider and a visibly stuttering one.
- *
- * @param stops  route points already in viewBox coordinates (a stable array)
- */
-export const HeroMapArtwork = memo(function HeroMapArtwork({ stops }) {
-  const routePoints = stops.map(([x, y]) => `${x},${y}`).join(" ");
+/* one route over any picture: the casing, the accent line, and its stops */
+export const RouteOverlay = memo(function RouteOverlay({ path }) {
+  const points = scalePoints(path, MAP_SCALE);
+  const polyline = toPolyline(points);
 
   return (
-    <svg
-      viewBox="0 0 610 390"
-      className="block h-auto w-full"
-      role="img"
-      aria-label="Kaart van Zwolle met een uitgestippelde route"
-    >
-      {/* Paper base, then the present-day layer across the lower part */}
-      <rect width="610" height="390" className="fill-sand-100" />
-      <rect y="230" width="610" height="160" className="fill-haze-100" />
-
-      {/* Historic layer: fades out as the slider moves to "Actueel" — the opacity
-          comes from the inherited --historic-opacity custom property. */}
-      <g className="historic-layer">
-        <g className="stroke-sand-300" strokeWidth="1.5">
-          <path d="M0 78h610M0 156h610M0 234h610M0 312h610" />
-          <path d="M122 0v390M244 0v390M366 0v390M488 0v390" />
-        </g>
-        <path d="M60 130h150v70H60z" className="fill-sand-200" />
-        <path d="M330 52h190v96H330z" className="fill-sand-200" />
-        <path d="M410 262h140v80H410z" className="fill-haze-200" />
-        <circle cx="150" cy="300" r="46" className="fill-sand-200" />
-      </g>
-
-      {/* Street hints that belong to the present-day layer */}
-      <g className="stroke-haze-300" strokeWidth="2">
-        <path d="M0 300h610M300 230v160" />
-      </g>
-
+    <MapOverlay>
       <polyline
-        points={routePoints}
+        points={polyline}
         fill="none"
-        className="stroke-orange-500"
-        strokeWidth="3.5"
-        strokeDasharray="9 9"
+        className="stroke-white"
+        strokeWidth={ROUTE_STYLE.casing}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-
-      {stops.map(([x, y], index) => (
-        <RouteStop
-          key={`${x}-${y}`}
-          cx={x}
-          cy={y}
-          glow={9}
-          radius={5.5}
-          haloWidth={2.5}
-          label={index === 0 ? "Start" : null}
-        />
+      <polyline
+        points={polyline}
+        fill="none"
+        className="stroke-orange-500"
+        strokeWidth={ROUTE_STYLE.route}
+        strokeDasharray={ROUTE_STYLE.dash}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {points.map(([x, y]) => (
+        <RouteStop key={`${x}-${y}`} cx={x} cy={y} />
       ))}
-    </svg>
+    </MapOverlay>
   );
 });
 
-/**
- * Route card thumbnail (viewBox 600 × 420). The route points arrive in 0–100
- * space and are scaled onto the viewBox; `slice` keeps the artwork filling the
- * card's fixed-height frame.
- *
- * @param path  route points in 0–100 space (a stable array)
- */
-export const RouteArtwork = memo(function RouteArtwork({ path }) {
-  const routePoints = path
-    .map(([x, y]) => `${x * ARTWORK_SCALE.x},${y * ARTWORK_SCALE.y}`)
-    .join(" ");
+/*
+the planner's plan: one line per selected route, with a filled start dot on the first
+point and a hollow finish ring on the last, so a plan of three routes still reads as
+one journey.
+
+paths: route paths in 0-100 space (a stable array of arrays)
+*/
+export const PlanningOverlay = memo(function PlanningOverlay({ paths }) {
+  const lines = paths.map((path) => scalePoints(path, MAP_SCALE));
+  const first = lines[0]?.[0];
+  const last = lines.at(-1)?.at(-1);
+
+  return (
+    <MapOverlay>
+      {lines.map((points) => (
+        <g key={points[0].join("-")}>
+          <polyline
+            points={toPolyline(points)}
+            fill="none"
+            className="stroke-white"
+            strokeWidth={ROUTE_STYLE.casing}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <polyline
+            points={toPolyline(points)}
+            fill="none"
+            className="stroke-orange-500"
+            strokeWidth={ROUTE_STYLE.route}
+            strokeDasharray={ROUTE_STYLE.dash}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </g>
+      ))}
+
+      {first && <RouteStop cx={first[0]} cy={first[1]} />}
+      {last && (
+        <circle
+          cx={last[0]}
+          cy={last[1]}
+          r={ROUTE_STYLE.stop}
+          className="fill-white stroke-orange-500"
+          strokeWidth={ROUTE_STYLE.halo}
+        />
+      )}
+    </MapOverlay>
+  );
+});
+
+/*
+the places map: one pin per place, with the selected one drawn larger and ringed.
+
+points:     places with a position in 0-100 space
+selectedId: the highlighted place, or null
+*/
+export const PoiOverlay = memo(function PoiOverlay({ points, selectedId }) {
+  return (
+    <MapOverlay>
+      {points.map((place) => {
+        const [cx, cy] = scalePoints([place.position], MAP_SCALE)[0];
+        const isSelected = place.id === selectedId;
+
+        return (
+          <g key={place.id}>
+            <circle
+              cx={cx}
+              cy={cy}
+              r={isSelected ? ROUTE_STYLE.glow * 1.6 : ROUTE_STYLE.glow}
+              className="fill-orange-500"
+              opacity="0.22"
+            />
+            <circle
+              cx={cx}
+              cy={cy}
+              r={isSelected ? ROUTE_STYLE.stop * 1.5 : ROUTE_STYLE.stop * 0.85}
+              className="fill-orange-500 stroke-white"
+              strokeWidth={isSelected ? ROUTE_STYLE.halo : ROUTE_STYLE.halo * 0.75}
+            />
+          </g>
+        );
+      })}
+    </MapOverlay>
+  );
+});
+
+/*
+a round crop of the picture, centred on one place: the home page's row of thumbnails.
+
+the crop window is the svg's viewBox, a THUMB_ZOOM sized square around the place, so
+nothing needs positioning or a css transform and the frame can stay a circle.
+
+position: the place's position in 0-100 space
+image:    the picture to crop
+*/
+export const PoiCrop = memo(function PoiCrop({ position, image }) {
+  const [cx, cy] = scalePoints([position], MAP_SCALE)[0];
+  const half = THUMB_ZOOM / 2;
 
   return (
     <svg
-      viewBox="0 0 600 420"
-      preserveAspectRatio="xMidYMid slice"
+      viewBox={`${cx - half} ${cy - half} ${THUMB_ZOOM} ${THUMB_ZOOM}`}
       className="h-full w-full"
       aria-hidden="true"
     >
-      <rect width="600" height="420" className="fill-sand-100" />
-      <rect y="250" width="600" height="170" className="fill-haze-100" />
-
-      <g className="stroke-sand-300" strokeWidth="2">
-        <path d="M0 84h600M0 168h600M0 252h600M0 336h600" />
-        <path d="M120 0v420M240 0v420M360 0v420M480 0v420" />
-      </g>
-      <circle cx="120" cy="330" r="58" className="fill-sand-200" />
-      <path d="M340 40h180v92H340z" className="fill-sand-200" />
-
-      <polyline
-        points={routePoints}
-        fill="none"
-        className="stroke-orange-500"
-        strokeWidth="4"
-        strokeDasharray="11 11"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+      <image
+        href={image.src}
+        x="0"
+        y="0"
+        width={MAP_SIZE.width}
+        height={MAP_SIZE.height}
+        preserveAspectRatio="none"
       />
-
-      {path.map(([x, y]) => (
-        <RouteStop
-          key={`${x}-${y}`}
-          cx={x * ARTWORK_SCALE.x}
-          cy={y * ARTWORK_SCALE.y}
-          glow={11}
-          radius={6}
-          haloWidth={3}
-        />
-      ))}
+      <circle
+        cx={cx}
+        cy={cy}
+        r={THUMB_ZOOM * 0.14}
+        className="fill-orange-500"
+        opacity="0.22"
+      />
+      <circle
+        cx={cx}
+        cy={cy}
+        r={THUMB_ZOOM * 0.055}
+        className="fill-orange-500 stroke-white"
+        strokeWidth={THUMB_ZOOM * 0.03}
+      />
     </svg>
   );
 });

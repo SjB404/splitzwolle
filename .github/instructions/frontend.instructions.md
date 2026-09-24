@@ -108,14 +108,20 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   custom properties in `index.css`. Comment the *why* — especially BeerCSS quirks and deliberate
   deviations. `docs/DESIGN.md` §13 has the full craft rules.
 - **Icons are Material Symbols** via `<Icon name="…" />`. Adding an icon means adding its name to
-  the subset URL in `split/index.html` first. Maps stay hand-drawn inline SVG, painted with
-  Tailwind `fill-*` / `stroke-*` utilities so no hex appears in JSX.
+  the subset URL in `split/index.html` first.
+- **Maps are a picture plus a drawing.** The imagery lives in `src/assets/maps/` and is imported
+  through `src/data/maps.js` (imported assets are fingerprinted by Vite — `public/` is only for
+  files whose *path* is fixed, like the favicon). Routes, stops and pins are inline SVG overlays
+  from `components/mapArtwork.jsx`, painted with Tailwind `fill-*` / `stroke-*` utilities so no hex
+  appears in JSX, positioned in 0–100 space. Overlays never take pointer events; the picture's
+  `alt` carries the meaning (DESIGN.md §8).
 
 ## React best practices
 
 - **Function components + hooks only.** No classes, no legacy lifecycle patterns.
-- **One component per responsibility.** Small helpers live in the same page file; extract to
-  `src/components/` only once a piece is reused in two or more places.
+- **One component per file, one responsibility per component.** A piece a single page needs lives in
+  `src/sections/`; the moment a second page needs it, promote it to `src/components/` — see
+  `docs/DESIGN.md` §13 ("Where a piece lives") and the suffix table there before naming anything.
 - **Semantic HTML:** `header` / `nav` / `main` / `section` / `article` / `footer`, not `div` soup.
 - **Props are destructured in the signature** with defaults: `function Badge({ label, tone = "brand" })`.
 - **Lists render stable keys** from data ids — never the array index.
@@ -125,11 +131,18 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
 - **No inline `style` except CSS custom properties** for dynamic values, e.g.
   `style={{ "--historic-opacity": value }}`. Static styling is always a Tailwind class.
 - **Never mutate props or state** — derive new arrays/objects.
-- **Keep effects out unless syncing with an external system.** There is exactly one `useEffect`
-  in the codebase — `ThemeToggle` writing the theme class to `<body>` and localStorage. Never add
-  one to compute render values.
-- **File naming:** pages are `PascalCase` files exporting a default component
-  (`src/pages/homePage.jsx` → `HomePage`). `App.tsx` only composes and renders pages.
+- **Keep effects out unless syncing with an external system.** There are three, and each one has to
+  be: `ThemeToggle` (the `<body>` class + localStorage), `ScrollToTop` (the scroll position after a
+  route change) and `PageTitle` (`document.title`). Never add one to compute render values.
+- **File naming:** camelCase files, one component each, named exactly for the component —
+  `src/pages/homePage.jsx` → `HomePage`, `src/sections/heroMap.jsx` → `HeroMap`,
+  `src/components/mapPanel.jsx` → `MapPanel`. A page owns its route, the state its sections share and
+  the order they appear in; the markup lives in its sections. `App.tsx` only maps paths to pages.
+- **Routing:** paths live in `src/data/navigation.js` and are used with `<Link to={…}>`. A link that
+  has to look like a button carries BeerCSS's `.button` (`className="button border text-ink ripple"`)
+  — a bare `<a>` has no height, padding or fill, so `ripple` alone renders a text link. The bar,
+  `main` and footer are `components/appLayout.jsx`; a content page starts with `<PageHeader>`
+  (band + title, and it sets the document title). The login page is outside the shell on purpose.
 
 ## Accessibility
 
@@ -155,6 +168,11 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   re-applies a stored `dark` choice before the first paint — keep its storage key in sync with
   `src/components/themeToggle.jsx`.
 - BeerCSS's `<i>` icon ligatures only render if the name is in the Google Fonts subset URL in
-  `split/index.html`.
+  `split/index.html`. That includes the glyphs BeerCSS components draw themselves —
+  `check_box`, `check_box_outline_blank` (checkbox) and `check` (switch). A filled Material Symbol
+  (the rating stars) is BeerCSS's `i.fill`, which flips the `FILL` axis.
+- `split/src/index.css` imports `elements/selection.css` **in addition to** `elements/all.css`:
+  BeerCSS 5's `all.css` does not pull it in, and without it checkboxes, radios and switches fall
+  back to the browser's own controls. Keep it inside `layer(beercss)`.
 - Validate with `npm --prefix split/split run build` and `npm --prefix split/split run lint`,
   and check the result in the browser at http://localhost:5173.
