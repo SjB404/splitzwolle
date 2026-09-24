@@ -1,7 +1,7 @@
 ---
 description: "Use when building or editing UI in this project — React components, pages, JSX/TSX, styling, BeerCSS or Tailwind classes, colors, typography, or design tokens. Covers the Zwolle Routes Material 3 design system (BeerCSS + Deltion colors), component recipes, and React best practices. Read docs/DESIGN.md for the full reference."
 applyTo:
-  - "split/src/**/*.jsx"
+  - "split/src/**/*.ts"
   - "split/src/**/*.tsx"
   - "split/src/**/*.css"
 ---
@@ -40,7 +40,7 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   restraint. Never write `text-orange-*` either: it is a **fill** tone (2.6:1 on white). Accent text
   uses `text-accent` — Deltion blue in light mode, the true brand orange in dark mode.
 - **Both themes are supported.** The palette is chosen by the `light`/`dark` class on `<body>`
-  (see `src/components/themeToggle.jsx`); components never branch on the theme, they just read
+  (see `src/components/themeToggle.tsx`); components never branch on the theme, they just read
   roles. Anything hardcoded to the light palette will break dark mode.
 - **Text on the brand orange is white; text on a light orange tint is blue.** White goes **only** on
   `orange-500` itself — the bar, the selected segment, a filled action, the artwork badge — never on
@@ -101,9 +101,9 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   `motion-safe:` on anything that *moves* (lifts, entrances).
 - **`motion` is for enter/exit and list changes only** — `m.*` components (never `motion.*`, the
   root `LazyMotion` is `strict`), with `AnimatePresence`, and curves taken from `MOTION_TRANSITION`
-  in `homePage.jsx`. One-shot entrances stay CSS keyframes. **Never add scroll animations**
+  in `src/motion.ts`. One-shot entrances stay CSS keyframes. **Never add scroll animations**
   (fade/fly-in on scroll, parallax): they are noise. Full rules and measured numbers: DESIGN.md §10.
-- **Naming:** camelCase for files/identifiers (`homePage.jsx`, `historicOpacity`), PascalCase
+- **Naming:** camelCase for files/identifiers (`homePage.tsx`, `historicOpacity`), PascalCase
   components, SCREAMING_SNAKE for content constants (`ROUTES`), kebab-case for the few classes and
   custom properties in `index.css`. Comment the *why* — especially BeerCSS quirks and deliberate
   deviations. `docs/DESIGN.md` §13 has the full craft rules.
@@ -112,13 +112,22 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
 - **Maps are a picture plus a drawing.** The imagery lives in `src/assets/maps/` and is imported
   through `src/data/maps.js` (imported assets are fingerprinted by Vite — `public/` is only for
   files whose *path* is fixed, like the favicon). Routes, stops and pins are inline SVG overlays
-  from `components/mapArtwork.jsx`, painted with Tailwind `fill-*` / `stroke-*` utilities so no hex
+  from `components/mapArtwork.tsx`, painted with Tailwind `fill-*` / `stroke-*` utilities so no hex
   appears in JSX, positioned in 0–100 space. Overlays never take pointer events; the picture's
   `alt` carries the meaning (DESIGN.md §8).
 
 ## React best practices
 
 - **Function components + hooks only.** No classes, no legacy lifecycle patterns.
+- **Types first.** The content's shape comes from `src/types.ts` (`Route`, `PointOfInterest`,
+  `MapPicture`, the filter state) — a component names the type it needs instead of listing the
+  fields it reads. Props are an `interface <Component>Props` above the component, optional fields
+  defaulted in the signature, and a closed set of values (`RouteTheme`, `AuthMode`, a filter) is a
+  **union**, never `string`.
+- **Reuse before you write markup.** `Container` owns the page width and gutter, `RouteGrid` the
+  grid route cards are listed in, `ClearFiltersButton` the way out of a filtered list and `MapChip`
+  a label on a map. If a piece exists, it takes props — copy it into a second file and the two
+  copies start to drift (§13, „Where a piece lives“).
 - **One component per file, one responsibility per component.** A piece a single page needs lives in
   `src/sections/`; the moment a second page needs it, promote it to `src/components/` — see
   `docs/DESIGN.md` §13 ("Where a piece lives") and the suffix table there before naming anything.
@@ -135,13 +144,13 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   be: `ThemeToggle` (the `<body>` class + localStorage), `ScrollToTop` (the scroll position after a
   route change) and `PageTitle` (`document.title`). Never add one to compute render values.
 - **File naming:** camelCase files, one component each, named exactly for the component —
-  `src/pages/homePage.jsx` → `HomePage`, `src/sections/heroMap.jsx` → `HeroMap`,
-  `src/components/mapPanel.jsx` → `MapPanel`. A page owns its route, the state its sections share and
+  `src/pages/homePage.tsx` → `HomePage`, `src/sections/heroMap.tsx` → `HeroMap`,
+  `src/components/mapPanel.tsx` → `MapPanel`. A page owns its route, the state its sections share and
   the order they appear in; the markup lives in its sections. `App.tsx` only maps paths to pages.
 - **Routing:** paths live in `src/data/navigation.js` and are used with `<Link to={…}>`. A link that
   has to look like a button carries BeerCSS's `.button` (`className="button border text-ink ripple"`)
   — a bare `<a>` has no height, padding or fill, so `ripple` alone renders a text link. The bar,
-  `main` and footer are `components/appLayout.jsx`; a content page starts with `<PageHeader>`
+  `main` and footer are `components/appLayout.tsx`; a content page starts with `<PageHeader>`
   (band + title, and it sets the document title). The login page is outside the shell on purpose.
 
 ## Accessibility
@@ -166,7 +175,7 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
 - `<body class="light">` in `split/index.html` is the default theme **and** the signal that stops
   BeerCSS from following the OS preference into its own purple palette. The inline script there
   re-applies a stored `dark` choice before the first paint — keep its storage key in sync with
-  `src/components/themeToggle.jsx`.
+  `src/components/themeToggle.tsx`.
 - BeerCSS's `<i>` icon ligatures only render if the name is in the Google Fonts subset URL in
   `split/index.html`. That includes the glyphs BeerCSS components draw themselves —
   `check_box`, `check_box_outline_blank` (checkbox) and `check` (switch). A filled Material Symbol

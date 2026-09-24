@@ -2,22 +2,22 @@ import { LazyMotion, MotionConfig, domAnimation } from 'motion/react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import './App.css'
 import './index.css'
-import AppLayout from './components/appLayout.jsx'
-import ScrollToTop from './components/scrollToTop.jsx'
-import HomePage from './pages/homePage.jsx'
-import LoginPage from './pages/loginPage.jsx'
-import NotFoundPage from './pages/notFoundPage.jsx'
-import PlanningPage from './pages/planningPage.jsx'
-import PointsOfInterestPage from './pages/pointsOfInterestPage.jsx'
-import RouteDetailPage from './pages/routeDetailPage.jsx'
-import RoutesPage from './pages/routesPage.jsx'
+import AppLayout from './components/appLayout.tsx'
+import ScrollToTop from './components/scrollToTop.tsx'
+import HomePage from './pages/homePage.tsx'
+import LoginPage from './pages/loginPage.tsx'
+import NotFoundPage from './pages/notFoundPage.tsx'
+import PlanningPage from './pages/planningPage.tsx'
+import PointsOfInterestPage from './pages/pointsOfInterestPage.tsx'
+import RouteDetailPage from './pages/routeDetailPage.tsx'
+import RoutesPage from './pages/routesPage.tsx'
 import {
   HOME_PATH,
   LOGIN_PATH,
   PLANNING_PATH,
   POI_PATH,
   ROUTES_PATH,
-} from './data/navigation.js'
+} from './data/navigation.ts'
 
 /* two root level settings, and only here on purpose:
 

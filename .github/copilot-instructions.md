@@ -26,7 +26,7 @@ code** — do not re-derive styles by scanning the project.
   Material 3 spec.
 - Upstream spec digest: `docs/reference/material-3-reference.md` (component metrics, type scale,
   motion curves, accessibility) — consult it for spec numbers, DESIGN.md for decisions.
-- Auto-applied rules for `split/src/**/*.{jsx,tsx,css}`:
+  Auto-applied rules for `split/src/**/*.{ts,tsx,css}`:
   `.github/instructions/frontend.instructions.md`
 
 ## Stack
@@ -43,7 +43,7 @@ Express is a declared dependency for the (currently minimal) `split/backend/` fo
 - `src/index.css` — Tailwind import + all `@theme` design tokens
 - `src/main.tsx` — entry, mounts `<App />`
 - `src/App.tsx` — the router: paths → pages, plus the root `LazyMotion` / `MotionConfig`
-- `src/pages/*.jsx` — one page per route, camelCase file name ending in `Page`, default export.
+- `src/pages/*.tsx` — one page per route, camelCase file name ending in `Page`, default export.
   A page is a table of contents: it resolves the route, owns the state its sections share, and
   lists them in order (`homePage`, `routesPage`, `routeDetailPage`, `planningPage`,
   `pointsOfInterestPage`, `loginPage`, `notFoundPage`).
@@ -53,10 +53,13 @@ Express is a declared dependency for the (currently minimal) `split/backend/` fo
 - `src/components/` — what pages share (`appLayout`, `navbar`, `footer`, `pageHeader`,
   `sectionHeading`, `routeCard`, `starRating`, `filterSelect`, `icon`, `themeToggle`, `pageTitle`,
   `scrollToTop`, `mapArtwork`) plus the reusable composites lifted out of the sections:
-  `mapPanel`, `filterPanel`, `searchField`, `emptyState`, `breadcrumb`, `mapLegend`, `textButton`
-- `src/data/` — the content the pages share (`routes.js`, `pointsOfInterest.js`,
-  `navigation.js`, `maps.js`); `src/format.js` formats the Dutch `nl-NL` values
-- `src/assets/maps/` — the map imagery, imported by `src/data/maps.js`
+  `container`, `mapPanel`, `filterPanel`, `searchField`, `emptyState`, `breadcrumb`, `mapLegend`,
+  `textButton`, `routeGrid`, `mapChip`, `clearFiltersButton`
+- `src/data/` — the content the pages share (`routes.ts`, `pointsOfInterest.ts`,
+  `navigation.ts`, `maps.ts`); `src/format.ts` formats the Dutch `nl-NL` values
+- `src/types.ts` — the shape of that content (`Route`, `PointOfInterest`, `MapPicture`, the filter
+  state): the one place the domain vocabulary is written down
+- `src/assets/maps/` — the map imagery, imported by `src/data/maps.ts`
 - `backend/index.mjs` — Express API
 - `public/` — static assets
 
@@ -73,13 +76,14 @@ Run from the repo root using `--prefix` (the terminal tool strips `cd` prefixes)
 
 ## Conventions
 
-- **Paths are declared once** in `src/data/navigation.js` — the router, the top bar and the
+- **Paths are declared once** in `src/data/navigation.ts` — the router, the top bar and the
   footer all read them from there, so a renamed URL cannot leave a stale link behind.
 - **Verify UI changes in the browser** at http://localhost:5173, and run the production build
   before finishing.
 - UI copy is Dutch (`nl-NL`); code, comments, and commits are English.
-- `tsc -b` requires `allowJs: true` in `split/tsconfig.app.json` for the `.jsx` pages —
-  keep it enabled.
+- Everything under `split/src/` is TypeScript — `.tsx` for anything with markup, `.ts` for data,
+  types and pure helpers — and `split/tsconfig.app.json` has `strict: true`. `allowJs` is off: a
+  stray `.js` file in `src/` is a file that will not be compiled.
 - BeerCSS and Material Symbols are the only UI dependencies; don't add more (no icon
   libraries, no animation libraries, no component kits). Everything else is Tailwind
   utilities, the Material 3 CSS variables in `split/src/index.css`, the map imagery in

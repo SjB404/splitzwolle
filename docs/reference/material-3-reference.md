@@ -10,7 +10,7 @@ Placeholders from the original draft are resolved for this project:
 | Placeholder | This project |
 | --- | --- |
 | `[DESIGN_FILE_PATH]` | `docs/DESIGN.md` (decisions) + `split/src/index.css` (the role values) |
-| `[theme_toggle_mechanism]` | the `light` / `dark` class on `<body>`, owned by `split/src/components/themeToggle.jsx` |
+| `[theme_toggle_mechanism]` | the `light` / `dark` class on `<body>`, owned by `split/src/components/themeToggle.tsx` |
 | `[dark_mode_mechanism]` | `body.dark` (BeerCSS reads the same class) |
 
 House rules that override the spec: **no gradients anywhere**, the palette is the

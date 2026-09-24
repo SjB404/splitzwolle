@@ -97,7 +97,7 @@ Tailwind utility of the same name:
 ### Icons
 
 - Icons are **Material Symbols** rendered with BeerCSS's `<i>` element
-  (`<i className="text-base">search</i>`), via the `<Icon>` helper in `src/components/icon.jsx`.
+  (`<i className="text-base">search</i>`), via the `<Icon>` helper in `src/components/icon.tsx`.
 - The font is a **Google Fonts subset**, linked in `index.html`. **Adding a new icon means
   adding its name to that URL first** — otherwise the ligature renders as literal text. That
   includes the glyphs BeerCSS's own components draw (`check_box`, `check_box_outline_blank`,
@@ -130,7 +130,7 @@ read roles, so they never branch on the theme.
 | --- | --- |
 | `index.html` → `<body class="light">` | The default, and the signal that stops BeerCSS from auto-switching to its own palette |
 | `index.html` → inline script | Re-applies the stored theme before the first paint, so there is no flash |
-| `src/components/themeToggle.jsx` | Owns the state, writes the `<body>` class and persists the choice to `localStorage` |
+| `src/components/themeToggle.tsx` | Owns the state, writes the `<body>` class and persists the choice to `localStorage` |
 
 Adding a theme-aware colour means adding a **role** to both blocks in `src/index.css`, not a
 fixed colour in a component. Three effects exist in the whole codebase, and each syncs with
@@ -552,9 +552,10 @@ makes "Contact" (`/#contact`) and "Registreren" (`/inloggen#registreren`) work f
 ## 7. Components
 
 Prefer a BeerCSS component over hand-built styles. These are the canonical shapes, as they appear in
-`src/sections/hero.jsx` and the pages around it. The shapes that more than one page needs are already
+`src/sections/hero.tsx` and the pages around it. The shapes that more than one page needs are already
 components — `MapPanel`, `FilterPanel`, `SearchField`, `EmptyState`, `Breadcrumb`, `MapLegend`,
-`SectionHeading`, `PageHeader` — so look for one before writing the markup again (§13).
+`SectionHeading`, `PageHeader`, `RouteGrid`, `MapChip`, `ClearFiltersButton`, `Container` — so look
+for one before writing the markup again (§13).
 
 ```jsx
 // Filled action — a bare <button> is already Deltion-orange with navy text.
@@ -567,7 +568,7 @@ components — `MapPanel`, `FilterPanel`, `SearchField`, `EmptyState`, `Breadcru
 <button type="button" className="border text-ink ripple">Alle routes bekijken</button>
 
 // Theme switch — the only stateful control in the header.
-// See src/components/themeToggle.jsx for the <body> class + localStorage sync.
+// See src/components/themeToggle.tsx for the <body> class + localStorage sync.
 <ThemeToggle />
 
 // Icon-only button — `tap-target` keeps the 40px circle but gives it a 48px hit area,
@@ -668,7 +669,7 @@ components — `MapPanel`, `FilterPanel`, `SearchField`, `EmptyState`, `Breadcru
 <Link to={ROUTES_PATH} className="button border text-ink ripple">Alle routes bekijken</Link>
 
 // Star rating — BeerCSS's `i.fill` flips the Material Symbols FILL axis; empty stars take the
-// muted ink (§3: never opacity). Wrapped in role="img" + aria-label by components/starRating.jsx.
+// muted ink (§3: never opacity). Wrapped in role="img" + aria-label by components/starRating.tsx.
 <Icon name="star" className="fill text-base text-accent" />
 
 // Review histogram — the Material 3 linear progress, tinted by `--primary` (orange on paper,
@@ -681,7 +682,7 @@ components — `MapPanel`, `FilterPanel`, `SearchField`, `EmptyState`, `Breadcru
 // Select with a floating label and a chevron. The label floats because it follows the `select`
 // in the markup, and the chevron sits in the field's trailing slot because it is *not* the first
 // child (BeerCSS places the first icon as a prefix). `suffix` reserves the room — see
-// components/filterSelect.jsx for the whole component.
+// components/filterSelect.tsx for the whole component.
 <div className="field round border label suffix s12 m6 l3">
   <select id="route-theme" value={theme} onChange={…}>…</select>
   <label htmlFor="route-theme">Type route</label>
@@ -698,8 +699,8 @@ components — `MapPanel`, `FilterPanel`, `SearchField`, `EmptyState`, `Breadcru
 ## 8. Maps
 
 Every map surface is **a picture with a drawing on top**: the imagery is a real export of Zwolle
-(files in `src/assets/maps/`, exported by `src/data/maps.js`) and everything the app knows about the
-map — a route line, its stops, a pin — is an SVG overlay from `components/mapArtwork.jsx`.
+(files in `src/assets/maps/`, exported by `src/data/maps.ts`) and everything the app knows about the
+map — a route line, its stops, a pin — is an SVG overlay from `components/mapArtwork.tsx`.
 
 **Where an image lives.** An asset a component imports belongs in `src/assets/…` and is *imported*,
 so Vite fingerprints the filename and a redeployed map can never be served from a stale cache.
@@ -820,7 +821,7 @@ for the length of its animation.
   animation obeys the same rule as the CSS: transforms and the menu's height are dropped, opacity
   fades still play.
 - **Curves and durations come from the tokens**, not from Motion's defaults: `MOTION_TRANSITION`
-  in `src/motion.js` is 200ms on `[0.2, 0, 0, 1]` — the same values as `--ease-standard` and the
+  in `src/motion.ts` is 200ms on `[0.2, 0, 0, 1]` — the same values as `--ease-standard` and the
   Tailwind default. A bespoke spring or easing is a smell.
 - **CSS first.** If a one-shot entrance can be a keyframe (the hero), it stays a keyframe: no
   JavaScript, no hydration cost. Reach for Motion only when state is involved.
@@ -924,13 +925,14 @@ promoted the moment a second page needs it — never copied.
 
 | Home | Holds | Rule |
 | --- | --- | --- |
-| `src/pages/` | one file per route, `<name>Page.jsx`, the default export `App.tsx` mounts | resolves the route, owns the state its sections share, and lists the sections in order. It owns a band only when that band holds more than one section. |
+| `src/pages/` | one file per route, `<name>Page.tsx`, the default export `App.tsx` mounts | resolves the route, owns the state its sections share, and lists the sections in order. It owns a band only when that band holds more than one section. |
 | `src/sections/` | the pieces a page is assembled from: a band, a grid column, a card, a row | **page-scoped**. One component per file, named after the component. |
 | `src/components/` | what two or more pages share, plus the app-level primitives (`AppLayout`, `Navbar`, `Footer`, `ScrollToTop`) | **shared**. Promoted here from `sections/`; a section that turns out to be generic (`MapPanel`, `EmptyState`) belongs here. |
-| `src/data/` | the content and the pure helpers over it | **no JSX**. |
+| `src/data/` | the content and the pure helpers over it | **content and logic only** — no components. |
+| `src/types.ts` | the shape of that content: `Route`, `PointOfInterest`, `MapPicture`, `RouteFilterState`, `AuthMode` | **types only**, no runtime code. A component names the type it needs instead of repeating its fields. |
 
 The test is the name. If it needs its page in it ("the planner's map"), it is a section
-(`planMap.jsx`). If the name stands on its own (`MapPanel`, `EmptyState`), it is a component — and
+(`planMap.tsx`). If the name stands on its own (`MapPanel`, `EmptyState`), it is a component — and
 it was probably already used twice.
 
 A page should read as a table of contents: the header band, then the sections in order. If a page
@@ -940,25 +942,29 @@ file is more than about a hundred lines of markup, a section is still hiding ins
 
 | Thing | Convention | Example |
 | --- | --- | --- |
-| Page file | **camelCase** + `Page`, in `src/pages/` | `homePage.jsx`, `routeDetailPage.jsx` |
-| Section / component file | **camelCase**, one component per file, named exactly for the component | `heroMap.jsx` → `HeroMap`, `mapPanel.jsx` → `MapPanel` |
+| Page file | **camelCase** + `Page`, in `src/pages/` | `homePage.tsx`, `routeDetailPage.tsx` |
+| Section / component file | **camelCase**, one component per file, named exactly for the component | `heroMap.tsx` → `HeroMap`, `mapPanel.tsx` → `MapPanel` |
+| Domain type | **PascalCase**, in `src/types.ts` | `Route`, `StarBucket`, `MapPicture`, `PoiFilterState` |
 | Content constants | **SCREAMING_SNAKE_CASE**, declared above the component that uses them | `NAV_LINKS`, `HERO_ROUTE`, `ROUTE_PREVIEW_COUNT` |
 | Props, state, locals | **camelCase**, no abbreviations | `historicOpacity`, `visibleRoutes`, `menuOpen` |
 | Custom CSS class | **kebab-case**, only in `index.css` | `.historic-layer` |
 | CSS variable | **kebab-case** custom property | `--surface-container-low`, `--historic-opacity` |
-| Content module | camelCase file, one topic per file, in `src/data/` | `routes.js`, `pointsOfInterest.js`, `navigation.js` |
+| Content module | camelCase file, one topic per file, in `src/data/` | `routes.ts`, `pointsOfInterest.ts`, `navigation.ts` |
 | `Poi` | the established short form for a point of interest | `PoiCard`, `PoiOverlay`, `POI_CATEGORIES`, `filterPointsOfInterest` |
 
 The **suffix says what the thing is**, so a file name can be read without opening it:
 
 | Suffix | Means | Examples |
 | --- | --- | --- |
-| `…Page` | a route's entry point, in `pages/` | `homePage.jsx`, `planningPage.jsx` |
+| `…Page` | a route's entry point, in `pages/` | `homePage.tsx`, `planningPage.tsx` |
 | `…Preview` | a home-page strip showing a slice of another page, with the link to it | `PopularRoutesPreview`, `PointsOfInterestPreview` |
 | `…Panel` | a framed surface holding a control group or artwork | `MapPanel`, `FilterPanel`, `LoginBrandPanel` |
 | `…Card` | one record on a bordered surface | `RouteCard`, `ReviewCard`, `PoiCard` |
 | `…Row` | one record in a vertical list | `SavedRouteRow` |
 | `…List` | a heading plus the records under it | `SavedRouteList` |
+| `…Grid` | the grid a repeating card is laid out in, fade included | `RouteGrid` |
+| `…Button` | one action, in the shape the design gives it | `ClearFiltersButton` |
+| `…Chip` | a small labelled token that sits on a surface | `MapChip` |
 | `…Form` | the inputs that submit something | `ReviewForm` |
 | `…Filters` | the controls that narrow a list | `RouteFilters`, `PoiFilters` |
 | `…Results` | what a filter left behind, empty state included | `RouteResults`, `PoiResults` |
@@ -966,13 +972,29 @@ The **suffix says what the thing is**, so a file name can be read without openin
 | `…Facts` / `…Summary` / `…Story` / `…Stops` | the named column of one page | `RouteFacts`, `RouteSummary`, `RouteStory`, `RouteStops` |
 | `…Overlay` / `…Image` / `…Crop` | artwork: SVG drawn over a map picture, the picture, a cropped piece of it | `RouteOverlay`, `MapImage`, `PoiCrop` |
 
-- Default-export the one public piece of a file; use named exports for siblings (`mapArtwork.jsx`
+- Default-export the one public piece of a file; use named exports for siblings (`mapArtwork.tsx`
   exports `MapImage`, `RouteOverlay`, `PlanningOverlay`, `PoiOverlay` and `PoiCrop`, because they
-  are all the same kind of thing — artwork — and none of them owns the file).
+  are all the same kind of thing — artwork — and none of them owns the file). `container.tsx`
+  makes one exception on purpose: it exports `Container` *and* the bare `CONTAINER` class string,
+  because the bar's `<nav>` and the hero's grid are containers that have to be another element.
 - A section that is not one of the shapes above is simply named after what it renders
   (`HeroMap`, `SavedRouteList`), never after where it sits or who uses it.
 - Data that the JSX maps over is a named constant, not an array literal buried in the markup.
 - Never invent a class name that Tailwind or BeerCSS already owns (see the collision table in §2).
+
+### Types
+
+- The content's shape lives in `src/types.ts` and nowhere else. A component that needs a route names
+  `Route`; it does not list the four fields it happens to read.
+- Every component's props are an **interface above it**, named `<Component>Props`, with optional
+  fields defaulted in the signature.
+- A value that can only be one of a few strings is a **union**, never `string` — `RouteTheme`,
+  `PoiCategoryName`, `AuthMode`, the route filter values. A typo in an option is then a compile
+  error instead of a list that quietly filters nothing.
+- An absent value is written down as such (`string | null` for "nothing is selected", `undefined`
+  for "nothing is filtered"), so empty and missing can never be mistaken for each other.
+- `strict` is on in `tsconfig.app.json`, and `src/` is TypeScript throughout: `.tsx` for anything
+  with markup, `.ts` for data, types and pure helpers.
 
 ### Comments
 
@@ -1235,7 +1257,7 @@ That is more than the ten lines §13's rule allows before a dependency is justif
 | `leaflet` + `react-leaflet` | Real interactive tile maps | Not yet — revisit if the hand-drawn inline SVG is replaced by a real map |
 | `vitest` + `@testing-library/react` | Unit and component tests | Not yet — revisit when logic moves out of the hero slider and needs a guarantee |
 | `clsx` | Conditional class strings | Not yet — revisit if a class string grows past two conditional branches |
-| A date/format library | Dutch date and number formatting | **No** — `src/format.js` is four functions (~25 lines) and `Intl`/`toLocaleString` already cover the rest |
+| A date/format library | Dutch date and number formatting | **No** — `src/format.ts` is four functions (~25 lines) and `Intl`/`toLocaleString` already cover the rest |
 
 ---
 
@@ -1249,7 +1271,7 @@ item it **deviates** from is listed here with the reason, so nobody "fixes" it b
 | Spec item | Where |
 | --- | --- |
 | Every colour role exists in both schemes (incl. `scrim`, `shadow`) | `index.css` — both blocks |
-| Two static schemes selected by a `<body>` class, no wallpaper extraction | `themeToggle.jsx` |
+| Two static schemes selected by a `<body>` class, no wallpaper extraction | `themeToggle.tsx` |
 | Tonal steps + hairlines, no shadows at all | §5 — BeerCSS elevation helpers are disabled in `@layer overrides` |
 | Top app bar: brand orange (`--bar`), full-width, 48px action targets | `Navbar`, 65px tall, white text/icons at 6:1 |
 | Cards: `corner_medium` (12px), 3 columns at desktop | `article.s12.m6.l4`, hero panel `rounded-xl` |
