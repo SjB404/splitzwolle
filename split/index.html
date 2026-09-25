@@ -1,14 +1,46 @@
 <!doctype html>
-<html lang="en">
+<html lang="nl">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>split</title>
-      <link href="/src/index.css" rel="stylesheet">
+    <meta
+      name="description"
+      content="Ontdek Zwolle — toen en nu. Plan je wandel- of fietsroute, bekijk routes van anderen en wissel tussen de historische kaart en de actuele plattegrond."
+    />
+    <title>Zwolle Routes — Ontdek Zwolle toen en nu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Material Symbols, subset to the icons this app actually uses. The full
+         BeerCSS icon fonts are deliberately not bundled — see src/index.css.
+         Names must stay alphabetical, and adding a new icon means adding its
+         name here as well as to the <Icon> usage. -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&icon_names=account_balance,apps,arrow_back,arrow_forward,check,check_box,check_box_outline_blank,check_circle,chevron_right,close,dark_mode,directions_bike,directions_walk,expand_more,flag,light_mode,local_fire_department,lock,mail,menu,museum,park,person,place,restaurant,route,schedule,search,star&display=block"
+      rel="stylesheet"
+    />
+    <link href="/src/index.css" rel="stylesheet" />
   </head>
-  <body>
+  <!-- `light` is the default theme. It is also what stops BeerCSS from picking
+       the OS preference and swapping in its own palette — the toggle owns that
+       choice instead (see src/shared/layout/themeToggle.tsx). -->
+  <body class="light">
     <div id="root"></div>
+    <!-- Apply the saved theme before the first paint, so a dark-mode visitor
+         never sees a flash of the light palette. Key kept in sync with
+         src/components/themeToggle.jsx. -->
+    <script>
+      try {
+        var theme = localStorage.getItem("zwolle-routes:theme");
+        if (theme) document.body.className = theme;
+      } catch (error) {
+        /* Storage can be blocked; the light default already applies. */
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
