@@ -28,6 +28,9 @@ code** — do not re-derive styles by scanning the project.
   motion curves, accessibility) — consult it for spec numbers, DESIGN.md for decisions.
   Auto-applied rules for `split/src/**/*.{ts,tsx,css}`:
   `.github/instructions/frontend.instructions.md`
+- **Keep `docs/DESIGN.md` current, automatically.** If a change touches anything written down there —
+  a token, a role, a recipe, a class, a path, a file that moved, a name, a rule, a spec deviation —
+  update it in the same change. Never leave the design system describing code that no longer exists.
 
 ## Stack
 
@@ -47,14 +50,17 @@ Express is a declared dependency for the (currently minimal) `split/backend/` fo
   A page is a table of contents: it resolves the route, owns the state its sections share, and
   lists them in order (`homePage`, `routesPage`, `routeDetailPage`, `planningPage`,
   `pointsOfInterestPage`, `loginPage`, `notFoundPage`).
-- `src/sections/` — the pieces a page is assembled from (a band, a grid column, a card, a row),
-  one component per file, page-scoped (`hero`, `heroMap`, `routeFilters`, `planMap`, `poiCard`,
-  `loginFormPanel`, …). Promoted to `components/` the moment a second page needs one.
-- `src/components/` — what pages share (`appLayout`, `navbar`, `footer`, `pageHeader`,
-  `sectionHeading`, `routeCard`, `starRating`, `filterSelect`, `icon`, `themeToggle`, `pageTitle`,
-  `scrollToTop`, `mapArtwork`) plus the reusable composites lifted out of the sections:
-  `container`, `mapPanel`, `filterPanel`, `searchField`, `emptyState`, `breadcrumb`, `mapLegend`,
-  `textButton`, `routeGrid`, `mapChip`, `clearFiltersButton`
+- `src/sections/<page>/` — the pieces a page is assembled from (a band, a grid column, a card, a
+  row), one component per file, **page-scoped**, grouped by the page that owns them: `home/`,
+  `routes/`, `routeDetail/`, `pointsOfInterest/`, `planning/`, `login/`. Promoted to `src/shared/`
+  the moment a second page needs one.
+- `src/shared/<category>/` — what two or more pages share, grouped by category:
+  - `layout/` — the shell and the page scaffolding: `appLayout`, `navbar`, `footer`, `container`,
+    `pageHeader`, `pageTitle`, `sectionHeading`, `scrollToTop`, `themeToggle`, `breadcrumb`
+  - `primitives/` — `icon`, `starRating`, `textButton`
+  - `content/` — `routeCard`, `routeGrid`, `emptyState`
+  - `filters/` — `filterPanel`, `filterSelect`, `searchField`, `clearFiltersButton`
+  - `map/` — `mapArtwork`, `mapPanel`, `mapChip`, `mapLegend`
 - `src/data/` — the content the pages share (`routes.ts`, `pointsOfInterest.ts`,
   `navigation.ts`, `maps.ts`); `src/format.ts` formats the Dutch `nl-NL` values
 - `src/types.ts` — the shape of that content (`Route`, `PointOfInterest`, `MapPicture`, the filter
@@ -67,12 +73,12 @@ Express is a declared dependency for the (currently minimal) `split/backend/` fo
 
 Run from the repo root using `--prefix` (the terminal tool strips `cd` prefixes):
 
-| Task | Command |
-| --- | --- |
-| Dev server | `npm --prefix split/split run dev` — http://localhost:5173 |
-| Production build | `npm --prefix split/split run build` |
-| Lint | `npm --prefix split/split run lint` |
-| Preview build | `npm --prefix split/split run preview` |
+| Task             | Command                                                    |
+| ---------------- | ---------------------------------------------------------- |
+| Dev server       | `npm --prefix split/split run dev` — http://localhost:5173 |
+| Production build | `npm --prefix split/split run build`                       |
+| Lint             | `npm --prefix split/split run lint`                        |
+| Preview build    | `npm --prefix split/split run preview`                     |
 
 ## Conventions
 

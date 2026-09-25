@@ -2,12 +2,12 @@
 /* the selection is derived from the filtered list, so filtering a place away cannot leave a highlight pointing off screen */
 
 import { useMemo, useState } from "react";
-import MapPanel from "../components/mapPanel.tsx";
-import PageHeader from "../components/pageHeader.tsx";
-import Container from "../components/container.tsx";
-import { PoiOverlay } from "../components/mapArtwork.tsx";
-import PoiFilters from "../sections/poiFilters.tsx";
-import PoiResults from "../sections/poiResults.tsx";
+import MapPanel from "../shared/map/mapPanel.tsx";
+import PageHeader from "../shared/layout/pageHeader.tsx";
+import Container from "../shared/layout/container.tsx";
+import { PoiOverlay } from "../shared/map/mapArtwork.tsx";
+import PoiFilters from "../sections/pointsOfInterest/poiFilters.tsx";
+import PoiResults from "../sections/pointsOfInterest/poiResults.tsx";
 import { MAP_IMAGES } from "../data/maps.ts";
 import {
   INITIAL_POI_FILTERS,

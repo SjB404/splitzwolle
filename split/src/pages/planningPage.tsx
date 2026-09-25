@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import Breadcrumb from "../components/breadcrumb.tsx";
-import PageHeader from "../components/pageHeader.tsx";
-import Container from "../components/container.tsx";
-import PlanMap from "../sections/planMap.tsx";
-import PlanSummary from "../sections/planSummary.tsx";
-import SavedRouteList from "../sections/savedRouteList.tsx";
+import Breadcrumb from "../shared/layout/breadcrumb.tsx";
+import PageHeader from "../shared/layout/pageHeader.tsx";
+import Container from "../shared/layout/container.tsx";
+import PlanMap from "../sections/planning/planMap.tsx";
+import PlanSummary from "../sections/planning/planSummary.tsx";
+import SavedRouteList from "../sections/planning/savedRouteList.tsx";
 import { ROUTES_PATH } from "../data/navigation.ts";
 import { ROUTES } from "../data/routes.ts";
 import type { Route } from "../types.ts";

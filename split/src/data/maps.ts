@@ -12,7 +12,7 @@ import satelliteRoads from "../assets/maps/zwolle-satellite-places-terrain-roads
 
 export const MAP_SIZE = { width: 1520, height: 984 };
 
-/* alt describes the picture; a caller using it as decoration passes `decorative` and the text is dropped (see components/mapArtwork.tsx) */
+/* alt describes the picture; a caller using it as decoration passes `decorative` and the text is dropped (see shared/map/mapArtwork.tsx) */
 export const MAP_IMAGES: Record<MapImageId, MapPicture> = {
   historic: {
     src: historic1652,

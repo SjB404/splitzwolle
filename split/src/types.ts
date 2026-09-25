@@ -1,6 +1,6 @@
 /* domain types — the vocabulary every other file shares; the data modules are the only place these values are produced, and writing the shape down once turns a renamed field into a compile error */
 
-/* a point in the artwork's own 0-100 space, scaled onto a picture by components/mapArtwork.tsx; routes, stops and pins all speak it */
+/* a point in the artwork's own 0-100 space, scaled onto a picture by shared/map/mapArtwork.tsx; routes, stops and pins all speak it */
 export type MapPosition = [number, number];
 
 /* a map picture; not called MapImage because that name belongs to the component that draws one, and two things with one name is how a file imports the wrong one */

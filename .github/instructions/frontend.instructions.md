@@ -41,7 +41,7 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   restraint. Never write `text-orange-*` either: it is a **fill** tone (2.6:1 on white). Accent text
   uses `text-accent` — Deltion blue in light mode, the true brand orange in dark mode.
 - **Both themes are supported.** The palette is chosen by the `light`/`dark` class on `<body>`
-  (see `src/components/themeToggle.tsx`); components never branch on the theme, they just read
+  (see `src/shared/layout/themeToggle.tsx`); components never branch on the theme, they just read
   roles. Anything hardcoded to the light palette will break dark mode.
 - **Text on the brand orange is white; text on a light orange tint is blue.** White goes **only** on
   `orange-500` itself — the bar, the selected segment, a filled action, the artwork badge — never on
@@ -114,9 +114,12 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
 - **Maps are a picture plus a drawing.** The imagery lives in `src/assets/maps/` and is imported
   through `src/data/maps.js` (imported assets are fingerprinted by Vite — `public/` is only for
   files whose _path_ is fixed, like the favicon). Routes, stops and pins are inline SVG overlays
-  from `components/mapArtwork.tsx`, painted with Tailwind `fill-*` / `stroke-*` utilities so no hex
+  from `shared/map/mapArtwork.tsx`, painted with Tailwind `fill-*` / `stroke-*` utilities so no hex
   appears in JSX, positioned in 0–100 space. Overlays never take pointer events; the picture's
   `alt` carries the meaning (DESIGN.md §8).
+- **Keep `docs/DESIGN.md` current, automatically.** A change that alters a token, role, recipe,
+  class, path or rule updates the source of truth in the same change — including every reference to
+  a file that moved. A design system nobody can trust is worse than none.
 
 ## React best practices
 
@@ -130,8 +133,9 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   grid route cards are listed in, `ClearFiltersButton` the way out of a filtered list and `MapChip`
   a label on a map. If a piece exists, it takes props — copy it into a second file and the two
   copies start to drift (§13, „Where a piece lives“).
-- **One component per file, one responsibility per component.** A piece a single page needs lives in
-  `src/sections/`; the moment a second page needs it, promote it to `src/components/` — see
+- **One component per file, one responsibility per component.** A piece one page needs lives in
+  `src/sections/<page>/` (its page's own folder); the moment a second page needs it, promote it to
+  `src/shared/<category>/` (`layout/`, `primitives/`, `content/`, `filters/`, `map/`). See
   `docs/DESIGN.md` §13 ("Where a piece lives") and the suffix table there before naming anything.
 - **Semantic HTML:** `header` / `nav` / `main` / `section` / `article` / `footer`, not `div` soup.
 - **Props are destructured in the signature** with defaults: `function Badge({ label, tone = "brand" })`.
@@ -146,13 +150,13 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   be: `ThemeToggle` (the `<body>` class + localStorage), `ScrollToTop` (the scroll position after a
   route change) and `PageTitle` (`document.title`). Never add one to compute render values.
 - **File naming:** camelCase files, one component each, named exactly for the component —
-  `src/pages/homePage.tsx` → `HomePage`, `src/sections/heroMap.tsx` → `HeroMap`,
-  `src/components/mapPanel.tsx` → `MapPanel`. A page owns its route, the state its sections share and
+  `src/pages/homePage.tsx` → `HomePage`, `src/sections/routeDetail/routeStops.tsx` → `RouteStops`,
+  `src/shared/map/mapPanel.tsx` → `MapPanel`. A page owns its route, the state its sections share and
   the order they appear in; the markup lives in its sections. `App.tsx` only maps paths to pages.
 - **Routing:** paths live in `src/data/navigation.js` and are used with `<Link to={…}>`. A link that
   has to look like a button carries BeerCSS's `.button` (`className="button border text-ink ripple"`)
   — a bare `<a>` has no height, padding or fill, so `ripple` alone renders a text link. The bar,
-  `main` and footer are `components/appLayout.tsx`; a content page starts with `<PageHeader>`
+  `main` and footer are `shared/layout/appLayout.tsx`; a content page starts with `<PageHeader>`
   (band + title, and it sets the document title). The login page is outside the shell on purpose.
 
 ## Accessibility
@@ -177,7 +181,7 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
 - `<body class="light">` in `split/index.html` is the default theme **and** the signal that stops
   BeerCSS from following the OS preference into its own purple palette. The inline script there
   re-applies a stored `dark` choice before the first paint — keep its storage key in sync with
-  `src/components/themeToggle.tsx`.
+  `src/shared/layout/themeToggle.tsx`.
 - BeerCSS's `<i>` icon ligatures only render if the name is in the Google Fonts subset URL in
   `split/index.html`. That includes the glyphs BeerCSS components draw themselves —
   `check_box`, `check_box_outline_blank` (checkbox) and `check` (switch). A filled Material Symbol

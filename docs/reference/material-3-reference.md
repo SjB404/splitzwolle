@@ -7,11 +7,11 @@ deliberate deviation, with the reason.
 
 Placeholders from the original draft are resolved for this project:
 
-| Placeholder | This project |
-| --- | --- |
-| `[DESIGN_FILE_PATH]` | `docs/DESIGN.md` (decisions) + `split/src/index.css` (the role values) |
-| `[theme_toggle_mechanism]` | the `light` / `dark` class on `<body>`, owned by `split/src/components/themeToggle.tsx` |
-| `[dark_mode_mechanism]` | `body.dark` (BeerCSS reads the same class) |
+| Placeholder                | This project                                                                               |
+| -------------------------- | ------------------------------------------------------------------------------------------ |
+| `[DESIGN_FILE_PATH]`       | `docs/DESIGN.md` (decisions) + `split/src/index.css` (the role values)                     |
+| `[theme_toggle_mechanism]` | the `light` / `dark` class on `<body>`, owned by `split/src/shared/layout/themeToggle.tsx` |
+| `[dark_mode_mechanism]`    | `body.dark` (BeerCSS reads the same class)                                                 |
 
 House rules that override the spec: **no gradients anywhere**, the palette is the
 **Deltion huisstijl** (blue · orange · white — never M3's baseline purple), and the UI
@@ -73,23 +73,23 @@ Preload the weights you actually use.
 
 ### Type scale
 
-| Token | Font | Size | Weight | Line height | Tracking | Use |
-|-------|------|------|--------|-------------|----------|-----|
-| display_large | Montserrat | 57px | 600 | 64px | -0.25px | Hero, splash |
-| display_medium | Montserrat | 45px | 600 | 52px | 0 | |
-| display_small | Montserrat | 36px | 600 | 44px | 0 | |
-| headline_large | Montserrat | 32px | 600 | 40px | 0 | Section headers |
-| headline_medium | Montserrat | 28px | 600 | 36px | 0 | |
-| headline_small | Montserrat | 24px | 600 | 32px | 0 | |
-| title_large | Montserrat | 22px | 600 | 28px | 0 | Card titles |
-| title_medium | Montserrat | 16px | 600 | 24px | 0.15px | Subtitles |
-| title_small | Montserrat | 14px | 600 | 20px | 0.1px | |
-| body_large | Inter | 16px | 400 | 24px | 0.5px | Primary body |
-| body_medium | Inter | 14px | 400 | 20px | 0.25px | Secondary body |
-| body_small | Inter | 12px | 400 | 16px | 0.4px | Captions, fine print |
-| label_large | Inter | 14px | 500 | 20px | 0.1px | Buttons, nav items |
-| label_medium | Inter | 12px | 500 | 16px | 0.5px | Chips, badges |
-| label_small | Inter | 11px | 500 | 16px | 0.6px | Minimum label |
+| Token           | Font       | Size | Weight | Line height | Tracking | Use                  |
+| --------------- | ---------- | ---- | ------ | ----------- | -------- | -------------------- |
+| display_large   | Montserrat | 57px | 600    | 64px        | -0.25px  | Hero, splash         |
+| display_medium  | Montserrat | 45px | 600    | 52px        | 0        |                      |
+| display_small   | Montserrat | 36px | 600    | 44px        | 0        |                      |
+| headline_large  | Montserrat | 32px | 600    | 40px        | 0        | Section headers      |
+| headline_medium | Montserrat | 28px | 600    | 36px        | 0        |                      |
+| headline_small  | Montserrat | 24px | 600    | 32px        | 0        |                      |
+| title_large     | Montserrat | 22px | 600    | 28px        | 0        | Card titles          |
+| title_medium    | Montserrat | 16px | 600    | 24px        | 0.15px   | Subtitles            |
+| title_small     | Montserrat | 14px | 600    | 20px        | 0.1px    |                      |
+| body_large      | Inter      | 16px | 400    | 24px        | 0.5px    | Primary body         |
+| body_medium     | Inter      | 14px | 400    | 20px        | 0.25px   | Secondary body       |
+| body_small      | Inter      | 12px | 400    | 16px        | 0.4px    | Captions, fine print |
+| label_large     | Inter      | 14px | 500    | 20px        | 0.1px    | Buttons, nav items   |
+| label_medium    | Inter      | 12px | 500    | 16px        | 0.5px    | Chips, badges        |
+| label_small     | Inter      | 11px | 500    | 16px        | 0.6px    | Minimum label        |
 
 ### Rules
 
@@ -108,15 +108,15 @@ Preload the weights you actually use.
 
 ## 2. Shape (corner radius)
 
-| Token | Radius | Use |
-|-------|--------|-----|
-| corner_none | 0px | |
-| corner_extra_small | 4px | Chips, small badges |
-| corner_small | 8px | Text fields, list items |
-| corner_medium | 12px | Cards (default) |
-| corner_large | 16px | FAB, dialogs |
-| corner_extra_large | 28px | Sheets, large modals, bottom nav |
-| corner_full | 9999px (pill) | Buttons, FAB, search bar, chips |
+| Token              | Radius        | Use                              |
+| ------------------ | ------------- | -------------------------------- |
+| corner_none        | 0px           |                                  |
+| corner_extra_small | 4px           | Chips, small badges              |
+| corner_small       | 8px           | Text fields, list items          |
+| corner_medium      | 12px          | Cards (default)                  |
+| corner_large       | 16px          | FAB, dialogs                     |
+| corner_extra_large | 28px          | Sheets, large modals, bottom nav |
+| corner_full        | 9999px (pill) | Buttons, FAB, search bar, chips  |
 
 ---
 
@@ -124,14 +124,14 @@ Preload the weights you actually use.
 
 Depth is expressed via **tonal elevation** (primary color overlay) FIRST, shadow SECOND.
 
-| Level | Tonal overlay (primary at) | Shadow | Typical use |
-|-------|---------------------------|--------|-------------|
-| 0 | 0% | none | Flat surfaces |
-| 1 | ~3% | 0 1px 2px rgba(0,0,0,0.3) | Cards (resting) |
-| 2 | ~6% | 0 1px 2px rgba(0,0,0,0.3), 0 2px 6px rgba(0,0,0,0.15) | Cards (hover), FAB resting |
-| 3 | ~9% | 0 4px 8px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.3) | FAB hover, app bar (scrolled) |
-| 4 | ~12% | 0 6px 10px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.3) | Dialogs |
-| 5 | ~15% | 0 8px 12px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.3) | Overlays, snackbars |
+| Level | Tonal overlay (primary at) | Shadow                                                 | Typical use                   |
+| ----- | -------------------------- | ------------------------------------------------------ | ----------------------------- |
+| 0     | 0%                         | none                                                   | Flat surfaces                 |
+| 1     | ~3%                        | 0 1px 2px rgba(0,0,0,0.3)                              | Cards (resting)               |
+| 2     | ~6%                        | 0 1px 2px rgba(0,0,0,0.3), 0 2px 6px rgba(0,0,0,0.15)  | Cards (hover), FAB resting    |
+| 3     | ~9%                        | 0 4px 8px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.3)  | FAB hover, app bar (scrolled) |
+| 4     | ~12%                       | 0 6px 10px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.3) | Dialogs                       |
+| 5     | ~15%                       | 0 8px 12px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.3) | Overlays, snackbars           |
 
 On web: `box-shadow` plus a `::before` pseudo-element with `background: primary` at the specified
 opacity for the tonal layer. In this project BeerCSS's `elevate` / `medium-elevate` /
@@ -153,13 +153,13 @@ opacity for the tonal layer. In this project BeerCSS's `elevate` / `medium-eleva
 
 ### Hierarchy (HIGH → LOW emphasis). Use ONE per screen at each level max
 
-| Variant | Background | Text/Icon | Border | Use |
-|---------|-----------|-----------|--------|-----|
-| Filled | `primary` | `on_primary` | none | Primary action. ONE per screen. |
-| Elevated | `surface_container_low` | `primary` | none + elevation 1 | On busy/colored backgrounds |
-| Filled tonal | `secondary_container` | `on_secondary_container` | none | Secondary important ("Add", "Next") |
-| Outlined | transparent | `primary` | 1px `outline` | Secondary/alternative ("Cancel") |
-| Text | transparent | `primary` | none | Low emphasis, navigational ("Learn more") |
+| Variant      | Background              | Text/Icon                | Border             | Use                                       |
+| ------------ | ----------------------- | ------------------------ | ------------------ | ----------------------------------------- |
+| Filled       | `primary`               | `on_primary`             | none               | Primary action. ONE per screen.           |
+| Elevated     | `surface_container_low` | `primary`                | none + elevation 1 | On busy/colored backgrounds               |
+| Filled tonal | `secondary_container`   | `on_secondary_container` | none               | Secondary important ("Add", "Next")       |
+| Outlined     | transparent             | `primary`                | 1px `outline`      | Secondary/alternative ("Cancel")          |
+| Text         | transparent             | `primary`                | none               | Low emphasis, navigational ("Learn more") |
 
 ### Specs
 
@@ -181,8 +181,9 @@ Tonal or Outlined styles (NOT Text or Icon).
 **Connected button group** (replaces "segmented buttons") — buttons share a single container,
 separated by a 2px gap. Outer corners rounded (`corner_full`), inner corners square (0px).
 Selected: `secondary_container` bg + `on_secondary_container` content. Unselected: transparent bg
-+ `on_surface` content. Inner padding: XS=4px, S=8px, M=8px, L=16px, XL=20px. Use for view
-switchers, filter toggles, single/multi-select within a tight group.
+
+- `on_surface` content. Inner padding: XS=4px, S=8px, M=8px, L=16px, XL=20px. Use for view
+  switchers, filter toggles, single/multi-select within a tight group.
 
 > This project's historic/current map switch is a connected-button-group case;
 > it is currently two independent outlined/filled buttons — see DESIGN.md §16.
@@ -197,12 +198,12 @@ and Outlined.
 
 ## 6. Icon buttons
 
-| Style | Background | Icon color |
-|-------|-----------|-----------|
-| Standard | transparent | `on_surface_variant` |
-| Filled tonal | `secondary_container` | `on_secondary_container` |
-| Outlined | transparent + 1px `outline` border | `on_surface_variant` |
-| Filled | `primary` | `on_primary` |
+| Style        | Background                         | Icon color               |
+| ------------ | ---------------------------------- | ------------------------ |
+| Standard     | transparent                        | `on_surface_variant`     |
+| Filled tonal | `secondary_container`              | `on_secondary_container` |
+| Outlined     | transparent + 1px `outline` border | `on_surface_variant`     |
+| Filled       | `primary`                          | `on_primary`             |
 
 - Sizes: XS=24px, S=32px, M=40px (default), L=48px
 - Icon size: 24px (M), 20px (S), 18px (XS)
@@ -214,12 +215,12 @@ and Outlined.
 
 ## 7. Floating action button (FAB)
 
-| Size | Dimensions | Corner |
-|------|-----------|--------|
-| Small | 40×40px | 12px |
-| Medium (default) | 56×56px | 16px |
-| Large | 96×96px | 28px |
-| Extended | 56px height, variable width | 16px |
+| Size             | Dimensions                  | Corner |
+| ---------------- | --------------------------- | ------ |
+| Small            | 40×40px                     | 12px   |
+| Medium (default) | 56×56px                     | 16px   |
+| Large            | 96×96px                     | 28px   |
+| Extended         | 56px height, variable width | 16px   |
 
 - Elevation: 3 (resting), 4 (hover)
 - Background: `primary_container`, icon: `on_primary_container`
@@ -231,11 +232,11 @@ and Outlined.
 
 ## 8. Cards
 
-| Variant | Background | Border | Elevation | Use |
-|---------|-----------|--------|-----------|-----|
-| Elevated | `surface` | none | 1 (resting), 2 (hover) | Default, interactive |
-| Filled | `surface_container` | none | 0 | Non-interactive, grouped content |
-| Outlined | `surface` | 1px `outline_variant` | 0 | Low emphasis, dense layouts |
+| Variant  | Background          | Border                | Elevation              | Use                              |
+| -------- | ------------------- | --------------------- | ---------------------- | -------------------------------- |
+| Elevated | `surface`           | none                  | 1 (resting), 2 (hover) | Default, interactive             |
+| Filled   | `surface_container` | none                  | 0                      | Non-interactive, grouped content |
+| Outlined | `surface`           | 1px `outline_variant` | 0                      | Low emphasis, dense layouts      |
 
 - Corner: `corner_medium` (12px)
 - Content padding: 16px
@@ -248,12 +249,12 @@ and Outlined.
 
 All chips: pill (`corner_full`), height 32px, label `label_medium`.
 
-| Type | Use | Selected state |
-|------|-----|----------------|
-| Assist | Triggers an action with context (icon + label) | N/A |
-| Filter | Multi-select filtering | `secondary_container` bg + checkmark |
-| Input | Compact data entry (removable) | `secondary_container` bg + X |
-| Suggestion | Suggests a query/option | N/A |
+| Type       | Use                                            | Selected state                       |
+| ---------- | ---------------------------------------------- | ------------------------------------ |
+| Assist     | Triggers an action with context (icon + label) | N/A                                  |
+| Filter     | Multi-select filtering                         | `secondary_container` bg + checkmark |
+| Input      | Compact data entry (removable)                 | `secondary_container` bg + X         |
+| Suggestion | Suggests a query/option                        | N/A                                  |
 
 - Unselected: transparent bg + 1px `outline` border + `on_surface_variant` text
 - Horizontal padding: 16px (with icon), 12px (text only)
@@ -268,11 +269,11 @@ All chips: pill (`corner_full`), height 32px, label `label_medium`.
 
 ### Responsive strategy
 
-| Breakpoint | Navigation pattern |
-|-----------|-------------------|
-| < 600px (mobile) | Bottom navigation bar |
-| 600–840px (tablet) | Navigation rail (collapsed, icons only) |
-| ≥ 840px (desktop) | Navigation rail (expanded, icons + labels) OR side nav drawer |
+| Breakpoint         | Navigation pattern                                            |
+| ------------------ | ------------------------------------------------------------- |
+| < 600px (mobile)   | Bottom navigation bar                                         |
+| 600–840px (tablet) | Navigation rail (collapsed, icons only)                       |
+| ≥ 840px (desktop)  | Navigation rail (expanded, icons + labels) OR side nav drawer |
 
 **This project uses a top app bar at every width** (it is a landing page with five anchor links,
 not an app shell with N destinations) — see DESIGN.md §16.
@@ -292,11 +293,11 @@ not an app shell with N destinations) — see DESIGN.md §16.
 
 ### Top app bar
 
-| Variant | Height | Use |
-|---------|--------|-----|
-| Small | 64px | Default, dense layouts |
-| Center | 64px | Title centered, search bar below |
-| Large | 152px (collapses to 64px on scroll) | Hero-style headers |
+| Variant | Height                              | Use                              |
+| ------- | ----------------------------------- | -------------------------------- |
+| Small   | 64px                                | Default, dense layouts           |
+| Center  | 64px                                | Title centered, search bar below |
+| Large   | 152px (collapses to 64px on scroll) | Hero-style headers               |
 
 - Background: `surface` (flat at rest), gains elevation 3 on scroll
 - Title: `title_large` (large) or `title_medium` (small/center)
@@ -315,10 +316,10 @@ not an app shell with N destinations) — see DESIGN.md §16.
 
 ## 11. Text fields
 
-| Style | Background | Border | Corner |
-|-------|-----------|--------|--------|
+| Style            | Background                  | Border                                        | Corner  |
+| ---------------- | --------------------------- | --------------------------------------------- | ------- |
 | Filled (default) | `surface_container_highest` | none (bottom border 1px `on_surface_variant`) | 8px top |
-| Outlined | transparent | 1px `outline` (all sides) | 8px all |
+| Outlined         | transparent                 | 1px `outline` (all sides)                     | 8px all |
 
 - Height: 56px
 - Label floats from inside to top on focus/fill (animated, 200ms)
@@ -363,13 +364,13 @@ not an app shell with N destinations) — see DESIGN.md §16.
 
 ## 13. Lists
 
-| Type | Use |
-|------|-----|
-| One-line | Single text item |
-| Two-line | Title + subtitle |
+| Type       | Use                     |
+| ---------- | ----------------------- |
+| One-line   | Single text item        |
+| Two-line   | Title + subtitle        |
 | Three-line | Title + 2 lines of body |
-| With icon | Leading icon + text |
-| With media | Leading image + text |
+| With icon  | Leading icon + text     |
+| With media | Leading image + text    |
 
 - Height: 56px (one/two-line), 72px (three-line)
 - Padding: 16px horizontal
@@ -455,12 +456,12 @@ not an app shell with N destinations) — see DESIGN.md §16.
 
 ### Breakpoints
 
-| Name | Min width | Layout |
-|------|-----------|--------|
-| Mobile | 0px | Single column, bottom nav, bottom sheets |
-| Tablet | 600px | 1–2 columns, nav rail (collapsed) |
-| Desktop | 840px | 2–3 columns, nav rail (expanded) or sidebar |
-| Wide | 1200px | Max content width 960px, centered |
+| Name    | Min width | Layout                                      |
+| ------- | --------- | ------------------------------------------- |
+| Mobile  | 0px       | Single column, bottom nav, bottom sheets    |
+| Tablet  | 600px     | 1–2 columns, nav rail (collapsed)           |
+| Desktop | 840px     | 2–3 columns, nav rail (expanded) or sidebar |
+| Wide    | 1200px    | Max content width 960px, centered           |
 
 ### Layout rules
 
@@ -505,33 +506,33 @@ Rules:
 
 ## 20. Decision rules (quick reference)
 
-| Situation | Use |
-|-----------|-----|
-| One primary action per screen | Filled button |
-| Secondary important action | Filled tonal button |
-| Cancel / alternative | Outlined button |
-| Low-emphasis link-style | Text button |
-| Mutually exclusive options (≤5) | Connected button group |
-| Related actions with emphasis shift | Standard button group |
-| Action + variant (e.g. Send/Schedule) | Split button |
-| Primary action on a page (floating) | FAB |
-| Filter/search options | Filter chips |
-| Removable items (tags, recipients) | Input chips |
-| Sub-page navigation (≤5) | Tabs |
-| Top-level navigation | Bottom bar (mobile) / rail (desktop) |
-| Confirm / alert / form | Dialog |
-| Extended content (mobile) | Bottom sheet |
-| Extended content (desktop) | Side panel / drawer |
-| Transient notification | Snackbar |
-| Repetitive items | List |
-| Grouped related content | Card |
-| Toggle on/off | Switch |
-| Select one from many (ordered) | Radio group |
-| Select multiple (ordered) | Checkbox group |
-| Select one from many (unordered, ≤5) | Connected button group |
-| Continuous value | Slider |
-| Loading (known duration) | Determinate progress |
-| Loading (unknown duration) | Indeterminate progress |
+| Situation                             | Use                                  |
+| ------------------------------------- | ------------------------------------ |
+| One primary action per screen         | Filled button                        |
+| Secondary important action            | Filled tonal button                  |
+| Cancel / alternative                  | Outlined button                      |
+| Low-emphasis link-style               | Text button                          |
+| Mutually exclusive options (≤5)       | Connected button group               |
+| Related actions with emphasis shift   | Standard button group                |
+| Action + variant (e.g. Send/Schedule) | Split button                         |
+| Primary action on a page (floating)   | FAB                                  |
+| Filter/search options                 | Filter chips                         |
+| Removable items (tags, recipients)    | Input chips                          |
+| Sub-page navigation (≤5)              | Tabs                                 |
+| Top-level navigation                  | Bottom bar (mobile) / rail (desktop) |
+| Confirm / alert / form                | Dialog                               |
+| Extended content (mobile)             | Bottom sheet                         |
+| Extended content (desktop)            | Side panel / drawer                  |
+| Transient notification                | Snackbar                             |
+| Repetitive items                      | List                                 |
+| Grouped related content               | Card                                 |
+| Toggle on/off                         | Switch                               |
+| Select one from many (ordered)        | Radio group                          |
+| Select multiple (ordered)             | Checkbox group                       |
+| Select one from many (unordered, ≤5)  | Connected button group               |
+| Continuous value                      | Slider                               |
+| Loading (known duration)              | Determinate progress                 |
+| Loading (unknown duration)            | Indeterminate progress               |
 
 ---
 

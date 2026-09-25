@@ -7,7 +7,14 @@ The single source of truth for the visual language of this project.
 > holds the distilled Material 3 spec (component metrics, motion, accessibility). This file is
 > what the project _decided_; where the two differ, §16 says so and why.
 
-> Last updated: 2026-09-18
+> Last updated: 2026-09-25
+
+> **Keep this file current, automatically.** Any change that touches something written down here —
+> a token, a role, a recipe, a class, a path, a name, a rule, a number — updates this file in the
+> same change, before the work counts as done. A stale design system is worse than none, because
+> the next reader follows it and gets the wrong answer. Genuinely new behaviour is recorded in
+> §16 as a deviation; a correction is edited in place, along with every reference to a file that
+> moved.
 
 ---
 
@@ -97,7 +104,7 @@ Tailwind utility of the same name:
 ### Icons
 
 - Icons are **Material Symbols** rendered with BeerCSS's `<i>` element
-  (`<i className="text-base">search</i>`), via the `<Icon>` helper in `src/components/icon.tsx`.
+  (`<i className="text-base">search</i>`), via the `<Icon>` helper in `src/shared/primitives/icon.tsx`.
 - The font is a **Google Fonts subset**, linked in `index.html`. **Adding a new icon means
   adding its name to that URL first** — otherwise the ligature renders as literal text. That
   includes the glyphs BeerCSS's own components draw (`check_box`, `check_box_outline_blank`,
@@ -130,7 +137,7 @@ read roles, so they never branch on the theme.
 | ------------------------------------- | ------------------------------------------------------------------------------------- |
 | `index.html` → `<body class="light">` | The default, and the signal that stops BeerCSS from auto-switching to its own palette |
 | `index.html` → inline script          | Re-applies the stored theme before the first paint, so there is no flash              |
-| `src/components/themeToggle.tsx`      | Owns the state, writes the `<body>` class and persists the choice to `localStorage`   |
+| `src/shared/layout/themeToggle.tsx`   | Owns the state, writes the `<body>` class and persists the choice to `localStorage`   |
 
 Adding a theme-aware colour means adding a **role** to both blocks in `src/index.css`, not a
 fixed colour in a component. Three effects exist in the whole codebase, and each syncs with
@@ -527,9 +534,9 @@ Every content page opens with `PageHeader` — the hero's band shape without the
 so a page is named in the tab, in history and for a screen reader.
 
 A page owns its route, the state its sections share, and the order they appear in — not their
-markup. The bands, columns and cards it is built from live in `src/sections/`, and anything a second
-page can use is promoted to `src/components/`. §13 ("Where a piece lives") has the four homes and
-the rule for moving a piece up.
+markup. The bands, columns and cards it is built from live in `src/sections/<page>/`, and anything a
+second page can use is promoted to `src/shared/<category>/`. §13 ("Where a piece lives") has the
+homes and the rule for moving a piece up.
 
 `ScrollToTop` puts a route change back at the top, and honours a `#hash` instead — which is what
 makes "Contact" (`/#contact`) and "Registreren" (`/inloggen#registreren`) work from any page.
@@ -557,7 +564,7 @@ makes "Contact" (`/#contact`) and "Registreren" (`/inloggen#registreren`) work f
 ## 7. Components
 
 Prefer a BeerCSS component over hand-built styles. These are the canonical shapes, as they appear in
-`src/sections/hero.tsx` and the pages around it. The shapes that more than one page needs are already
+`src/sections/home/hero.tsx` and the pages around it. The shapes that more than one page needs are already
 components — `MapPanel`, `FilterPanel`, `SearchField`, `EmptyState`, `Breadcrumb`, `MapLegend`,
 `SectionHeading`, `PageHeader`, `RouteGrid`, `MapChip`, `ClearFiltersButton`, `Container` — so look
 for one before writing the markup again (§13).
@@ -573,7 +580,7 @@ for one before writing the markup again (§13).
 <button type="button" className="border text-ink ripple">Alle routes bekijken</button>
 
 // Theme switch — the only stateful control in the header.
-// See src/components/themeToggle.tsx for the <body> class + localStorage sync.
+// See src/shared/layout/themeToggle.tsx for the <body> class + localStorage sync.
 <ThemeToggle />
 
 // Icon-only button — `tap-target` keeps the 40px circle but gives it a 48px hit area,
@@ -674,7 +681,7 @@ for one before writing the markup again (§13).
 <Link to={ROUTES_PATH} className="button border text-ink ripple">Alle routes bekijken</Link>
 
 // Star rating — BeerCSS's `i.fill` flips the Material Symbols FILL axis; empty stars take the
-// muted ink (§3: never opacity). Wrapped in role="img" + aria-label by components/starRating.tsx.
+// muted ink (§3: never opacity). Wrapped in role="img" + aria-label by shared/primitives/starRating.tsx.
 <Icon name="star" className="fill text-base text-accent" />
 
 // Review histogram — the Material 3 linear progress, tinted by `--primary` (orange on paper,
@@ -687,7 +694,7 @@ for one before writing the markup again (§13).
 // Select with a floating label and a chevron. The label floats because it follows the `select`
 // in the markup, and the chevron sits in the field's trailing slot because it is *not* the first
 // child (BeerCSS places the first icon as a prefix). `suffix` reserves the room — see
-// components/filterSelect.tsx for the whole component.
+// shared/filters/filterSelect.tsx for the whole component.
 <div className="field round border label suffix s12 m6 l3">
   <select id="route-theme" value={theme} onChange={…}>…</select>
   <label htmlFor="route-theme">Type route</label>
@@ -705,7 +712,7 @@ for one before writing the markup again (§13).
 
 Every map surface is **a picture with a drawing on top**: the imagery is a real export of Zwolle
 (files in `src/assets/maps/`, exported by `src/data/maps.ts`) and everything the app knows about the
-map — a route line, its stops, a pin — is an SVG overlay from `components/mapArtwork.tsx`.
+map — a route line, its stops, a pin — is an SVG overlay from `shared/map/mapArtwork.tsx`.
 
 **Where an image lives.** An asset a component imports belongs in `src/assets/…` and is _imported_,
 so Vite fingerprints the filename and a redeployed map can never be served from a stale cache.
@@ -928,13 +935,13 @@ there — they apply to every file under `split/src/`.
 A piece only ever moves one way: **up**. It starts in the page it was written for, and it is
 promoted the moment a second page needs it — never copied.
 
-| Home              | Holds                                                                                                        | Rule                                                                                                                                                    |
-| ----------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/pages/`      | one file per route, `<name>Page.tsx`, the default export `App.tsx` mounts                                    | resolves the route, owns the state its sections share, and lists the sections in order. It owns a band only when that band holds more than one section. |
-| `src/sections/`   | the pieces a page is assembled from: a band, a grid column, a card, a row                                    | **page-scoped**. One component per file, named after the component.                                                                                     |
-| `src/components/` | what two or more pages share, plus the app-level primitives (`AppLayout`, `Navbar`, `Footer`, `ScrollToTop`) | **shared**. Promoted here from `sections/`; a section that turns out to be generic (`MapPanel`, `EmptyState`) belongs here.                             |
-| `src/data/`       | the content and the pure helpers over it                                                                     | **content and logic only** — no components.                                                                                                             |
-| `src/types.ts`    | the shape of that content: `Route`, `PointOfInterest`, `MapPicture`, `RouteFilterState`, `AuthMode`          | **types only**, no runtime code. A component names the type it needs instead of repeating its fields.                                                   |
+| Home                     | Holds                                                                                                                                                                                               | Rule                                                                                                                                                    |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/pages/`             | one file per route, `<name>Page.tsx`, the default export `App.tsx` mounts                                                                                                                           | resolves the route, owns the state its sections share, and lists the sections in order. It owns a band only when that band holds more than one section. |
+| `src/sections/<page>/`   | the pieces a page is assembled from: a band, a grid column, a card, a row — in the folder of the page that owns it (`home/`, `routes/`, `routeDetail/`, `pointsOfInterest/`, `planning/`, `login/`) | **page-scoped**. One component per file, named after the component.                                                                                     |
+| `src/shared/<category>/` | what two or more pages share, in a category folder: `layout/` (the shell and the page scaffolding), `primitives/`, `content/`, `filters/`, `map/`                                                   | **shared**. Promoted here from `sections/`; a section that turns out to be generic (`MapPanel`, `EmptyState`) belongs here.                             |
+| `src/data/`              | the content and the pure helpers over it                                                                                                                                                            | **content and logic only** — no components.                                                                                                             |
+| `src/types.ts`           | the shape of that content: `Route`, `PointOfInterest`, `MapPicture`, `RouteFilterState`, `AuthMode`                                                                                                 | **types only**, no runtime code. A component names the type it needs instead of repeating its fields.                                                   |
 
 The test is the name. If it needs its page in it ("the planner's map"), it is a section
 (`planMap.tsx`). If the name stands on its own (`MapPanel`, `EmptyState`), it is a component — and
@@ -1035,9 +1042,9 @@ interface RouteFiltersProps {
 ### React practice
 
 - Function components and hooks only; one responsibility per component.
-- Extract to `src/components/` once a piece is shared — see "Where a piece lives" above for the four
-  homes and the promotion rule. `Icon`, the map artwork, `ThemeToggle`, `MapPanel` and `EmptyState`
-  are the shapes that got there.
+- Extract to `src/shared/<category>/` once a piece is shared — see "Where a piece lives" above for
+  the homes and the promotion rule. `Icon`, the map artwork, `ThemeToggle`, `MapPanel` and
+  `EmptyState` are the shapes that got there.
 - Destructure props in the signature and default them (`function Icon({ name, className = "" })`).
 - Derive, don't duplicate: no state that can be computed (`visibleRoutes` from `showAll`).
 - Effects only to sync with something outside React. There are three, and each one has to be:

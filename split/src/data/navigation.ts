@@ -10,7 +10,7 @@ export const LOGIN_PATH = "/inloggen";
 /** the login page opens its registration form when the url carries this hash */
 export const REGISTER_PATH = "/inloggen#registreren";
 
-/* Contact is not a page: it points at the footer band, the contact block on every page (components/footer.tsx) */
+/* Contact is not a page: it points at the footer band, the contact block on every page (shared/layout/footer.tsx) */
 export const NAV_LINKS: NavLink[] = [
   { label: "Home", to: HOME_PATH },
   { label: "Routes", to: ROUTES_PATH },

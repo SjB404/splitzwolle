@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
-import PageTitle from "../components/pageTitle.tsx";
-import ThemeToggle from "../components/themeToggle.tsx";
-import LoginBrandPanel from "../sections/loginBrandPanel.tsx";
-import LoginFormPanel, { type AuthMode } from "../sections/loginFormPanel.tsx";
+import PageTitle from "../shared/layout/pageTitle.tsx";
+import ThemeToggle from "../shared/layout/themeToggle.tsx";
+import LoginBrandPanel from "../sections/login/loginBrandPanel.tsx";
+import LoginFormPanel, {
+  type AuthMode,
+} from "../sections/login/loginFormPanel.tsx";
 
 export default function LoginPage() {
   const { hash } = useLocation();

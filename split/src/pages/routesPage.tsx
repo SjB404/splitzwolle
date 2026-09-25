@@ -2,9 +2,9 @@
 /* the filters are state and not url parameters: they are a view of one list, not a destination */
 
 import { useMemo, useState } from "react";
-import PageHeader from "../components/pageHeader.tsx";
-import RouteFilters from "../sections/routeFilters.tsx";
-import RouteResults from "../sections/routeResults.tsx";
+import PageHeader from "../shared/layout/pageHeader.tsx";
+import RouteFilters from "../sections/routes/routeFilters.tsx";
+import RouteResults from "../sections/routes/routeResults.tsx";
 import {
   INITIAL_ROUTE_FILTERS,
   filterRoutes,

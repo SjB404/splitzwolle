@@ -1,19 +1,19 @@
 /* one route in full — the file has two components on purpose: RouteDetailPage looks up the :routeId so it can render its own 404, and RouteDetail holds the rest (reading a route before knowing there is one is how a hook ends up conditional) */
 
 import { useParams } from "react-router-dom";
-import Breadcrumb from "../components/breadcrumb.tsx";
-import Icon from "../components/icon.tsx";
-import Container from "../components/container.tsx";
-import MapPanel from "../components/mapPanel.tsx";
-import PageHeader from "../components/pageHeader.tsx";
-import StarRating from "../components/starRating.tsx";
-import { RouteOverlay } from "../components/mapArtwork.tsx";
-import RelatedRoutes from "../sections/relatedRoutes.tsx";
-import RouteFacts from "../sections/routeFacts.tsx";
-import RouteReviews from "../sections/routeReviews.tsx";
-import RouteStory from "../sections/routeStory.tsx";
-import RouteStops from "../sections/routeStops.tsx";
-import RouteSummary from "../sections/routeSummary.tsx";
+import Breadcrumb from "../shared/layout/breadcrumb.tsx";
+import Icon from "../shared/primitives/icon.tsx";
+import Container from "../shared/layout/container.tsx";
+import MapPanel from "../shared/map/mapPanel.tsx";
+import PageHeader from "../shared/layout/pageHeader.tsx";
+import StarRating from "../shared/primitives/starRating.tsx";
+import { RouteOverlay } from "../shared/map/mapArtwork.tsx";
+import RelatedRoutes from "../sections/routeDetail/relatedRoutes.tsx";
+import RouteFacts from "../sections/routeDetail/routeFacts.tsx";
+import RouteReviews from "../sections/routeDetail/routeReviews.tsx";
+import RouteStory from "../sections/routeDetail/routeStory.tsx";
+import RouteStops from "../sections/routeDetail/routeStops.tsx";
+import RouteSummary from "../sections/routeDetail/routeSummary.tsx";
 import NotFoundPage from "./notFoundPage.tsx";
 import { MAP_IMAGES } from "../data/maps.ts";
 import { ROUTES_PATH } from "../data/navigation.ts";
