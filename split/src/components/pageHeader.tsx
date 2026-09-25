@@ -1,18 +1,4 @@
-/*
-pageheader — the band every content page opens with.
-
-it is the hero's shape without the artwork: band, eyebrow, big heading, lead
-paragraph, and then whatever the page passes as children (a search field, a filter
-row).
-
-the band is inverse-surface, so it follows the theme: white in light mode, deep navy
-in dark.
-
-breadcrumb sits above the eyebrow. it is a node and not data, because each page owns
-how its own links are built.
-
-it sets the document title too, so every page names itself in the tab and in history.
-*/
+/* the band every content page opens with — the hero's shape without the artwork; it also sets the document title, so every page names itself in the tab */
 
 import type { ReactNode } from "react";
 import PageTitle from "./pageTitle.tsx";

@@ -1,15 +1,4 @@
-/*
-route content — the data behind the home page, the route overview, the detail page and
-the planner.
-
-path points live in 0-100 space and get scaled onto the map's own viewBox by
-components/mapArtwork.tsx, so a route keeps one coordinate system wherever it is drawn.
-distances are kilometres and durations are minutes, stored as numbers so the overview
-can filter and the planner can add them up, and turned into labels by src/format.ts.
-
-this is still placeholder content, standing in for the collaborator's api: the
-frontend is not wired to a backend yet.
-*/
+/* route content — the data behind the home page, the overview, the detail page and the planner; paths are in 0-100 space, distances are kilometres and durations minutes (numbers, so they can be filtered and summed), and it is still placeholder content for the collaborator's api */
 
 import type {
   Route,
@@ -35,8 +24,7 @@ export const ROUTE_DIFFICULTIES: RouteDifficulty[] = [
   "Uitdagend",
 ];
 
-/* one glyph per theme, so a card, a filter and a detail panel describe a route type the
-   same way. every name is in the material symbols subset in index.html. */
+/* one glyph per theme, so a card, a filter and a detail panel describe a route type the same way; every name is in the material symbols subset in index.html */
 export const ROUTE_THEME_ICONS: Record<RouteTheme, string> = {
   Historisch: "account_balance",
   Wandel: "directions_walk",
@@ -46,8 +34,7 @@ export const ROUTE_THEME_ICONS: Record<RouteTheme, string> = {
   Culinair: "restaurant",
 };
 
-/* How many cards the home page previews, and how many the overview shows before
-   "Toon meer routes". */
+/* how many cards the home page previews, and how many the overview shows before "Toon meer routes" */
 export const ROUTE_PREVIEW_COUNT = 3;
 export const ROUTE_PAGE_SIZE = 9;
 
@@ -113,7 +100,12 @@ export const ROUTES: Route[] = [
     startPoint: "Museum de Fundatie",
     description:
       "Langs muurschilderingen, ateliers en galeries in de wijk waar de Zwolse kunstenaars werken.",
-    stops: ["Museum de Fundatie", "Hofvlietstraat", "Ateliers Assendorp", "Vondelkwartier"],
+    stops: [
+      "Museum de Fundatie",
+      "Hofvlietstraat",
+      "Ateliers Assendorp",
+      "Vondelkwartier",
+    ],
     path: [
       [22, 62],
       [46, 44],
@@ -159,7 +151,12 @@ export const ROUTES: Route[] = [
     startPoint: "Grote Markt",
     description:
       "De kortste route langs alle hoogtepunten van de binnenstad: ideaal voor een eerste bezoek aan Zwolle.",
-    stops: ["Grote Markt", "Peperbus", "Sassenpoort", "Grote of Sint-Michaëlskerk"],
+    stops: [
+      "Grote Markt",
+      "Peperbus",
+      "Sassenpoort",
+      "Grote of Sint-Michaëlskerk",
+    ],
     path: [
       [26, 62],
       [42, 40],
@@ -258,7 +255,12 @@ export const ROUTES: Route[] = [
     startPoint: "Park de Wezenlanden",
     description:
       "Een groen half uur door het stadspark, met de vijver en de oude bomen als middelpunt.",
-    stops: ["Park de Wezenlanden", "Vijver Wezenlanden", "Weteringpark", "Assendorperdijk"],
+    stops: [
+      "Park de Wezenlanden",
+      "Vijver Wezenlanden",
+      "Weteringpark",
+      "Assendorperdijk",
+    ],
     path: [
       [20, 48],
       [36, 34],
@@ -281,7 +283,12 @@ export const ROUTES: Route[] = [
     startPoint: "Molen De Passiebloem",
     description:
       "Langs de molens en de uiterwaarden van de IJssel, met een stop bij de Westenholter plas.",
-    stops: ["Molen De Passiebloem", "Westenholter plas", "IJsseldijk", "Voorst"],
+    stops: [
+      "Molen De Passiebloem",
+      "Westenholter plas",
+      "IJsseldijk",
+      "Voorst",
+    ],
     path: [
       [22, 58],
       [40, 30],
@@ -327,7 +334,13 @@ export const ROUTES: Route[] = [
     startPoint: "Sassenpoort",
     description:
       "De hele singel rond: van de Sassenpoort tot Zwolle-Zuid en via de oostkant weer terug.",
-    stops: ["Sassenpoort", "Wezenlanden", "Zwolle-Zuid", "Oosterenk", "Diezerpoort"],
+    stops: [
+      "Sassenpoort",
+      "Wezenlanden",
+      "Zwolle-Zuid",
+      "Oosterenk",
+      "Diezerpoort",
+    ],
     path: [
       [20, 38],
       [32, 56],
@@ -338,10 +351,7 @@ export const ROUTES: Route[] = [
   },
 ];
 
-/*
-the routes closest to route: same theme first, then the rest by rating. always returns
-something for the detail page to suggest, and never route itself.
-*/
+/* the routes closest to route: same theme first, then the rest by rating; never route itself */
 export function getRelatedRoutes(route: Route, limit = 3): Route[] {
   return ROUTES.filter((candidate) => candidate.id !== route.id)
     .sort((a, b) => {
@@ -352,8 +362,7 @@ export function getRelatedRoutes(route: Route, limit = 3): Route[] {
     .slice(0, limit);
 }
 
-/* the value of each filter is what the beerCSS select holds. "all" is the resting state,
-   so an untouched panel filters nothing. */
+/* "all" is the resting state of every filter, which is why an untouched panel filters nothing out */
 export const INITIAL_ROUTE_FILTERS: RouteFilterState = {
   query: "",
   popularity: "all",
@@ -362,15 +371,11 @@ export const INITIAL_ROUTE_FILTERS: RouteFilterState = {
   difficulty: "all",
 };
 
-/*
-true when at least one filter has left its resting value, which is what shows the
-"Filters wissen" action.
-
-the resting values are read from INITIAL_ROUTE_FILTERS rather than written out again,
-so a new filter cannot leave this comparison behind.
-*/
+/* true when a filter has left its resting value, which is what shows "Filters wissen"; the resting values are read from INITIAL_ROUTE_FILTERS, so a new filter cannot be left behind */
 export function hasActiveRouteFilters(filters: RouteFilterState): boolean {
-  const restingKeys = Object.keys(INITIAL_ROUTE_FILTERS) as (keyof RouteFilterState)[];
+  const restingKeys = Object.keys(
+    INITIAL_ROUTE_FILTERS,
+  ) as (keyof RouteFilterState)[];
 
   return restingKeys.some((key) => filters[key] !== INITIAL_ROUTE_FILTERS[key]);
 }
@@ -390,7 +395,10 @@ export function filterRoutes(filters: RouteFilterState): Route[] {
     }
     if (filters.popularity === "popular" && !route.popular) return false;
     if (filters.distance === "short" && route.distanceKm >= 4) return false;
-    if (filters.distance === "medium" && (route.distanceKm < 4 || route.distanceKm > 7))
+    if (
+      filters.distance === "medium" &&
+      (route.distanceKm < 4 || route.distanceKm > 7)
+    )
       return false;
     if (filters.distance === "long" && route.distanceKm <= 7) return false;
     if (filters.theme !== "all" && route.theme !== filters.theme) return false;
@@ -401,13 +409,7 @@ export function filterRoutes(filters: RouteFilterState): Route[] {
   });
 }
 
-/*
-reviews.
-
-there is no api yet, so the written reviews are a fixed sample and the star histogram is
-calculated from each route's own reviews total. that keeps the bars adding up to the
-number the header prints, instead of inventing a second number that disagrees with it.
-*/
+/* reviews: there is no api yet, so the written reviews are a fixed sample and the histogram is calculated from each route's own reviews total — that keeps the bars adding up to the number the header prints */
 
 /* how the review total is spread over 5 to 1 stars */
 const REVIEW_DISTRIBUTION = [0.71, 0.19, 0.06, 0.03, 0.01];

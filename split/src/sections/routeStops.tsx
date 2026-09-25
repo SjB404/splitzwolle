@@ -1,13 +1,4 @@
-/*
-routestops — the numbered "Onderweg" list of stops on a route.
-
-the numbers are position, not identity: they follow the route's own order. the list
-is keyed by the stop's name, because the same stop cannot appear twice on one route
-and an index key would redo every row if the order changed.
-
-the round number uses the primary colour, the same role the map pins use, so a
-numbered stop and a pin read as the same kind of thing.
-*/
+/* the numbered "Onderweg" list — keyed by stop name (a stop cannot repeat), and the round number uses the primary role the map pins use */
 
 import Icon from "../components/icon.tsx";
 import type { Route } from "../types.ts";

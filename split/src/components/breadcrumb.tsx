@@ -1,12 +1,4 @@
-/*
-breadcrumb — the "back to the overview" trail a sub page opens with.
-
-two pages needed this, so it lives here instead of being copied twice: that way
-the second copy cannot drift a gap or an icon away from the first.
-
-to/label are the parent page, current is where the reader is. it is handed to
-PageHeader as its breadcrumb prop.
-*/
+/* breadcrumb — the trail a sub page opens with, handed to PageHeader as its breadcrumb prop */
 
 import { Link } from "react-router-dom";
 import Icon from "./icon.tsx";

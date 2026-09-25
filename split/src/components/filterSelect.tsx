@@ -1,33 +1,15 @@
-/*
-filterselect — a beerCSS select with a floating label and a chevron.
-
-the label floats because it directly follows the select in the markup, which is what
-beerCSS looks for. the chevron lands in the field's trailing slot because it is not
-the first child: beerCSS puts the first icon on the left and every later one on the
-right. suffix reserves the room it takes.
-
-the grid span is the caller's, so the same control can be a different width on each
-page.
-*/
+/* a beerCSS select with a floating label and a chevron — the chevron lands in the field's trailing slot because it is not the first child, and suffix reserves its room */
 
 import type { SelectOption } from "../types.ts";
 import Icon from "./icon.tsx";
 
-/*
-the value is the caller's type.
-
-that is what stops the options and the current value describing different things: a
-select over the route themes is handed the themes' own union, so a typo in an option is
-a compile error and not a list that silently filters nothing.
-*/
+/* the value is the caller's union, so a typo in an option is a compile error instead of a list that silently filters nothing */
 interface FilterSelectProps<Value extends string> {
   id: string;
   label: string;
   value: Value;
   options: SelectOption<Value>[];
   onChange: (value: Value) => void;
-  /* the grid span is the caller's, so the same control can be a different width on
-     each page */
   className?: string;
 }
 
@@ -41,8 +23,7 @@ export default function FilterSelect<Value extends string>({
 }: FilterSelectProps<Value>) {
   return (
     <div className={`field round border label suffix ${className}`}>
-      {/* a <select> hands back a plain string. the options above are the only values it
-          can hold, so this is the one place the dom boundary has to be told so. */}
+      {/* a <select> hands back a plain string; the options are the only values it can hold, so this is the one dom boundary that needs telling */}
       <select
         id={id}
         value={value}

@@ -1,12 +1,4 @@
-/*
-navbar — the app bar every page in the shell wears.
-
-it moved here once more than one page needed it, and it reads the router instead of
-page state: the links are routes, so which one is active comes from useLocation.
-
-the bar leads with the brand and flips with the theme. light mode is the deltion
-orange with white text, dark mode is the desaturated navy with light text.
-*/
+/* the app bar every page in the shell wears — it reads the router and not page state, so the active link comes from useLocation */
 
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
@@ -28,10 +20,7 @@ export default function Navbar() {
 
   return (
     <header className="app-bar sticky top-0 z-50 bg-bar text-on-bar px-0">
-      {/* the gutter comes from CONTAINER, so the bar lines up with the sections below by
-          construction. `px-0` on the header cancels BeerCSS's own padding, which would
-          otherwise push this gutter out of line. `gap-2 sm:gap-6` keeps the bar inside
-          a 320px viewport, and the `max` spacer pushes the actions to the trailing edge. */}
+      {/* the gutter comes from CONTAINER, so the bar lines up with the sections below; px-0 cancels BeerCSS's own header padding, and the .max spacer pushes the actions to the trailing edge */}
       <nav className={`${CONTAINER} w-full gap-2 sm:gap-6`}>
         <Link
           to="/"
@@ -40,9 +29,7 @@ export default function Navbar() {
           Zwolle Routes
         </Link>
 
-        {/* the active link is marked with weight and an underline, never by dimming the
-            others. dimming text with opacity is the one thing this project never
-            does. */}
+        {/* the active link is marked with weight and an underline, never by dimming the others */}
         {NAV_LINKS.map((link) => {
           const active = isActiveLink(pathname, link.to);
 
@@ -66,9 +53,7 @@ export default function Navbar() {
 
         <ThemeToggle />
 
-        {/* the search box is hidden on phones, because the hero has one.
-            an icon link needs .button next to .circle: the circle alone only rounds
-            the box, and a bare <a> has no size of its own. */}
+        {/* an icon link needs .button next to .circle: the circle only rounds the box, and a bare <a> has no size of its own */}
         <Link
           to={ROUTES_PATH}
           className="button circle transparent ripple tap-target hidden text-on-bar sm:inline-flex"
@@ -77,9 +62,7 @@ export default function Navbar() {
           <Icon name="search" />
         </Link>
 
-        {/* the avatar wears the brand colour opposite to the bar it sits on: deltion
-            blue on the light theme's orange bar, deltion orange on the dark theme's
-            navy one. it is also the way into the account screen. */}
+        {/* the avatar wears the brand colour opposite its bar, and it is the way into the account screen */}
         <Link
           to={LOGIN_PATH}
           className="button circle bg-avatar ripple tap-target text-xs font-semibold text-on-avatar"
@@ -88,9 +71,7 @@ export default function Navbar() {
           JB
         </Link>
 
-        {/* -me-2 pulls the trailing button back by the 8px the glyph is inset inside
-            its 40px circle, so the icon lines up with the gutter even though the
-            circle does not. that matches the logo on the left. */}
+        {/* -me-2 pulls the trailing button back by the 8px the glyph is inset in its 40px circle, so the icon lines up with the gutter */}
         <button
           type="button"
           className="circle transparent ripple tap-target -me-2 text-on-bar lg:hidden"
@@ -102,10 +83,7 @@ export default function Navbar() {
         </button>
       </nav>
 
-      {/* the mobile menu is one of the few places a real enter/exit earns its keep:
-          it changes the page height, so without an animation it just appears.
-          MotionConfig reducedMotion="user" in App.tsx drops the height animation for
-          anyone who asked for less motion, and the menu still opens instantly. */}
+      {/* the mobile menu is one of the few places a real enter/exit earns its keep: it changes the page height, so without it the menu just appears */}
       <AnimatePresence initial={false}>
         {menuOpen && (
           <m.div
@@ -116,11 +94,7 @@ export default function Navbar() {
             className="overflow-hidden lg:hidden"
           >
             <Container className="w-full pb-4">
-              {/* the active row is a see through layer over the bar's own colour, not an
-                  inverted pill. the bar's text is white in light mode, so an inverted
-                  row would be orange text on white, which is unreadable. the layer
-                  works in both themes because the bar's text colour always contrasts
-                  with the bar. */}
+              {/* the active row is a see through layer over the bar, not an inverted pill: the bar's text is white in light mode, so an inversion would be orange on white */}
               <div className="flex flex-col gap-1">
                 {NAV_LINKS.map((link) => {
                   const active = isActiveLink(pathname, link.to);

@@ -1,12 +1,4 @@
-/*
-routestory — the "Over deze route" column: the route written out in prose.
-
-it brings its own grid column, so the page above only has to put it in order.
-
-the second paragraph is calculated from the route's own numbers. a hand written
-summary would be a second place the distance is stated, and the two would drift
-the first time somebody edited a route.
-*/
+/* "Over deze route" — brings its own grid column, and the second paragraph is computed from the route so a hand written summary cannot drift */
 
 import { formatDistance, formatDuration } from "../format.ts";
 import type { Route } from "../types.ts";

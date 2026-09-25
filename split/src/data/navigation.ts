@@ -1,9 +1,4 @@
-/*
-navigation — the paths, the top bar's links and the footer's link groups.
-
-they live in one module because the bar, the footer and the login page all point at the
-same places, so renaming a path here re-points every link at once.
-*/
+/* the paths, the bar's links and the footer's groups — one module, so renaming a path re-points every link at once */
 
 import type { ContactDetails, FooterColumn, NavLink } from "../types.ts";
 
@@ -15,8 +10,7 @@ export const LOGIN_PATH = "/inloggen";
 /** the login page opens its registration form when the url carries this hash */
 export const REGISTER_PATH = "/inloggen#registreren";
 
-/* Contact is not a page: it points at the footer band, which is the contact block on
-   every page (see components/footer.tsx). */
+/* Contact is not a page: it points at the footer band, the contact block on every page (components/footer.tsx) */
 export const NAV_LINKS: NavLink[] = [
   { label: "Home", to: HOME_PATH },
   { label: "Routes", to: ROUTES_PATH },
@@ -25,11 +19,7 @@ export const NAV_LINKS: NavLink[] = [
   { label: "Contact", to: `${HOME_PATH}#contact` },
 ];
 
-/*
-whether a nav link is the page you are on. the hash is ignored, because it only says
-where on the page to land, and a sub page (/routes/historische-singel-route) keeps its
-parent link active.
-*/
+/* whether a nav link is the page you are on — the hash is ignored, and a sub page keeps its parent link active */
 export function isActiveLink(pathname: string, to: string): boolean {
   const path = to.split("#")[0];
 
@@ -37,8 +27,7 @@ export function isActiveLink(pathname: string, to: string): boolean {
   return pathname === path || pathname.startsWith(`${path}/`);
 }
 
-/* The footer's link groups. Contact details are placeholders until the
-   collaborator's API is wired up (DESIGN.md §15). */
+/* the footer's link groups; contact details are placeholders until the collaborator's api is wired up (DESIGN.md §15) */
 export const FOOTER_COLUMNS: FooterColumn[] = [
   {
     title: "Navigatie",

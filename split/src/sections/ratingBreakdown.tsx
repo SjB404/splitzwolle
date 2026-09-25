@@ -1,14 +1,4 @@
-/*
-ratingbreakdown — how a rating is built up: the score, the stars, and one progress
-bar per star value.
-
-the bars use the primary colour, so they are orange on paper and blue on navy
-without naming a colour. each bar's max is the total number of reviews and not the
-biggest bucket, which is what makes them read as shares of one whole.
-
-the bars are aria-hidden on purpose: the same numbers are printed beside them, and
-a screen reader reading two progress bars per row is just noise.
-*/
+/* how a rating is built up — each bar's max is the total reviews, so the bars read as shares of one whole; they are aria-hidden because the same numbers sit beside them */
 
 import StarRating from "../components/starRating.tsx";
 import { formatRating } from "../format.ts";
@@ -16,7 +6,7 @@ import type { StarBucket } from "../types.ts";
 
 interface RatingBreakdownProps {
   rating: number;
-  /* the total the bars are a share of, and the figure printed beside the score */
+  /* the total the bars are a share of, and the figure beside the score */
   reviewCount: number;
   breakdown: StarBucket[];
 }
@@ -44,7 +34,9 @@ export default function RatingBreakdown({
               max={reviewCount}
               aria-hidden="true"
             />
-            <span className="w-8 text-right text-xs text-ink-muted">{count}</span>
+            <span className="w-8 text-right text-xs text-ink-muted">
+              {count}
+            </span>
           </li>
         ))}
       </ul>

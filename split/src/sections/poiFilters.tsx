@@ -1,14 +1,5 @@
-/*
-poifilters — the filter card above the points of interest.
-
-the card is FilterPanel; this component owns the search box, the sort select and
-the category chips.
-
-the chips set a filter the select could set too, one tap instead of two. "medium"
-makes them 40px, which is what lets tap-target reach the 48px minimum without
-growing the visual. the active chip changes its fill and drops its border, so
-selecting one never moves the layout.
-*/
+/* the filter card above the places — FilterPanel is the card, this file owns the search box, the sort select and the category chips */
+/* "medium" makes the chips 40px, which lets tap-target reach the 48px minimum without growing the visual; the active chip changes fill and drops its border, so selecting never moves the layout */
 
 import FilterPanel from "../components/filterPanel.tsx";
 import FilterSelect from "../components/filterSelect.tsx";
@@ -21,13 +12,7 @@ import {
 } from "../data/pointsOfInterest.ts";
 import type { PoiCategoryFilter, PoiFilterState } from "../types.ts";
 
-/*
-the category chips: "Alles" first, then one per category.
-
-they are called chips and not filters because they are one tap on a value the sort
-select could also set — a control, not a filter of their own. the icons come from the
-same lookup the cards use, so a category looks the same in both places.
-*/
+/* the category chips: "Alles" first, then one per category — chips and not filters, because they are one tap on a value the sort select could also set */
 interface CategoryChip {
   id: PoiCategoryFilter;
   label: string;
@@ -36,14 +21,17 @@ interface CategoryChip {
 
 const CATEGORY_CHIPS: CategoryChip[] = [
   { id: "all", label: "Alles", icon: "apps" },
-  ...POI_CATEGORIES.map(({ id }) => ({ id, label: id, icon: poiCategoryIcon(id) })),
+  ...POI_CATEGORIES.map(({ id }) => ({
+    id,
+    label: id,
+    icon: poiCategoryIcon(id),
+  })),
 ];
 
 interface PoiFiltersProps {
   filters: PoiFilterState;
   matchCount: number;
-  /* a patch and not a (key, value) pair: what the page stores is then always a whole,
-     valid filter set, whatever the control that changed it */
+  /* a patch and not a (key, value) pair, so the page always stores a whole, valid filter set */
   onFilterChange: (patch: Partial<PoiFilterState>) => void;
   /* undefined while nothing is filtered, which is what keeps the panel's button away */
   onReset?: () => void;

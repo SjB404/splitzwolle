@@ -1,14 +1,5 @@
-/*
-routespage — the overview: every route, filtered and paged.
-
-the page owns the two things the sections share: the filter values, and whether the
-list is expanded. RouteFilters draws the controls, RouteResults draws what is left.
-the band around them is the page's, because it holds both.
-
-the filters are state and not url parameters: they are a view of one list, not a
-destination, so there is nothing to link to. filterRoutes lives with the data it
-filters, in data/routes.js.
-*/
+/* the overview: every route, filtered and paged — the page owns the filter values and whether the list is expanded, because both sections share them */
+/* the filters are state and not url parameters: they are a view of one list, not a destination */
 
 import { useMemo, useState } from "react";
 import PageHeader from "../components/pageHeader.tsx";
@@ -27,8 +18,7 @@ export default function RoutesPage() {
 
   const results = useMemo(() => filterRoutes(filters), [filters]);
 
-  /* changing a filter collapses the list again. leaving "Toon meer" open across a new
-     search would open the page on a list nobody asked for. */
+  /* a filter change collapses the list, so "Toon meer" cannot leave the reader on a list nobody asked for */
   function updateFilter(patch: Partial<RouteFilterState>) {
     setFilters((current) => ({ ...current, ...patch }));
     setShowAll(false);
@@ -49,8 +39,7 @@ export default function RoutesPage() {
 
       <section className="py-16 sm:py-20">
         <div className="mx-auto max-w-[100rem] px-5 sm:px-8">
-          {/* onReset is undefined while nothing is filtered, which is how the panel's
-              "Filters wissen" button stays away */}
+          {/* onReset stays undefined while nothing is filtered, which is how "Filters wissen" stays away */}
           <RouteFilters
             filters={filters}
             matchCount={results.length}

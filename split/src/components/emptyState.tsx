@@ -1,25 +1,16 @@
-/*
-emptystate — the card a list shows when it has nothing to show.
-
-used by the route overview and the points of interest. the way out of the empty
-state comes in as action, because only the page knows what resetting means for
-its own filters.
-
-titleLevel matters: on its own the heading is an h2, but under a SectionHeading
-it has to be an h3 or the document outline skips a level.
-*/
+/* the card a list shows when it has nothing to show; the way out comes in as action, because only the page knows what resetting means */
 
 import type { ReactNode } from "react";
 import Icon from "./icon.tsx";
 
 interface EmptyStateProps {
-  /* a material symbols name, usually the one the missing thing would have worn */
+  /* usually the glyph the missing thing would have worn */
   icon: string;
   title: string;
   description: string;
   /* 2 on its own, 3 under a SectionHeading: a skipped level breaks the outline */
   titleLevel?: 2 | 3;
-  /* what the reader can do about it. only the page knows, so it is handed in */
+  /* what the reader can do about it — only the page knows */
   action?: ReactNode;
 }
 

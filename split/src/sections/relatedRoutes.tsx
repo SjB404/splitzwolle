@@ -1,12 +1,4 @@
-/*
-relatedroutes — the "Vergelijkbare routes" strip that closes a route's page.
-
-the routes arrive already chosen by getRelatedRoutes, because what counts as
-comparable (same theme, same area) is a fact about the data and not about this
-layout.
-
-it reuses RouteCard, so the third place a route is listed is still the same card.
-*/
+/* the "Vergelijkbare routes" strip that closes a route's page; what counts as comparable is getRelatedRoutes' job, not this layout's */
 
 import { Link } from "react-router-dom";
 import RouteGrid from "../components/routeGrid.tsx";
@@ -16,8 +8,6 @@ import { ROUTES_PATH } from "../data/navigation.ts";
 import type { Route } from "../types.ts";
 
 interface RelatedRoutesProps {
-  /* already chosen by getRelatedRoutes: what counts as comparable is a fact about the
-     data, not about this layout */
   routes: Route[];
 }
 

@@ -1,14 +1,4 @@
-/*
-poiresults — the grid of places the filters matched.
-
-it owns the band it fills, so the page above stays a list of what is on screen.
-
-two states: the cards, or the empty state (the same EmptyState the route overview
-uses, stepped down to an h3 because here it sits under a SectionHeading).
-
-the selection is a prop and not state of its own: the map and the cards must show
-the same selection, and only the page can own that.
-*/
+/* the grid of places the filters matched — it owns its band, and the selection is a prop, because the map above and these cards must agree */
 
 import EmptyState from "../components/emptyState.tsx";
 import ClearFiltersButton from "../components/clearFiltersButton.tsx";
@@ -19,8 +9,7 @@ import type { PointOfInterest } from "../types.ts";
 
 interface PoiResultsProps {
   points: PointOfInterest[];
-  /* the page owns the selection: the map above and these cards have to agree, and only
-     one place can hold it */
+  /* the page owns it: the map above and these cards have to agree */
   selectedId: string | null;
   onSelect: (id: string) => void;
   /* the empty state's way out, which only the page can define */

@@ -18,6 +18,7 @@ broken.
 
 The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palette
 (blue · orange · white). **No gradients and no elevation anywhere** — solid steps and hairlines only.
+
 - **Use BeerCSS components; don't hand-build them.** `<button>`, `<article>`, `.chip`, `.field`,
   `.slider`, `.grid` + `.s12/.m6/.l4`, `<i>` for Material Symbols. Copy the canonical markup from
   the "Components" section of `docs/DESIGN.md` rather than inventing styles.
@@ -31,7 +32,7 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
     orange ramp **stops at the brand value**: a darkened orange is brown, so on light surfaces orange
     is a fill and the ink there is blue.
   - `:root, body.light` **and** `body.dark` → the Material 3 roles BeerCSS reads (`--primary`,
-    `--surface`, `--heading`, …). Change the look by changing a role in *both* blocks, not by
+    `--surface`, `--heading`, …). Change the look by changing a role in _both_ blocks, not by
     editing a component.
 - **Text and hairlines come from the theme-aware aliases**, not from a fixed scale:
   `text-ink` (strong), `text-ink-muted` (muted), `text-heading` (headings/figures),
@@ -54,13 +55,13 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   surfaces with a step in the `--surface-container-*` ramp and a `border-line` hairline instead.
 - **The top bar leads with the brand and flips with the theme** (`bg-bar text-on-bar`): brand orange
   with **white** text in light mode, desaturated brand navy with light text in dark. The avatar always
-  wears the *opposite* brand colour (`bg-avatar text-on-avatar`) — blue on the orange bar, orange on
+  wears the _opposite_ brand colour (`bg-avatar text-on-avatar`) — blue on the orange bar, orange on
   the navy bar. The active nav link is marked with weight + underline — never by dimming the others;
-  the active *mobile* row is a translucent state layer over the bar (`bg-on-bar/20 text-on-bar`), not
+  the active _mobile_ row is a translucent state layer over the bar (`bg-on-bar/20 text-on-bar`), not
   an inverted pill.
 - **Balance the two brand colours:** light mode is **orange-filled** (bar, selected segment, light
-  tints, route lines) with blue as the *ink* — every heading, accent and body string; dark mode is
-  **blue-built** (desaturated navy surfaces, the bar, *every button*) with orange as the *ink* —
+  tints, route lines) with blue as the _ink_ — every heading, accent and body string; dark mode is
+  **blue-built** (desaturated navy surfaces, the bar, _every button_) with orange as the _ink_ —
   headings, the eyebrow, the avatar, route lines. Never give both equal weight in one theme, and
   never put orange over a large area in dark mode.
 - **Sections alternate band → surface → band**: hero and footer are `inverse-surface` (pure white in
@@ -77,7 +78,7 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   needed `!important` means the framework is being fought instead of used.
 - **Light mode must separate, not just contrast.** A white page hides white cards: the bands are
   white, the canvas is warm paper (`sand-200`) and cards are white again, so the sections read as
-  bands. When you add a surface, check it against its *parent* in both themes, not only its text
+  bands. When you add a surface, check it against its _parent_ in both themes, not only its text
   contrast.
 - **Layout:** `max-w-[100rem]` container with `px-5 sm:px-8`, sections `py-16 sm:py-20`. The hero
   and footer bands use `inverse-surface` (white in light mode, deep blue in dark): never paint a band
@@ -98,20 +99,21 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   `ripple` (Material 3 press feedback + 10% hover/focus state layer). Tailwind transitions are
   already 200ms on the M3 standard curve (`--ease-standard`, set as the default in `index.css`) —
   don't name a duration or a curve again. Animate `transform` and `opacity` only, and put
-  `motion-safe:` on anything that *moves* (lifts, entrances).
+  `motion-safe:` on anything that _moves_ (lifts, entrances).
 - **`motion` is for enter/exit and list changes only** — `m.*` components (never `motion.*`, the
   root `LazyMotion` is `strict`), with `AnimatePresence`, and curves taken from `MOTION_TRANSITION`
   in `src/motion.ts`. One-shot entrances stay CSS keyframes. **Never add scroll animations**
   (fade/fly-in on scroll, parallax): they are noise. Full rules and measured numbers: DESIGN.md §10.
 - **Naming:** camelCase for files/identifiers (`homePage.tsx`, `historicOpacity`), PascalCase
   components, SCREAMING_SNAKE for content constants (`ROUTES`), kebab-case for the few classes and
-  custom properties in `index.css`. Comment the *why* — especially BeerCSS quirks and deliberate
-  deviations. `docs/DESIGN.md` §13 has the full craft rules.
+  custom properties in `index.css`. **Comments are one line, lowercase, and carry only the
+  load-bearing half** — the trap, the measured number, the deliberate deviation — never a
+  paragraph. `docs/DESIGN.md` §13 has the full craft rules.
 - **Icons are Material Symbols** via `<Icon name="…" />`. Adding an icon means adding its name to
   the subset URL in `split/index.html` first.
 - **Maps are a picture plus a drawing.** The imagery lives in `src/assets/maps/` and is imported
   through `src/data/maps.js` (imported assets are fingerprinted by Vite — `public/` is only for
-  files whose *path* is fixed, like the favicon). Routes, stops and pins are inline SVG overlays
+  files whose _path_ is fixed, like the favicon). Routes, stops and pins are inline SVG overlays
   from `components/mapArtwork.tsx`, painted with Tailwind `fill-*` / `stroke-*` utilities so no hex
   appears in JSX, positioned in 0–100 space. Overlays never take pointer events; the picture's
   `alt` carries the meaning (DESIGN.md §8).

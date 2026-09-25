@@ -1,14 +1,5 @@
-/*
-pointsofinterestpage — the places worth a detour.
-
-the page owns the two things the sections share: the filter values, and which place
-is selected. everything else is a section: PoiFilters on top, the map, then
-PoiResults.
-
-selectedPoint is looked up from the filtered list instead of being kept in sync with
-it. filter the selected place away and its highlight goes with it, so nothing can
-point at a place that is not on screen.
-*/
+/* the places worth a detour — the page owns the filter values and which place is selected; everything else is a section */
+/* the selection is derived from the filtered list, so filtering a place away cannot leave a highlight pointing off screen */
 
 import { useMemo, useState } from "react";
 import MapPanel from "../components/mapPanel.tsx";
@@ -27,12 +18,12 @@ import type { PoiFilterState } from "../types.ts";
 
 export default function PointsOfInterestPage() {
   const [filters, setFilters] = useState(INITIAL_POI_FILTERS);
-  /* null means nothing is selected, which is what the map reads to decide whether one
-     pin is drawn larger */
+  /* null means nothing is selected, which the map reads to enlarge one pin */
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const results = useMemo(() => filterPointsOfInterest(filters), [filters]);
-  const selectedPoint = results.find((point) => point.id === selectedId) ?? null;
+  const selectedPoint =
+    results.find((point) => point.id === selectedId) ?? null;
 
   function updateFilter(patch: Partial<PoiFilterState>) {
     setFilters((current) => ({ ...current, ...patch }));
@@ -59,14 +50,14 @@ export default function PointsOfInterestPage() {
             onReset={hasActivePoiFilters(filters) ? resetFilters : undefined}
           />
 
-          {/* the map shows the current list, so its pins always match the cards below.
-              the label names the selected place, or the whole set when nothing is
-              selected. */}
+          {/* the map shows the current list, so its pins match the cards below; the label names the selected place, or the whole set */}
           <MapPanel
             className="mt-10"
             image={MAP_IMAGES.terrain}
             alt={`Kaart van Zwolle met ${results.length} bezienswaardigheden`}
-            label={selectedPoint ? selectedPoint.name : "Alle bezienswaardigheden"}
+            label={
+              selectedPoint ? selectedPoint.name : "Alle bezienswaardigheden"
+            }
           >
             <PoiOverlay points={results} selectedId={selectedId} />
           </MapPanel>

@@ -1,12 +1,4 @@
-/*
-footer — the closing band, and the page's contact block.
-
-it carries id="contact", which is what the top bar's Contact link points at (see
-data/navigation.js).
-
-the band is inverse-surface: white in light mode, deep navy in dark. its contents use
-the ordinary ink utilities, so they follow the theme without knowing about it.
-*/
+/* the closing band and the page's contact block — id="contact" is what the top bar's Contact link points at (data/navigation.ts) */
 
 import { Link } from "react-router-dom";
 import Icon from "./icon.tsx";
@@ -16,8 +8,7 @@ import { CONTACT_DETAILS, FOOTER_COLUMNS } from "../data/navigation.ts";
 export default function Footer() {
   return (
     <footer id="contact" className="inverse-surface py-10">
-      {/* w-full matters: beerCSS makes <footer> a grid, and a grid item with mx-auto
-          shrinks to its content and centres itself. */}
+      {/* w-full matters: beerCSS makes <footer> a grid, and a grid item with mx-auto shrinks to its content */}
       <Container className="flex w-full flex-col gap-10">
         <div className="flex flex-col gap-10 lg:flex-row lg:justify-between">
           <div className="max-w-sm">
@@ -28,8 +19,7 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* flex and not the 12 column grid: a wrapping row of link groups is one
-              dimensional, and the grid multiplies its gap by 11 */}
+          {/* flex, not the 12 column grid: a wrapping row of link groups is one dimensional, and the grid multiplies its gap by 11 */}
           <div className="flex flex-wrap gap-x-12 gap-y-8 sm:gap-x-20">
             {FOOTER_COLUMNS.map((column) => (
               <nav
@@ -43,7 +33,10 @@ export default function Footer() {
                 <ul className="mt-2 flex flex-col gap-1 text-sm text-ink-muted">
                   {column.links.map((link) => (
                     <li key={link.label}>
-                      <Link to={link.to} className="transition-colors hover:text-ink">
+                      <Link
+                        to={link.to}
+                        className="transition-colors hover:text-ink"
+                      >
                         {link.label}
                       </Link>
                     </li>
@@ -81,7 +74,10 @@ export default function Footer() {
         </div>
 
         <div className="flex flex-col gap-2 border-t border-line pt-6 text-xs text-ink-muted sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} Zwolle Routes — Alle rechten voorbehouden.</p>
+          <p>
+            © {new Date().getFullYear()} Zwolle Routes — Alle rechten
+            voorbehouden.
+          </p>
           <p>Gemaakt voor wandelaars en fietsers in Zwolle.</p>
         </div>
       </Container>

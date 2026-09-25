@@ -1,14 +1,4 @@
-/*
-routereviews — the reviews band: the score, how it is built up, and what people
-wrote.
-
-it owns the band and the two column grid inside it, so the page above only has to
-place it.
-
-the breakdown is calculated here from the route's review count and never stored. a
-second copy of "128 reviews" would be a second thing to keep in step, and how a
-count spreads over the five star values belongs to the data module.
-*/
+/* the reviews band — score, breakdown and the written reviews; it owns its band and two column grid, and the breakdown is derived from route.reviews, never stored */
 
 import SectionHeading from "../components/sectionHeading.tsx";
 import Container from "../components/container.tsx";

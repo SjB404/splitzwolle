@@ -1,13 +1,4 @@
-/*
-reviewcard — one written review.
-
-the initials circle uses the avatar role, which is always the brand colour opposite
-to what it sits on. so it reads on a card in both themes without this component
-knowing which theme is on.
-
-the rating shows stars and the number together: the stars are the glance, the number
-is the fact, and together they stop 4 and 5 looking alike at a small size.
-*/
+/* one written review; the avatar role always reads on its background, and stars plus the number stop 4 and 5 looking alike */
 
 import StarRating from "../components/starRating.tsx";
 import { formatRating } from "../format.ts";
@@ -38,7 +29,9 @@ export default function ReviewCard({ review }: ReviewCardProps) {
         </span>
       </div>
 
-      <p className="mt-4 text-[15px] leading-relaxed text-ink-muted">{review.text}</p>
+      <p className="mt-4 text-[15px] leading-relaxed text-ink-muted">
+        {review.text}
+      </p>
     </article>
   );
 }

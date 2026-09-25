@@ -1,17 +1,10 @@
-/*
-notfoundpage — the catch all page.
-
-it is a normal page inside the shell, so the bar and the footer still work. a route
-page renders it too when its :routeId matches nothing, which is why the text comes in
-as props instead of being hardcoded here.
-*/
+/* the catch all page — a normal page inside the shell, also rendered by a route page whose :routeId matches nothing */
 
 import { Link } from "react-router-dom";
 import PageHeader from "../components/pageHeader.tsx";
 import { HOME_PATH, ROUTES_PATH } from "../data/navigation.ts";
 
-/* every prop is optional: the page catches unknown urls, and a route page renders it
-   when its id matches nothing — and that caller passes wording of its own */
+/* both props are optional: the route page caller passes wording of its own */
 interface NotFoundPageProps {
   title?: string;
   description?: string;

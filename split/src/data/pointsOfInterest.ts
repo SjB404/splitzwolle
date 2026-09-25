@@ -1,14 +1,5 @@
-/*
-points of interest — the places the home page previews and the overview lists.
-
-position is in 0-100 space on the map imagery, like a route's path, and gets scaled
-onto the picture by components/mapArtwork.tsx. the positions were placed by hand: the
-places that carry a label in the imagery sit on it, and the rest were placed by eye, so
-they are approximate until there is real geodata. distanceKm is the walking distance
-from the Grote Markt, which is what the overview sorts on.
-
-placeholder content for the collaborator's api, same as the routes.
-*/
+/* the places the home page previews and the overview lists — positions are in 0-100 space and were placed by hand, so they are approximate until there is real geodata; distanceKm is the walk from the Grote Markt, which the overview sorts on */
+/* placeholder content for the collaborator's api, same as the routes */
 
 import type {
   PoiCategory,
@@ -31,7 +22,7 @@ export function poiCategoryIcon(category: PoiCategoryName): string {
   return POI_CATEGORIES.find((item) => item.id === category)?.icon ?? "place";
 }
 
-/* The overview's sort options, cheapest first: rating, name, distance. */
+/* cheapest sort first: rating, name, distance */
 export const POI_SORTS: SelectOption<PoiSort>[] = [
   { value: "rating", label: "Beoordeling" },
   { value: "name", label: "Naam" },
@@ -44,13 +35,11 @@ export const INITIAL_POI_FILTERS: PoiFilterState = {
   sort: "rating",
 };
 
-/*
-true when at least one filter has left its resting value, which is what shows the
-"Filters wissen" action. the resting values come from INITIAL_POI_FILTERS, so a new
-filter cannot leave this comparison behind.
-*/
+/* true when a filter has left its resting value, which is what shows "Filters wissen"; the comparison reads INITIAL_POI_FILTERS, so a new filter cannot be left behind */
 export function hasActivePoiFilters(filters: PoiFilterState): boolean {
-  const restingKeys = Object.keys(INITIAL_POI_FILTERS) as (keyof PoiFilterState)[];
+  const restingKeys = Object.keys(
+    INITIAL_POI_FILTERS,
+  ) as (keyof PoiFilterState)[];
 
   return restingKeys.some((key) => filters[key] !== INITIAL_POI_FILTERS[key]);
 }
@@ -202,15 +191,20 @@ export const POINTS_OF_INTEREST: PointOfInterest[] = [
   },
 ];
 
-/** The overview's filter + sort logic, kept next to the data it works on. */
-export function filterPointsOfInterest(filters: PoiFilterState): PointOfInterest[] {
+/** the overview's filter + sort logic, next to the data it works on */
+export function filterPointsOfInterest(
+  filters: PoiFilterState,
+): PointOfInterest[] {
   const needle = filters.query.trim().toLowerCase();
 
   const matches = POINTS_OF_INTEREST.filter((point) => {
-    if (filters.category !== "all" && point.category !== filters.category) return false;
+    if (filters.category !== "all" && point.category !== filters.category)
+      return false;
     if (
       needle &&
-      !`${point.name} ${point.area} ${point.category}`.toLowerCase().includes(needle)
+      !`${point.name} ${point.area} ${point.category}`
+        .toLowerCase()
+        .includes(needle)
     ) {
       return false;
     }

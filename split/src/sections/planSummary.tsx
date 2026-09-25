@@ -1,16 +1,5 @@
-/*
-plansummary — the "Routeoverzicht" card: the sum of the ticked routes.
-
-every figure is calculated from the selection instead of being stored, so unticking
-a row updates the distance, the duration and the stop count in the same render.
-
-that is also why it takes the routes and not four numbers: adding up a selection is
-this card's whole job.
-
-the duration comes from a stated walking pace and not a per route number, so the
-total always agrees with the distance printed next to it. if the planner ever learns
-about bicycles, PACE_KM_PER_HOUR is the one line to change.
-*/
+/* the "Routeoverzicht" card — everything is calculated from the ticked routes in the same render, which is why it takes the routes and not four numbers */
+/* the duration comes from a stated pace, so the total always agrees with the distance beside it; a bicycle mode would change PACE_KM_PER_HOUR only */
 
 import { Link } from "react-router-dom";
 import Icon from "../components/icon.tsx";
@@ -24,8 +13,6 @@ const PACE_KM_PER_HOUR = 4.5;
 const PACE_NOTE = `Gerekend met een wandeltempo van ${formatDecimal(PACE_KM_PER_HOUR)} km per uur.`;
 
 interface PlanSummaryProps {
-  /* the routes the reader ticked. adding a selection up is this card's whole job, so it
-     takes the routes and not four numbers */
   routes: Route[];
 }
 
@@ -69,9 +56,7 @@ export default function PlanSummary({ routes }: PlanSummaryProps) {
 
       <p className="mt-4 text-xs text-ink-muted">{PACE_NOTE}</p>
 
-      {/* the one filled action in this section, and it goes somewhere real: saving a
-          plan belongs to an account, and the account screen is the login page.
-          nothing is stored yet. */}
+      {/* the section's one filled action, and it goes somewhere real: saving a plan belongs to an account, and nothing is stored yet */}
       <div className="mt-5 border-t border-line pt-5">
         <Link to={LOGIN_PATH} className="button ripple">
           <Icon name="check_circle" className="mr-1.5 text-base" />

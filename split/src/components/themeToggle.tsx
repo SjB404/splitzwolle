@@ -3,14 +3,7 @@ import { AnimatePresence, m } from "motion/react";
 import Icon from "./icon.tsx";
 import { MOTION_SWAP } from "../motion.ts";
 
-/*
-themetoggle — switches between the light and dark palettes.
-
-both palettes live in index.css (:root, body.light and body.dark), so the only job
-here is keeping the <body> class and the saved choice in step. index.html applies the
-stored theme before the first paint with the same storage key, which is what stops a
-dark mode visitor seeing a flash of light.
-*/
+/* switches the light and dark palettes; both live in index.css, so the only job here is keeping the <body> class and the stored choice in step with index.html's pre-paint script */
 
 export const THEME_STORAGE_KEY = "zwolle-routes:theme";
 
@@ -25,7 +18,9 @@ function applyTheme(theme: Theme) {
 
 function readStoredTheme(): Theme {
   try {
-    return localStorage.getItem(THEME_STORAGE_KEY) === "dark" ? "dark" : "light";
+    return localStorage.getItem(THEME_STORAGE_KEY) === "dark"
+      ? "dark"
+      : "light";
   } catch {
     return "light"; // storage can be blocked (private mode), and light is the default
   }
@@ -35,8 +30,7 @@ export default function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>(readStoredTheme);
   const isDark = theme === "dark";
 
-  /* <body> lives outside the React tree, so the class is written here instead of being
-     rendered. this is syncing with something external, not calculated state. */
+  /* <body> lives outside the React tree, so the class is written here — syncing with something external, not calculated state */
   useEffect(() => {
     applyTheme(theme);
 
@@ -53,12 +47,11 @@ export default function ThemeToggle() {
       className="circle transparent ripple tap-target text-on-bar"
       onClick={() => setTheme(isDark ? "light" : "dark")}
       aria-pressed={isDark}
-      aria-label={isDark ? "Schakel naar licht thema" : "Schakel naar donker thema"}
+      aria-label={
+        isDark ? "Schakel naar licht thema" : "Schakel naar donker thema"
+      }
     >
-      {/* the icon shows what you get, not what you have. it also spins out and in, so
-          the switch reads as a change of state instead of a silent swap. mode="wait"
-          lets the exit finish first, and reducedMotion="user" in App.tsx drops the
-          rotation for anyone who asked for less motion while keeping the fade. */}
+      {/* the icon shows what you get, not what you have; mode="wait" lets the exit finish, and App's reducedMotion="user" drops the rotation but keeps the fade */}
       <AnimatePresence initial={false} mode="wait">
         <m.span
           key={isDark ? "light" : "dark"}

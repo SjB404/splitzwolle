@@ -1,10 +1,4 @@
-/*
-sectionheading — the "title + explanation + one action" row that opens a content
-section.
-
-four pages need it, so it lives here. keeping it in one place is what stops the
-second page's heading drifting a margin or a weight away from the first.
-*/
+/* the "title + explanation + one action" row that opens a section; four pages need it, so it lives here */
 
 import type { ReactNode } from "react";
 
@@ -32,7 +26,9 @@ export default function SectionHeading({
           </p>
         )}
 
-        <h2 className={`text-3xl font-bold sm:text-4xl ${eyebrow ? "mt-3" : ""}`}>
+        <h2
+          className={`text-3xl font-bold sm:text-4xl ${eyebrow ? "mt-3" : ""}`}
+        >
           {title}
         </h2>
 

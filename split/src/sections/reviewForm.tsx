@@ -1,12 +1,4 @@
-/*
-reviewform — the form under the reviews.
-
-nothing is submitted: there is no api yet, and the backend belongs to somebody
-else. the submit handler only stops the page reloading.
-
-the comment box is uncontrolled, because nothing reads it back. the rating is
-controlled, because the text under it has to show the value while it is dragged.
-*/
+/* the form under the reviews — nothing is submitted (no api yet), the comment box is uncontrolled, and the rating is controlled so the text under it follows the drag */
 
 import { useState } from "react";
 
@@ -31,8 +23,7 @@ export default function ReviewForm() {
       <div>
         <p className="text-sm font-medium text-ink">Beoordeling</p>
 
-        {/* mx-0 max-w-sm cancels the inline margins beerCSS puts on .slider, so the
-            track lines up with the fields above and stops growing on a wide column */}
+        {/* mx-0 max-w-sm cancel beerCSS's inline margins on .slider, so the track lines up with the fields above */}
         <label className="slider mx-0 mt-1 w-full max-w-sm">
           <span className="sr-only">
             Kies een beoordeling tussen 1 en {RATING_SCALE_MAX} sterren

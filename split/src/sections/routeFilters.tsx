@@ -1,16 +1,5 @@
-/*
-routefilters — the filter card above the route overview.
-
-the card is FilterPanel; this file owns what goes in it: the search box, the four
-selects, and the lists they offer.
-
-the option lists live here and not in data/routes.js because they are labels, not
-data. "Tot 4 km" is only how the design words the "short" bucket that
-filterRoutes compares against. every list rests on "all", which is why an
-untouched panel filters nothing out.
-
-the page holds the filter state, so a change is reported as a (key, value) pair.
-*/
+/* the filter card above the route overview — FilterPanel is the card, this file owns what goes in it (the search box and the four selects) */
+/* the option lists live here and not in data/routes.ts because they are labels, not data; every list rests on "all", which is why an untouched panel filters nothing out */
 
 import FilterPanel from "../components/filterPanel.tsx";
 import FilterSelect from "../components/filterSelect.tsx";
@@ -50,8 +39,7 @@ const DIFFICULTY_OPTIONS: SelectOption<RouteDifficultyFilter>[] = [
 interface RouteFiltersProps {
   filters: RouteFilterState;
   matchCount: number;
-  /* a patch and not a (key, value) pair: what the page stores is then always a whole,
-     valid filter set, whichever control changed it */
+  /* a patch and not a (key, value) pair, so the page always stores a whole, valid filter set */
   onFilterChange: (patch: Partial<RouteFilterState>) => void;
   /* undefined while nothing is filtered, which is what keeps the panel's button away */
   onReset?: () => void;
@@ -66,13 +54,10 @@ export default function RouteFilters({
   return (
     <FilterPanel
       resultLabel={`${matchCount} ${matchCount === 1 ? "route" : "routes"} gevonden`}
-      /* no reset button while nothing is filtered: the panel only draws the button
-         when it is given something to do */
+      /* no reset button while nothing is filtered */
       onReset={onReset}
     >
-      {/* the 12 column grid does the layout. the row gap is safe on a phone, but the
-          column gutter is gated behind lg because beerCSS multiplies a gap by 11
-          tracks. */}
+      {/* the 12 column grid does the layout; the row gap is safe on a phone, but the column gutter is gated behind lg because beerCSS multiplies a gap by 11 tracks */}
       <div className="grid gap-y-4 lg:gap-x-4">
         <SearchField
           id="route-search"

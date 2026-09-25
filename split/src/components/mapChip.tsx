@@ -1,21 +1,8 @@
-/*
-mapchip — the small label that sits on a map and names what is drawn on it.
-
-two maps need exactly this: the framed MapPanel, and the hero's stacked layers. the
-dot wears the artwork's own route colour, which is the one place a fixed palette value
-is correct (DESIGN.md §8) — it has to match the line the overlay draws, not the page's
-ink.
-
-it is a plain span, so the caller decides where it goes: absolutely positioned inside a
-map frame, or inside the hero's pointer-events-none wrapper.
-*/
+/* the small label that names what a map shows; the dot keeps the artwork's fixed orange because it must match the route line (DESIGN.md §8) */
 
 interface MapChipProps {
   label: string;
-  /**
-   * placement, not appearance. the chip's own look is settled here, because two maps
-   * that labelled the same kind of thing differently would read as two components.
-   */
+  /** placement, not appearance — the chip's own look is settled here */
   className?: string;
 }
 

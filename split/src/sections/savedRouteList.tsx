@@ -1,21 +1,11 @@
-/*
-savedroutelist — the "Opgeslagen routes" column: the heading, the count, and the
-rows.
-
-the page holds the selection as a set of ids, so this list only renders it. that is
-what lets the totals next to it be calculated from the same ids.
-
-the heading is an h2 and the rows are h3s, because the page's h1 comes from
-PageHeader. the outline stays in order.
-*/
+/* "Opgeslagen routes" column — renders the page's selection; the heading is an h2 and the rows are h3s because the page's h1 comes from PageHeader */
 
 import SavedRouteRow from "./savedRouteRow.tsx";
 import type { Route } from "../types.ts";
 
 interface SavedRouteListProps {
   routes: Route[];
-  /* the ticked ids, owned by the page: the totals beside this list are calculated from
-     the same ids, so they cannot disagree with it */
+  /* the ticked ids, owned by the page: the totals beside this list use the same ids */
   selectedIds: string[];
   onToggle: (id: string) => void;
 }

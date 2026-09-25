@@ -1,13 +1,5 @@
-/*
-savedrouterow — one selectable route in the planner's list.
-
-the row keeps its hairline in both states and only changes its fill, so ticking a
-box never shifts the rows around it.
-
-the checkbox is beerCSS's. the empty span next to the input is the glyph's hook,
-because that is the one place beerCSS does not clip it. the input's aria-label names
-the route, so a screen reader does not just hear "checkbox" over and over.
-*/
+/* one selectable route in the planner's list; the row keeps its hairline in both states and only changes its fill, so ticking a box never shifts the rows around it */
+/* beerCSS's checkbox: the empty span is the glyph's hook, and the input's aria-label names the route instead of repeating "checkbox" */
 
 import { Link } from "react-router-dom";
 import Icon from "../components/icon.tsx";

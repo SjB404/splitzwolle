@@ -1,28 +1,13 @@
-/*
-starrating — five material symbols stars that show a rating.
-
-empty stars use the muted ink and never a faded accent, because this project does not
-dim text with opacity. muted ink stays readable in both themes.
-
-a filled star is beerCSS's i.fill, which flips the FILL axis of the icon font.
-colour alone would leave filled and empty stars differing only in lightness, and a
-3,5 rating has to read correctly.
-*/
+/* five material symbols stars — empty ones use muted ink (never a faded accent), and a filled one is beerCSS's i.fill, since colour alone is too subtle at this size */
 
 import Icon from "./icon.tsx";
 import { formatRating } from "../format.ts";
 
-/*
-the five values a rating can take.
-
-a list of the stars themselves and not a count, because the list is keyed by what a
-star is: an index would be re-created by any change to the rating, and the rule here is
-that a list is keyed by the thing itself.
-*/
+/* the values a rating can take, as a list so the key is the star itself */
 const STARS = [1, 2, 3, 4, 5];
 
 interface StarRatingProps {
-  /* the average score, 0 to 5. a 3.5 rounds up to four filled stars */
+  /* the average score, 0 to 5; a 3.5 rounds up to four filled stars */
   value: number;
   className?: string;
 }

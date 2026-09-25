@@ -1,26 +1,6 @@
-/*
-icon — one material symbols glyph.
+/* one material symbols glyph; the name must be in the subset url in index.html, font size sets the size, and aria-hidden keeps the glyph name out of screen readers */
 
-beerCSS paints the <i> with an icon font, and the text inside picks which glyph you
-get: "search" draws a magnifier instead of the word. the font is a google fonts
-subset declared in index.html, so a new icon name only works once it is added to that
-url.
-
-size it with a tailwind font size (text-base, text-xl), because these glyphs are
-sized by font size. colour is inherited, so an icon always matches whatever it sits
-in.
-
-the aria-hidden matters. without it a screen reader reads the glyph's name out loud
-next to the real label.
-
-usage: <Icon name="search" className="text-base" />
-*/
-
-/*
-the glyph is named by a plain string and not by a union of names on purpose: the icons
-come from a google fonts subset declared in index.html, so the list lives outside this
-project and can change without a compile error here to announce it.
-*/
+/* name is a plain string, not a union: the icon list lives in index.html's font subset, outside this project */
 interface IconProps {
   name: string;
   className?: string;

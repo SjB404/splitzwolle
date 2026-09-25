@@ -1,15 +1,6 @@
-/*
-hero — the home page's opening band.
-
-the pitch, the search box and the figures on the left, the map panel on the right.
-
-it owns the map position, because the layer buttons and the slider are two views of
-that one value. whichever map fills most of the panel is the lit button, so the two
-can never disagree: drag the slider to an end and the button follows. that is also
-why layer is calculated from position instead of stored.
-
-id="home" is here because the top bar's Home link and the logo point at it.
-*/
+/* the home page's opening band — pitch, search and figures on the left, the map panel on the right; it owns the map position, because the layer buttons and the slider are two views of that one value */
+/* whichever layer fills most of the panel is the lit button, so the two can never disagree — that is why layer is derived from position instead of stored */
+/* id="home" because the top bar's Home link and the logo point at it */
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -51,18 +42,12 @@ const INITIAL_MAP_POSITION = 35;
 export default function Hero() {
   const [query, setQuery] = useState("");
   const [position, setPosition] = useState(INITIAL_MAP_POSITION);
-  /* bumped only when a button moved the map, so the range re-mounts and takes the
-     new value as its own (see showMapLayer) */
+  /* bumped only when a button moved the map, so the range re-mounts and takes the new value as its own */
   const [sliderKey, setSliderKey] = useState(0);
 
   const layer: MapLayer = position < 50 ? "historical" : "current";
 
-  /* a layer button sends the slider to that end of its track.
-
-     the range is uncontrolled, so it is re-mounted with the new value rather than
-     written to. a re-mounted input fires no event, so BeerCSS is asked to repaint
-     its own filled track. that repaint waits a frame, or it runs before the new
-     input is in the dom. */
+  /* a layer button sends the slider to that end of its track; the range is uncontrolled, so it is re-mounted rather than written to, and BeerCSS is asked to repaint its filled track a frame later (a re-mounted input fires no event) */
   function showMapLayer(nextLayer: MapLayer) {
     setPosition(nextLayer === "historical" ? 0 : 100);
     setSliderKey((key) => key + 1);
@@ -74,9 +59,7 @@ export default function Hero() {
 
   return (
     <section id="home" className="inverse-surface">
-      {/* beerCSS's 12 column grid multiplies a gap by 11, so a big gap overflows a
-          phone. row gap always, column gutter only from lg. the padding matches
-          every other section on purpose. */}
+      {/* beerCSS's grid multiplies a gap by 11, so a big gap overflows a phone: row gap always, column gutter only from lg */}
       <Container className="grid items-center gap-y-10 py-16 sm:py-20 lg:gap-x-20">
         <div className="s12 l6 motion-safe:animate-rise">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
@@ -88,12 +71,16 @@ export default function Hero() {
           </h1>
 
           <p className="mt-6 max-w-lg text-[15px] leading-relaxed text-ink-muted">
-            Maak je eigen wandel- of fietsroute, ontdek routes van andere gebruikers en
-            beleef de stad met een historische kaartlaag naast de actuele plattegrond.
+            Maak je eigen wandel- of fietsroute, ontdek routes van andere
+            gebruikers en beleef de stad met een historische kaartlaag naast de
+            actuele plattegrond.
           </p>
 
           {/* the form only swallows Enter; the field's own action is the link */}
-          <form onSubmit={(event) => event.preventDefault()} className="mt-8 max-w-lg">
+          <form
+            onSubmit={(event) => event.preventDefault()}
+            className="mt-8 max-w-lg"
+          >
             <SearchField
               id="hero-search"
               label="Zoek een route, plek of wijk"
@@ -109,10 +96,7 @@ export default function Hero() {
             />
           </form>
 
-          {/* beerCSS's connected button group: one shared container with dividers
-              and rounded outer corners, and .active on the chosen segment. that
-              container is what makes the two buttons read as one control. w-fit
-              stops the nav stretching across the column. */}
+          {/* beerCSS's connected button group: one shared container with dividers and rounded outer corners, plus .active on the chosen segment; w-fit stops the nav stretching */}
           <nav className="group connected mt-6 w-fit" aria-label="Kaartlaag">
             {MAP_LAYERS.map(({ id, label }) => (
               <button
@@ -130,7 +114,9 @@ export default function Hero() {
           <dl className="mt-10 flex flex-wrap gap-x-10 gap-y-4 border-t border-line pt-6">
             {HERO_STATS.map(({ value, label }) => (
               <div key={label}>
-                <dt className="font-display text-2xl font-bold text-heading">{value}</dt>
+                <dt className="font-display text-2xl font-bold text-heading">
+                  {value}
+                </dt>
                 <dd className="text-xs uppercase tracking-wider text-ink-muted">
                   {label}
                 </dd>
@@ -139,8 +125,7 @@ export default function Hero() {
           </dl>
         </div>
 
-        {/* the 120ms delay starts this just after the text, so the hero assembles
-            instead of appearing all at once */}
+        {/* the 120ms delay starts this just after the text, so the hero assembles instead of appearing at once */}
         <div className="s12 l6 motion-safe:animate-rise [animation-delay:120ms]">
           <HeroMap
             position={position}

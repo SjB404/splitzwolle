@@ -1,40 +1,23 @@
-/*
-domain types — the vocabulary every other file shares.
+/* domain types — the vocabulary every other file shares; the data modules are the only place these values are produced, and writing the shape down once turns a renamed field into a compile error */
 
-the data modules (data/routes.ts, data/pointsOfInterest.ts, data/maps.ts,
-data/navigation.ts) are the only place these values are produced, and everything else
-reads them. writing the shape down once is what lets a component say "give me a
-Route" instead of repeating which fields it needs, and it turns a renamed field into
-a compile error instead of a blank spot on the page.
-
-nothing here runs. it is the vocabulary; the values live next to the data they
-describe and the behaviour next to the data it works on.
-*/
-
-/* a point in the artwork's own 0-100 space, scaled onto a picture by
-   components/mapArtwork.tsx. routes, stops and pins all speak it, which is why one
-   drawing fits the hero, a card and the planner alike. */
+/* a point in the artwork's own 0-100 space, scaled onto a picture by components/mapArtwork.tsx; routes, stops and pins all speak it */
 export type MapPosition = [number, number];
 
-/*
-a map picture: where the file lives, and the sentence that describes it for a reader
-who cannot see it.
-
-it is not called MapImage because that name belongs to the component that draws one
-(components/mapArtwork.tsx). two things with one name is how a file ends up importing
-the wrong one.
-*/
+/* a map picture; not called MapImage because that name belongs to the component that draws one, and two things with one name is how a file imports the wrong one */
 export interface MapPicture {
   src: string;
   alt: string;
 }
 
-/* the six exports in src/assets/maps are known by these names, and data/maps.ts is
-   where a name becomes a file (see the readability note there). */
-export type MapImageId = "historic" | "satellite" | "places" | "terrain" | "roads";
+/* the names the src/assets/maps exports are known by; data/maps.ts is where a name becomes a file */
+export type MapImageId =
+  | "historic"
+  | "satellite"
+  | "places"
+  | "terrain"
+  | "roads";
 
-/* the kinds of route the app offers. a route's theme is one of these strings, so the
-   filter, the card and the detail page all compare the same values. */
+/* the kinds of route the app offers; the filter, the card and the detail page all compare these strings */
 export type RouteTheme =
   | "Historisch"
   | "Wandel"
@@ -68,8 +51,7 @@ export interface Route {
   path: MapPosition[];
 }
 
-/* the four kinds of place, and a category together with the glyph that stands for it.
-   the glyph lives beside the name so a chip and a card cannot disagree about it. */
+/* the four kinds of place, each with the glyph that stands for it, so a chip and a card cannot disagree */
 export type PoiCategoryName = "Monumenten" | "Musea" | "Parken" | "Culinair";
 
 export interface PoiCategory {
@@ -108,7 +90,7 @@ export interface StarBucket {
   count: number;
 }
 
-/* the paths and the links the bar, the footer and the router all read from one place */
+/* the paths and the links the bar, the footer and the router all read */
 export interface NavLink {
   label: string;
   to: string;
@@ -127,24 +109,13 @@ export interface ContactDetails {
   address: string;
 }
 
-/* a choice in a BeerCSS select. the value is a union of the strings the filter logic
-   compares against, so a typo is a compile error and not an empty list. */
+/* a choice in a BeerCSS select; the value is a union, so a typo is a compile error and not an empty list */
 export interface SelectOption<Value extends string = string> {
   value: Value;
   label: string;
 }
 
-/*
-the filter state of the two overviews.
-
-every list rests on "all", which is what makes an untouched panel filter nothing out.
-the resting state itself is INITIAL_ROUTE_FILTERS / INITIAL_POI_FILTERS, declared next
-to the logic that uses it.
-
-they are named …State and not …Filters because the panel components are already called
-RouteFilters and PoiFilters. one name for two things is how a file ends up importing
-the wrong one.
-*/
+/* the filter state of the two overviews — every list rests on "all", which is why an untouched panel filters nothing out; named …State because RouteFilters and PoiFilters are the components */
 export type RoutePopularityFilter = "all" | "popular";
 export type RouteDistanceFilter = "all" | "short" | "medium" | "long";
 export type RouteThemeFilter = "all" | RouteTheme;

@@ -1,31 +1,6 @@
-/*
-map imagery — the pictures every map is built on.
+/* the map pictures — imported rather than served from public/, so Vite fingerprints them and a redeploy cannot serve a stale map; all six are 1520 x 984 and ~3.5 MB, since Vite copies assets without re-encoding them */
 
-six exports of the same view of zwolle, each with a different amount burned into the
-picture. they live in src/assets/maps/ and are imported rather than referenced as
-public urls: an imported asset gets a fingerprinted filename, so a redeployed map can
-never be served from a stale cache. that is the whole reason an asset belongs in src/
-instead of public/.
-
-which surface uses which is a readability choice, not a taste one:
-
-  historic  - the 1652 "Swolla" engraving: the hero's historic layer
-  satellite - plain imagery: decoration (the login panel)
-  places    - plus place markers: the small round crops, where one marker says which
-              place it is
-  terrain   - plus relief shading: the points of interest map, so the only pins on it
-              are the app's own
-  roads     - plus markers and roads: anything with a route drawn over it, because
-              burnt in labels would fight the line the app draws itself
-
-all six are 1520 x 984. declaring that size on the img is what stops the page
-reflowing while a multi-megabyte png is on its way in.
-
-these are big files, about 3.5 mb each. vite copies assets and does not re-encode
-them, so they are served as they are. converting them to webp at the same size would
-cut that to roughly a tenth with no visible difference, but that is a job for whoever
-owns the imagery.
-*/
+/* the exports differ only in what is burned into the picture: historic (the hero's 1652 layer), satellite (decoration), places (round crops), terrain (the poi map, so its pins are only ours), roads (anything with an app drawn route) */
 
 import type { MapImageId, MapPicture } from "../types.ts";
 
@@ -37,13 +12,17 @@ import satelliteRoads from "../assets/maps/zwolle-satellite-places-terrain-roads
 
 export const MAP_SIZE = { width: 1520, height: 984 };
 
-/* `alt` describes the picture itself; a caller that uses it as decoration passes
-   `decorative` and the text is dropped (the surrounding card or heading already
-   says what the map shows — see components/mapArtwork.tsx). */
+/* alt describes the picture; a caller using it as decoration passes `decorative` and the text is dropped (see components/mapArtwork.tsx) */
 export const MAP_IMAGES: Record<MapImageId, MapPicture> = {
-  historic: { src: historic1652, alt: "Historische kaart van Zwolle (Swolla) uit 1652" },
+  historic: {
+    src: historic1652,
+    alt: "Historische kaart van Zwolle (Swolla) uit 1652",
+  },
   satellite: { src: satellite, alt: "Luchtfoto van Zwolle" },
-  places: { src: satellitePlaces, alt: "Luchtfoto van Zwolle met plaatsaanduidingen" },
+  places: {
+    src: satellitePlaces,
+    alt: "Luchtfoto van Zwolle met plaatsaanduidingen",
+  },
   terrain: { src: satelliteTerrain, alt: "Luchtfoto van Zwolle met reliëf" },
   roads: {
     src: satelliteRoads,
@@ -51,7 +30,5 @@ export const MAP_IMAGES: Record<MapImageId, MapPicture> = {
   },
 };
 
-/* What the hero shows behind the "Actuele kaart" of its slider. Point this at a
-   richer export (the same view with roads, borders *and* labels) once that file is
-   in `src/assets/maps/` — one line, no other change. */
+/* the hero's "Actuele kaart": point this at a richer export once that file is in src/assets/maps — one line, no other change */
 export const HERO_CURRENT_IMAGE: MapPicture = MAP_IMAGES.roads;

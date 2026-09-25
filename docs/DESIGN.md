@@ -5,7 +5,7 @@ The single source of truth for the visual language of this project.
 
 > **Upstream spec:** [`docs/reference/material-3-reference.md`](reference/material-3-reference.md)
 > holds the distilled Material 3 spec (component metrics, motion, accessibility). This file is
-> what the project *decided*; where the two differ, §16 says so and why.
+> what the project _decided_; where the two differ, §16 says so and why.
 
 > Last updated: 2026-09-18
 
@@ -19,19 +19,19 @@ historic map layer shown next to the present-day map.
 The visual language is **Material 3 (Material You)**, implemented with **BeerCSS**, wearing
 the **Deltion huisstijl**: blue, orange and white.
 
-| Aspect | Direction |
-| --- | --- |
-| Design language | Material 3 — tonal color roles, 12-column grid, filled/outlined components |
-| Implementation | BeerCSS components + Material 3 CSS variables, Tailwind for layout |
-| Brand | **Deltion blue `#282C6D`** (structure) · **Deltion orange `#F68221`** (accent) — nothing else |
-| Mood | Historic meets modern — warm paper vs. cool digital |
-| Canvas | `surface`: warm paper in light, desaturated navy in dark; the hero + footer are `inverse-surface` bands (white in light, navy-950 in dark) |
-| Surface | `surface` (white) for content, `sand-*` for historic map art |
-| Accent | One Deltion orange (`--primary` / `--heading`) — used sparingly, as the top bar's brand surface in light mode and as the ink in dark mode |
-| Type | Montserrat for headings, Inter for everything else |
-| Gradients | **None.** Not in CSS, not in SVG, not as image overlays |
-| Themes | Light **and** dark, both built from the Deltion palette; toggled from the top bar |
-| Language | Dutch (`nl-NL`) UI copy, sentence case |
+| Aspect          | Direction                                                                                                                                  |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Design language | Material 3 — tonal color roles, 12-column grid, filled/outlined components                                                                 |
+| Implementation  | BeerCSS components + Material 3 CSS variables, Tailwind for layout                                                                         |
+| Brand           | **Deltion blue `#282C6D`** (structure) · **Deltion orange `#F68221`** (accent) — nothing else                                              |
+| Mood            | Historic meets modern — warm paper vs. cool digital                                                                                        |
+| Canvas          | `surface`: warm paper in light, desaturated navy in dark; the hero + footer are `inverse-surface` bands (white in light, navy-950 in dark) |
+| Surface         | `surface` (white) for content, `sand-*` for historic map art                                                                               |
+| Accent          | One Deltion orange (`--primary` / `--heading`) — used sparingly, as the top bar's brand surface in light mode and as the ink in dark mode  |
+| Type            | Montserrat for headings, Inter for everything else                                                                                         |
+| Gradients       | **None.** Not in CSS, not in SVG, not as image overlays                                                                                    |
+| Themes          | Light **and** dark, both built from the Deltion palette; toggled from the top bar                                                          |
+| Language        | Dutch (`nl-NL`) UI copy, sentence case                                                                                                     |
 
 **The core visual metaphor:** warm `sand-*` tones represent the past, cool `haze-*` blue-grey
 represents the present. They are placed adjacently (map layers, route artwork) to tell the
@@ -46,11 +46,11 @@ represents the present. They are placed adjacently (map layers, route artwork) t
 
 Three pieces, and the order between them matters:
 
-| Piece | Where | Owns |
-| --- | --- | --- |
-| Deltion palette | `src/index.css` → `@theme static` | Two seeds (`--seed-orange`, `--seed-blue`) and the ramps derived from them: `orange-*`, `blue-*`, `sand-*`, `haze-*` |
-| Material 3 roles | `src/index.css` → `:root, body.light` | `--primary`, `--surface`, `--outline`, … that BeerCSS reads |
-| BeerCSS components | `src/index.css` → `@import … layer(beercss)` | Buttons, fields, cards, chips, grid, slider, icons |
+| Piece              | Where                                        | Owns                                                                                                                 |
+| ------------------ | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Deltion palette    | `src/index.css` → `@theme static`            | Two seeds (`--seed-orange`, `--seed-blue`) and the ramps derived from them: `orange-*`, `blue-*`, `sand-*`, `haze-*` |
+| Material 3 roles   | `src/index.css` → `:root, body.light`        | `--primary`, `--surface`, `--outline`, … that BeerCSS reads                                                          |
+| BeerCSS components | `src/index.css` → `@import … layer(beercss)` | Buttons, fields, cards, chips, grid, slider, icons                                                                   |
 
 ### Cascade layers
 
@@ -83,16 +83,16 @@ Practical consequences:
 
 ### Class-name collisions to respect
 
-Some names exist in both systems with *different* meanings. When you use one, do not add the
+Some names exist in both systems with _different_ meanings. When you use one, do not add the
 Tailwind utility of the same name:
 
-| Class | BeerCSS meaning | Tailwind meaning | Rule |
-| --- | --- | --- | --- |
-| `grid` | 12-column grid (`grid-template-columns: repeat(12, 1fr)`) | `display: grid` | Use BeerCSS `.grid` + `.s12/.m6/.l4`. Never write a bare Tailwind `grid` with `grid-cols-*` |
-| `fixed` | `position: sticky` app-bar behaviour | `position: fixed` | Use `sticky top-0 z-50` on the header; never `fixed` |
-| `border` | outlined variant of a component | `border-width: 1px` | Fine together, but the component's own meaning wins |
-| `shadow` | bottom shadow helper | box-shadow | Prefer `.elevate` / `.medium-elevate` / `.large-elevate` |
-| `transparent`, `fill`, `circle`, `max`, `row` | BeerCSS component states/helpers | – | BeerCSS only — safe |
+| Class                                         | BeerCSS meaning                                           | Tailwind meaning    | Rule                                                                                        |
+| --------------------------------------------- | --------------------------------------------------------- | ------------------- | ------------------------------------------------------------------------------------------- |
+| `grid`                                        | 12-column grid (`grid-template-columns: repeat(12, 1fr)`) | `display: grid`     | Use BeerCSS `.grid` + `.s12/.m6/.l4`. Never write a bare Tailwind `grid` with `grid-cols-*` |
+| `fixed`                                       | `position: sticky` app-bar behaviour                      | `position: fixed`   | Use `sticky top-0 z-50` on the header; never `fixed`                                        |
+| `border`                                      | outlined variant of a component                           | `border-width: 1px` | Fine together, but the component's own meaning wins                                         |
+| `shadow`                                      | bottom shadow helper                                      | box-shadow          | Prefer `.elevate` / `.medium-elevate` / `.large-elevate`                                    |
+| `transparent`, `fill`, `circle`, `max`, `row` | BeerCSS component states/helpers                          | –                   | BeerCSS only — safe                                                                         |
 
 ### Icons
 
@@ -103,7 +103,7 @@ Tailwind utility of the same name:
   includes the glyphs BeerCSS's own components draw (`check_box`, `check_box_outline_blank`,
   `check` for the checkbox and the switch) — a missing name shows up as a clipped word, not as
   an empty box.
-- A *filled* Material Symbol (the rating stars) is BeerCSS's `i.fill`, which flips the `FILL`
+- A _filled_ Material Symbol (the rating stars) is BeerCSS's `i.fill`, which flips the `FILL`
   axis: `className="fill text-base text-accent"`. Colour alone would leave a filled and an empty
   star differing only in lightness.
 
@@ -126,11 +126,11 @@ The palette is selected by the class on `<body>`: `body.light` or `body.dark`, w
 Material 3 role names in both. Nothing else in the app knows which theme is running — components
 read roles, so they never branch on the theme.
 
-| Piece | Responsibility |
-| --- | --- |
+| Piece                                 | Responsibility                                                                        |
+| ------------------------------------- | ------------------------------------------------------------------------------------- |
 | `index.html` → `<body class="light">` | The default, and the signal that stops BeerCSS from auto-switching to its own palette |
-| `index.html` → inline script | Re-applies the stored theme before the first paint, so there is no flash |
-| `src/components/themeToggle.tsx` | Owns the state, writes the `<body>` class and persists the choice to `localStorage` |
+| `index.html` → inline script          | Re-applies the stored theme before the first paint, so there is no flash              |
+| `src/components/themeToggle.tsx`      | Owns the state, writes the `<body>` class and persists the choice to `localStorage`   |
 
 Adding a theme-aware colour means adding a **role** to both blocks in `src/index.css`, not a
 fixed colour in a component. Three effects exist in the whole codebase, and each syncs with
@@ -143,9 +143,9 @@ something outside React because it has to: `ThemeToggle` (the `<body>` class and
 
 **Two colours. Everything else is a shade of them.**
 
-| Brand colour | Hex | What it is for |
-| --- | --- | --- |
-| Deltion blue | `#282C6D` | Structure: **all text**, canvases, hairlines, buttons, the dark theme, the bar in dark mode |
+| Brand colour   | Hex       | What it is for                                                                                                                                        |
+| -------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Deltion blue   | `#282C6D` | Structure: **all text**, canvases, hairlines, buttons, the dark theme, the bar in dark mode                                                           |
 | Deltion orange | `#F68221` | Accent: a **fill** on light surfaces (the bar, selection, tints, route lines, map pins) and the **ink** on the dark navy (headings, eyebrow, figures) |
 
 Two layers, and you rarely touch the first one:
@@ -164,7 +164,7 @@ Two layers, and you rarely touch the first one:
 
 ```css
 --seed-orange: #f68221;
---seed-blue:   #282c6d;
+--seed-blue: #282c6d;
 ```
 
 Every surface, hairline, accent and dark-mode step follows from those two. The ramps are generated
@@ -174,15 +174,15 @@ with `color-mix(in oklab, …)`, mixed toward white for the light steps and towa
 ```css
 --color-orange-500: var(--seed-orange);
 --color-orange-100: color-mix(in oklab, var(--seed-orange) 15%, white);
---color-blue-900:   color-mix(in oklab, var(--seed-blue) 54%, black);
---color-navy-900:   oklch(from var(--color-blue-900) l calc(c * 0.62) h);
---color-sand-200:   color-mix(in oklab, var(--seed-orange) 15%, white);
---color-haze-300:   color-mix(in oklab, var(--seed-blue) 20%, white);
+--color-blue-900: color-mix(in oklab, var(--seed-blue) 54%, black);
+--color-navy-900: oklch(from var(--color-blue-900) l calc(c * 0.62) h);
+--color-sand-200: color-mix(in oklab, var(--seed-orange) 15%, white);
+--color-haze-300: color-mix(in oklab, var(--seed-blue) 20%, white);
 ```
 
 Five rules make that work — each exists because ignoring it produced a colour that clashed:
 
-1. **Orange is mixed toward white, never toward black.** A darkened orange reads as *brown*: it stops
+1. **Orange is mixed toward white, never toward black.** A darkened orange reads as _brown_: it stops
    looking like the brand and starts looking like mud, which is exactly what the old dark-orange top
    bar was. So the orange ramp **stops at `#f68221`** — `orange-50…500` only. On a light surface
    orange is therefore a **fill colour**, because every orange dark enough to read on paper is already
@@ -198,70 +198,70 @@ Five rules make that work — each exists because ignoring it produced a colour 
    purpose is the dark theme's `navy-*` ramp (rule 6).
 5. **The neutrals are brand colours at low strength.** `sand-*` is orange over white (the warm
    “historic paper”), `haze-*` is blue over white (the cool “present-day water”). No grey enters the
-   palette as a *hue*, which is why nothing can clash with the two brand colours.
+   palette as a _hue_, which is why nothing can clash with the two brand colours.
 6. **The dark surfaces are desaturated, and only they.** `#282c6d` faded toward black keeps its full
-   chroma ratio, so at canvas depth it covers a screen in a vivid, *pure* blue. The dark theme wants
+   chroma ratio, so at canvas depth it covers a screen in a vivid, _pure_ blue. The dark theme wants
    the greyer, duskier navy of a city at dusk, so the deep steps are re-derived through
    `oklch(from …)`, which carries `l` and `h` over untouched and only scales `c` (× 0.62). Nothing is
-   hardcoded — re-branding still means editing the two seeds — and the *brand* blue (text, buttons,
+   hardcoded — re-branding still means editing the two seeds — and the _brand_ blue (text, buttons,
    the light theme) stays at full chroma.
 
-| Shade | Value | The job it does |
-| --- | --- | --- |
-| `orange-500` | `#f68221` | The brand orange itself: the light bar, the selected segment, route lines, map pins — **and every heading and accent in dark mode** |
-| `orange-100` | `#ffede2` | **Light orange** — the light tint: unselected buttons, selected chips, quiet fills |
-| `orange-50` | `#fff6f1` | The faintest tint, for rows and hover states |
-| `orange-200` … `orange-400` | lighter and lighter | Decoration only: map water, artwork tints |
-| `blue-500` | `#282c6d` | The brand blue itself — **every heading and accent in light mode** (12.6:1 on white) |
-| `blue-900` | `#0b0d2b` | Light-theme body text (18:1 on paper) |
-| `navy-600` … `navy-950` | `#23283f` … `#050713` | The dark theme's canvases, cards, bands and bar — the deep blue with a third of its chroma removed |
-| `sand-200` | `#ffede2` | The light canvas — the warmer section between the white bands |
-| `haze-300` | `#cfd2e2` | Every hairline in the light theme |
+| Shade                       | Value                 | The job it does                                                                                                                     |
+| --------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `orange-500`                | `#f68221`             | The brand orange itself: the light bar, the selected segment, route lines, map pins — **and every heading and accent in dark mode** |
+| `orange-100`                | `#ffede2`             | **Light orange** — the light tint: unselected buttons, selected chips, quiet fills                                                  |
+| `orange-50`                 | `#fff6f1`             | The faintest tint, for rows and hover states                                                                                        |
+| `orange-200` … `orange-400` | lighter and lighter   | Decoration only: map water, artwork tints                                                                                           |
+| `blue-500`                  | `#282c6d`             | The brand blue itself — **every heading and accent in light mode** (12.6:1 on white)                                                |
+| `blue-900`                  | `#0b0d2b`             | Light-theme body text (18:1 on paper)                                                                                               |
+| `navy-600` … `navy-950`     | `#23283f` … `#050713` | The dark theme's canvases, cards, bands and bar — the deep blue with a third of its chroma removed                                  |
+| `sand-200`                  | `#ffede2`             | The light canvas — the warmer section between the white bands                                                                       |
+| `haze-300`                  | `#cfd2e2`             | Every hairline in the light theme                                                                                                   |
 
 ### The balance: light is orange-filled, dark is orange-written
 
 The two brand colours never carry equal weight inside one theme, which is what stops them fighting,
 and they trade roles when the theme flips:
 
-| | Light | Dark |
-| --- | --- | --- |
-| Leading colour | **Orange, as fill** — the bar, the selected segment, the light tints, the route lines | **Blue, as surface** — every canvas, card, band and button, desaturated toward grey |
-| Supporting colour | Blue is the *ink*: every heading, every accent, body copy, icons, hairlines | Orange is the *ink and highlight*: headings, the eyebrow, the avatar, route lines |
-| Never | Orange text — it would have to be brown to be legible | Orange over large areas — an orange button fill, an orange panel, orange body copy |
+|                   | Light                                                                                 | Dark                                                                                |
+| ----------------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Leading colour    | **Orange, as fill** — the bar, the selected segment, the light tints, the route lines | **Blue, as surface** — every canvas, card, band and button, desaturated toward grey |
+| Supporting colour | Blue is the _ink_: every heading, every accent, body copy, icons, hairlines           | Orange is the _ink and highlight_: headings, the eyebrow, the avatar, route lines   |
+| Never             | Orange text — it would have to be brown to be legible                                 | Orange over large areas — an orange button fill, an orange panel, orange body copy  |
 
 ### Material 3 roles → brand values
 
-| Role | Value | Reads as |
-| --- | --- | --- |
-| `--primary` | light `orange-500`, dark `blue-300` | The fill of a selected or primary action: brand orange on paper, Deltion blue on navy |
-| `--on-primary` | light **white**, dark `blue-950` | On the brand orange in light mode (2.6:1 — see the colour rules), on the light blue fill in dark |
-| `--primary-container` / `--on-primary-container` | light `orange-100` / `blue-900`, dark `blue-800` / `blue-100` | The **quiet** fill next to a primary one: light orange tint in light mode, deep blue in dark |
-| `--inverse-primary` | light `orange-500`, dark `orange-500` | Orange on the bands |
-| `--secondary` / `--on-secondary` | light `blue-500` / white, dark `blue-300` / `blue-950` | Deltion blue |
-| `--secondary-container` / `--on-secondary-container` | light `orange-100` / `blue-900`, dark `blue-800` / `blue-100` | Selected chip, active nav row |
-| `--tertiary` / `--tertiary-container` | `sand-300` / `sand-200` | Historic paper |
-| `--surface` / `--on-surface` | light `sand-200` / `blue-900`, dark `navy-900` / `blue-50` | Canvas + body text |
-| `--surface-variant` / `--on-surface-variant` | light `haze-200` / blue at 72% on white (5.5:1), dark `navy-800` / `blue-200` | Map water, muted text |
-| `--surface-container-lowest … highest` | light white → white → `sand-100` → `sand-200` → `sand-300`; dark `navy-950` → `navy-800` → `navy-700` → `navy-600` → lighter | Card, panel and section steps — **each step visibly different from the one below** |
-| `--outline` / `--outline-variant` | light `blue-400` / `haze-300`, dark `blue-400` / haze tint on `navy-900` | Borders and hairlines |
-| `--inverse-surface` / `--inverse-on-surface` | light **white** / `blue-900`, dark `navy-950` / `haze-100` | The hero + footer bands — see below |
-| `--heading` | light `blue-500`, dark `orange-500` | What every `h1`–`h6` is painted with — the role that makes each theme read the way it does |
-| `--bar` / `--on-bar` | light `orange-500` / **white**, dark `navy-950` / `haze-100` | The top bar, which flips its leading colour with the theme |
-| `--avatar` / `--on-avatar` | light `blue-500` / white, dark `orange-500` / `blue-950` | The avatar always wears the *opposite* brand colour to the bar it sits on |
-| `--error` | `#ba1a1a` light / `#ffb4ab` dark (Material 3 defaults) | Errors only |
+| Role                                                 | Value                                                                                                                        | Reads as                                                                                         |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `--primary`                                          | light `orange-500`, dark `blue-300`                                                                                          | The fill of a selected or primary action: brand orange on paper, Deltion blue on navy            |
+| `--on-primary`                                       | light **white**, dark `blue-950`                                                                                             | On the brand orange in light mode (2.6:1 — see the colour rules), on the light blue fill in dark |
+| `--primary-container` / `--on-primary-container`     | light `orange-100` / `blue-900`, dark `blue-800` / `blue-100`                                                                | The **quiet** fill next to a primary one: light orange tint in light mode, deep blue in dark     |
+| `--inverse-primary`                                  | light `orange-500`, dark `orange-500`                                                                                        | Orange on the bands                                                                              |
+| `--secondary` / `--on-secondary`                     | light `blue-500` / white, dark `blue-300` / `blue-950`                                                                       | Deltion blue                                                                                     |
+| `--secondary-container` / `--on-secondary-container` | light `orange-100` / `blue-900`, dark `blue-800` / `blue-100`                                                                | Selected chip, active nav row                                                                    |
+| `--tertiary` / `--tertiary-container`                | `sand-300` / `sand-200`                                                                                                      | Historic paper                                                                                   |
+| `--surface` / `--on-surface`                         | light `sand-200` / `blue-900`, dark `navy-900` / `blue-50`                                                                   | Canvas + body text                                                                               |
+| `--surface-variant` / `--on-surface-variant`         | light `haze-200` / blue at 72% on white (5.5:1), dark `navy-800` / `blue-200`                                                | Map water, muted text                                                                            |
+| `--surface-container-lowest … highest`               | light white → white → `sand-100` → `sand-200` → `sand-300`; dark `navy-950` → `navy-800` → `navy-700` → `navy-600` → lighter | Card, panel and section steps — **each step visibly different from the one below**               |
+| `--outline` / `--outline-variant`                    | light `blue-400` / `haze-300`, dark `blue-400` / haze tint on `navy-900`                                                     | Borders and hairlines                                                                            |
+| `--inverse-surface` / `--inverse-on-surface`         | light **white** / `blue-900`, dark `navy-950` / `haze-100`                                                                   | The hero + footer bands — see below                                                              |
+| `--heading`                                          | light `blue-500`, dark `orange-500`                                                                                          | What every `h1`–`h6` is painted with — the role that makes each theme read the way it does       |
+| `--bar` / `--on-bar`                                 | light `orange-500` / **white**, dark `navy-950` / `haze-100`                                                                 | The top bar, which flips its leading colour with the theme                                       |
+| `--avatar` / `--on-avatar`                           | light `blue-500` / white, dark `orange-500` / `blue-950`                                                                     | The avatar always wears the _opposite_ brand colour to the bar it sits on                        |
+| `--error`                                            | `#ba1a1a` light / `#ffb4ab` dark (Material 3 defaults)                                                                       | Errors only                                                                                      |
 
 ### Muted and strong text
 
 `@theme inline` aliases three utilities onto the roles above, so text and hairlines follow the
 theme without any component knowing about it:
 
-| Utility | Role | Light | Dark |
-| --- | --- | --- | --- |
-| `text-ink` | `--on-surface` | `blue-900` | `blue-50` |
-| `text-ink-muted` | `--on-surface-variant` | blue at 72% on white (5.5:1) | `blue-200` |
-| `text-accent` | `--accent-text` | `blue-500` (12.6:1) | `orange-500` |
-| `text-heading` | `--heading` | `blue-500` (12.6:1) | `orange-500` |
-| `border-line` | `--outline-variant` | `haze-300` | haze tint on navy |
+| Utility          | Role                   | Light                        | Dark              |
+| ---------------- | ---------------------- | ---------------------------- | ----------------- |
+| `text-ink`       | `--on-surface`         | `blue-900`                   | `blue-50`         |
+| `text-ink-muted` | `--on-surface-variant` | blue at 72% on white (5.5:1) | `blue-200`        |
+| `text-accent`    | `--accent-text`        | `blue-500` (12.6:1)          | `orange-500`      |
+| `text-heading`   | `--heading`            | `blue-500` (12.6:1)          | `orange-500`      |
+| `border-line`    | `--outline-variant`    | `haze-300`                   | haze tint on navy |
 
 **Do not reach for Tailwind's `slate-*`** — those are fixed greys and go unreadable in the dark
 theme. Don't dial emphasis down with opacity either: `text-ink-muted/70` measures 3.4:1 on a
@@ -272,23 +272,23 @@ card, so the quietest text keeps `text-ink-muted` and takes its restraint from s
 Material 3 inverts the tonal roles in dark mode: the accent is lifted a step so it still reads on
 a dark surface, and containers step **up** in lightness instead of down.
 
-| Role | Dark value | Why |
-| --- | --- | --- |
-| `--primary` | `blue-300` (`#a5abc8`) | In dark mode a button is **blue** — orange is reserved for the ink, so the theme does not become two colour families |
-| `--on-primary` | `blue-950` | Deep navy on the light blue fill (8.1:1) |
-| `--primary-container` / `--on-primary-container` | `blue-800` / `blue-100` | The unselected / quiet fill — a step of blue, not of orange |
-| `--secondary` / `--on-secondary` | `blue-300` / `blue-950` | Deltion blue lifted to a light tone |
-| `--secondary-container` / `--on-secondary-container` | `blue-800` / `blue-100` | The `.fill` selected state |
-| `--surface` / `--on-surface` | `navy-900` (`#0d0f21`) / `blue-50` | The dark canvas — the brand navy with a third of its chroma removed |
-| `--surface-container-*` | `navy-950` → `navy-800` → `navy-700` → `navy-600` | Cards and panels step **up** out of the canvas |
-| `--inverse-surface` / `--inverse-on-surface` | `navy-950` / `haze-100` | The band is one step *deeper* than the canvas, so hero and footer still read as bands |
-| `--heading` / `--accent-text` | `orange-500` (`#f68221`) | The **true brand orange**, undiluted: 7.4:1 on the navy — the ink that makes the theme pop |
-| `--inverse-primary` | `--accent-text` | The accent role, so it tunes itself per theme |
-| `--outline-variant` | haze tint on `navy-900` | Hairlines stay visible on dark |
-| `--active` | haze tint at 14% | BeerCSS's state layer / slider track |
+| Role                                                 | Dark value                                        | Why                                                                                                                  |
+| ---------------------------------------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `--primary`                                          | `blue-300` (`#a5abc8`)                            | In dark mode a button is **blue** — orange is reserved for the ink, so the theme does not become two colour families |
+| `--on-primary`                                       | `blue-950`                                        | Deep navy on the light blue fill (8.1:1)                                                                             |
+| `--primary-container` / `--on-primary-container`     | `blue-800` / `blue-100`                           | The unselected / quiet fill — a step of blue, not of orange                                                          |
+| `--secondary` / `--on-secondary`                     | `blue-300` / `blue-950`                           | Deltion blue lifted to a light tone                                                                                  |
+| `--secondary-container` / `--on-secondary-container` | `blue-800` / `blue-100`                           | The `.fill` selected state                                                                                           |
+| `--surface` / `--on-surface`                         | `navy-900` (`#0d0f21`) / `blue-50`                | The dark canvas — the brand navy with a third of its chroma removed                                                  |
+| `--surface-container-*`                              | `navy-950` → `navy-800` → `navy-700` → `navy-600` | Cards and panels step **up** out of the canvas                                                                       |
+| `--inverse-surface` / `--inverse-on-surface`         | `navy-950` / `haze-100`                           | The band is one step _deeper_ than the canvas, so hero and footer still read as bands                                |
+| `--heading` / `--accent-text`                        | `orange-500` (`#f68221`)                          | The **true brand orange**, undiluted: 7.4:1 on the navy — the ink that makes the theme pop                           |
+| `--inverse-primary`                                  | `--accent-text`                                   | The accent role, so it tunes itself per theme                                                                        |
+| `--outline-variant`                                  | haze tint on `navy-900`                           | Hairlines stay visible on dark                                                                                       |
+| `--active`                                           | haze tint at 14%                                  | BeerCSS's state layer / slider track                                                                                 |
 
-**The hero and footer bands follow the theme, and they are the *lightest* surface in light mode and
-the *deepest* in dark mode.** Light: pure white bands, warm paper canvas between them. Dark: navy-950
+**The hero and footer bands follow the theme, and they are the _lightest_ surface in light mode and
+the _deepest_ in dark mode.** Light: pure white bands, warm paper canvas between them. Dark: navy-950
 bands, navy-900 canvas. A light theme with a permanently dark hero reads as a bug, so a band is only
 ever one role away from the page it sits in. Because both bands are painted with `inverse-surface`,
 everything inside them uses the same theme-aware utilities as the rest of the page (`text-ink`,
@@ -299,7 +299,7 @@ utilities, because a historic map has no dark mode. Artwork keeps its own colour
 carries or describes it uses roles.
 
 - **Elevation needs a surface to fall on.** On white, a shadow is nearly invisible and a hairline
-  is the only separation there is — so the *surface steps themselves* have to do the work (§3).
+  is the only separation there is — so the _surface steps themselves_ have to do the work (§3).
 - **Check a new colour in both themes for separation, not just contrast.** A passing contrast ratio
   says nothing about whether a card is distinguishable from the page it sits on.
 
@@ -310,18 +310,18 @@ carries or describes it uses roles.
    every orange dark enough to read on paper has already turned brown and stopped being the brand
    colour (rule 1 of the ramp). Dark mode fills in blue and writes in the true `#f68221`, which
    measures 7.4:1 on the navy.
-2. **Text *on* the brand orange is white; text on a light orange tint is blue.** White is only ever
+2. **Text _on_ the brand orange is white; text on a light orange tint is blue.** White is only ever
    placed on `orange-500` itself — the bar, the selected segment, a filled action, the artwork badge —
    and never on the `orange-100` tints (`--primary-container`), where it would be invisible; those
    carry `blue-900`. **This is the one deliberate contrast trade in the system:** white on `#f68221`
    measures **2.6:1** (blue on the same orange measures 7.8:1), so the light-mode bar and the selected
    segment are below WCAG AA. It buys the brand's own pairing and a bar that does not read as a
    different palette. Every alternative was worse — a darkened orange is brown — so if the bar is ever
-   re-examined, the fix is to darken the *fill*, not to move the text. Until then this is documented
+   re-examined, the fix is to darken the _fill_, not to move the text. Until then this is documented
    rather than silently allowed (§11, §16).
 3. **Text carrying the accent comes from a role, never from an orange utility.** `--heading` and
    `--accent-text` are `blue-500` in light mode (12.6:1 on white) and `orange-500` in dark mode, and
-   `text-heading` / `text-accent` read them. Never write `text-orange-500` — it is a *fill* tone.
+   `text-heading` / `text-accent` read them. Never write `text-orange-500` — it is a _fill_ tone.
 4. **Dark-mode buttons are blue.** `--primary` and `--primary-container` are both steps of blue in
    the dark theme; orange appears there as ink, the avatar and route lines.
 5. **Text colour comes from a role, never from a fixed scale.** `text-ink` / `text-ink-muted` for
@@ -337,25 +337,25 @@ carries or describes it uses roles.
 
 Two families, loaded from Google Fonts in `index.html`. Do not add a third.
 
-| Role | Family | Tailwind | Weights used |
-| --- | --- | --- | --- |
-| Headings | Montserrat | `font-display` (applied to `h1`–`h6` in `@layer base`) | 500, 600, 700, 800 |
-| Body / UI | Inter | `font-sans` (default on `body`; also BeerCSS's `--font`) | 400, 500, 600, 700 |
+| Role      | Family     | Tailwind                                                 | Weights used       |
+| --------- | ---------- | -------------------------------------------------------- | ------------------ |
+| Headings  | Montserrat | `font-display` (applied to `h1`–`h6` in `@layer base`)   | 500, 600, 700, 800 |
+| Body / UI | Inter      | `font-sans` (default on `body`; also BeerCSS's `--font`) | 400, 500, 600, 700 |
 
 ### Scale
 
-| Element | Classes | Notes |
-| --- | --- | --- |
-| Hero `h1` | `text-4xl font-bold leading-[1.08] sm:text-5xl lg:text-6xl` | Tight leading, never above `text-6xl` |
-| Section `h2` | `text-3xl font-bold sm:text-4xl` | |
-| Card `h3` | `text-lg font-bold` | |
-| Body copy | `text-[15px] leading-relaxed text-ink-muted` | Cap prose at `max-w-md`–`max-w-2xl` |
-| Small body / meta | `text-sm text-ink-muted` | |
-| Micro / label | `text-xs text-ink-muted` | |
-| Accent link / icon | `text-accent` | Never `text-orange-500` — it is a fill tone |
-| Eyebrow | `text-xs font-semibold uppercase tracking-[0.22em] text-accent` | Above `h1` only; legible on both band tones |
-| Chip / badge | `text-[11px] font-bold uppercase tracking-wide` | |
-| Icon | `text-base` / `text-xl` | Material Symbols are sized by `font-size` |
+| Element            | Classes                                                         | Notes                                       |
+| ------------------ | --------------------------------------------------------------- | ------------------------------------------- |
+| Hero `h1`          | `text-4xl font-bold leading-[1.08] sm:text-5xl lg:text-6xl`     | Tight leading, never above `text-6xl`       |
+| Section `h2`       | `text-3xl font-bold sm:text-4xl`                                |                                             |
+| Card `h3`          | `text-lg font-bold`                                             |                                             |
+| Body copy          | `text-[15px] leading-relaxed text-ink-muted`                    | Cap prose at `max-w-md`–`max-w-2xl`         |
+| Small body / meta  | `text-sm text-ink-muted`                                        |                                             |
+| Micro / label      | `text-xs text-ink-muted`                                        |                                             |
+| Accent link / icon | `text-accent`                                                   | Never `text-orange-500` — it is a fill tone |
+| Eyebrow            | `text-xs font-semibold uppercase tracking-[0.22em] text-accent` | Above `h1` only; legible on both band tones |
+| Chip / badge       | `text-[11px] font-bold uppercase tracking-wide`                 |                                             |
+| Icon               | `text-base` / `text-xl`                                         | Material Symbols are sized by `font-size`   |
 
 ### Type rules
 
@@ -374,40 +374,40 @@ Two families, loaded from Google Fonts in `index.html`. Do not add a third.
 
 **Spacing**
 
-| Purpose | Classes |
-| --- | --- |
-| Page gutter | `px-5 sm:px-8` |
-| Content max width | `max-w-[100rem]` (1600px) on the inner container |
+| Purpose                 | Classes                                                                                                                                                                                 |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Page gutter             | `px-5 sm:px-8`                                                                                                                                                                          |
+| Content max width       | `max-w-[100rem]` (1600px) on the inner container                                                                                                                                        |
 | Section vertical rhythm | `py-16 sm:py-20` — **the same for every section, hero included**. The hero used to run `lg:py-24`, which left a slab of dead space above the fold that matched nothing else on the page |
-| Grid gutter | `gap-6` on BeerCSS's `.grid` (see §6 — the gap is multiplied by 11) |
-| Card inner padding | `p-5` (the `article` itself is `no-padding` so the artwork can bleed) |
-| Stacked element gap | `gap-3` (buttons), `gap-6` (footer blocks) |
+| Grid gutter             | `gap-6` on BeerCSS's `.grid` (see §6 — the gap is multiplied by 11)                                                                                                                     |
+| Card inner padding      | `p-5` (the `article` itself is `no-padding` so the artwork can bleed)                                                                                                                   |
+| Stacked element gap     | `gap-3` (buttons), `gap-6` (footer blocks)                                                                                                                                              |
 
 **Shape** — Material 3 shape scale, so most of it comes from the components
 
-| Element | Source |
-| --- | --- |
-| Buttons, fields, chips, avatars | BeerCSS `.round` / `.circle` — pill and full round |
-| Cards, map panels | BeerCSS `article` (12px) — add `overflow-hidden` so artwork follows the radius; a hand-built panel uses `rounded-xl` (same 12px) |
-| Icon buttons | BeerCSS `.circle` on a `<button>` |
-| Anything square | Never — every surface is rounded |
+| Element                         | Source                                                                                                                           |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Buttons, fields, chips, avatars | BeerCSS `.round` / `.circle` — pill and full round                                                                               |
+| Cards, map panels               | BeerCSS `article` (12px) — add `overflow-hidden` so artwork follows the radius; a hand-built panel uses `rounded-xl` (same 12px) |
+| Icon buttons                    | BeerCSS `.circle` on a `<button>`                                                                                                |
+| Anything square                 | Never — every surface is rounded                                                                                                 |
 
 **Elevation** — **there is none.** Nothing in the app casts a shadow: shadows are switched off
 framework-wide in `@layer overrides` (§2), because a blurred offset edge reads as a smudge, or as a
 soft gradient, and neither belongs in this language. Depth is expressed with the tools that survive
 a flat page:
 
-| Instead of a shadow | Use |
-| --- | --- |
+| Instead of a shadow | Use                                                  |
+| ------------------- | ---------------------------------------------------- |
 | A card on a section | One surface step (white on paper, or paper on white) |
-| A panel on artwork | A solid `surface` panel, or a chip with a hairline |
-| A bar over content | A tonal step, or `border-b border-line` |
+| A panel on artwork  | A solid `surface` panel, or a chip with a hairline   |
+| A bar over content  | A tonal step, or `border-b border-line`              |
 
-| Level | Class |
-| --- | --- |
-| Resting | `elevate` (Bar, card, floating chip) |
-| Raised | `medium-elevate` |
-| Hero artwork | `large-elevate` |
+| Level                    | Class                                 |
+| ------------------------ | ------------------------------------- |
+| Resting                  | `elevate` (Bar, card, floating chip)  |
+| Raised                   | `medium-elevate`                      |
+| Hero artwork             | `large-elevate`                       |
 | Flat / on top of artwork | `no-elevate`, or a solid surface chip |
 
 Outlines are hairline borders in `--outline-variant` (Tailwind `border-haze-300`) or the
@@ -428,8 +428,7 @@ full-height grid with `header`, `main` and `footer` areas. Keep that structure:
     <nav>
       …
       <div className="max" />
-      <ThemeToggle />
-      …
+      <ThemeToggle />…
     </nav>
   </header>
   <main className="p-0">…</main>
@@ -453,7 +452,7 @@ full-height grid with `header`, `main` and `footer` areas. Keep that structure:
 - Header nav links are hidden below `lg`; the hamburger toggles `aria-expanded` and swaps the
   `menu`/`close` icon, revealing a stacked list of `button min-h-12` rows. The active row is a
   **translucent state layer over the bar's own colour** (`bg-on-bar/20`) with the same `text-on-bar`
-  as its neighbours — an *inverted* pill would put orange text on white, the one unreadable pairing.
+  as its neighbours — an _inverted_ pill would put orange text on white, the one unreadable pairing.
   The standalone search icon collapses below `sm` (the hero already owns a search field) and the gaps
   tighten to `gap-2`, which is what keeps the bar inside a 320px viewport.
 
@@ -462,20 +461,22 @@ full-height grid with `header`, `main` and `footer` areas. Keep that structure:
 Use BeerCSS's 12-column grid for page-level layout — **not** Tailwind's `grid`:
 
 ```jsx
-<div className="mx-auto grid max-w-[100rem] gap-y-10 px-5 lg:gap-x-20">   {/* 12 columns */}
-  <div className="s12 l6">…</div>                                     {/* full → half ≥993px */}
+<div className="mx-auto grid max-w-[100rem] gap-y-10 px-5 lg:gap-x-20">
+  {" "}
+  {/* 12 columns */}
+  <div className="s12 l6">…</div> {/* full → half ≥993px */}
   <div className="s12 l6">…</div>
 </div>
 ```
 
-| Prefix | Applies from |
-| --- | --- |
-| `s` | 0 (all sizes) |
-| `m` | 601px |
-| `l` | 993px |
+| Prefix | Applies from  |
+| ------ | ------------- |
+| `s`    | 0 (all sizes) |
+| `m`    | 601px         |
+| `l`    | 993px         |
 
 **Gap is multiplied by 11.** The grid always paints 12 tracks and 11 gutters, so a `gap` of
-`G` costs `11 × G` of the container's width *before* any track gets space. A 32px gap therefore
+`G` costs `11 × G` of the container's width _before_ any track gets space. A 32px gap therefore
 needs 352px and overflows a phone. Rules:
 
 - Keep plain `gap-*` at **24px or less** (safe from a 320px viewport up).
@@ -511,8 +512,12 @@ The shell is the only place `<main>` appears, and it carries `p-0`:
 
 ```jsx
 <div>
-  <header className="app-bar sticky top-0 z-50 bg-bar text-on-bar px-0">…</header>
-  <main className="p-0"><Outlet /></main>
+  <header className="app-bar sticky top-0 z-50 bg-bar text-on-bar px-0">
+    …
+  </header>
+  <main className="p-0">
+    <Outlet />
+  </main>
   <footer className="inverse-surface">…</footer>
 </div>
 ```
@@ -536,7 +541,7 @@ makes "Contact" (`/#contact`) and "Registreren" (`/inloggen#registreren`) work f
   bar's "Contact" link lands on it from any page (`/#contact`) and would otherwise sit under the bar.
 - Sections **alternate band → surface → band**: the hero and the footer are `inverse-surface`, the
   content between them is `surface`. In light mode that is paper (`sand-200`) against white — a real
-  step, because a 2% tint made the whole page read as white (§3). Cards sitting *on* a band take
+  step, because a 2% tint made the whole page read as white (§3). Cards sitting _on_ a band take
   `surface` (white on paper) so they step up from it.
 - Every section's inner container is `mx-auto max-w-[100rem] px-5 sm:px-8`. The 1600px cap is
   generous on purpose: at 1280px a 1920 desktop wasted a quarter of its width on each side, while
@@ -544,7 +549,7 @@ makes "Contact" (`/#contact`) and "Registreren" (`/inloggen#registreren`) work f
 - **Trailing icon buttons get an optical pull** (`-me-2`): a 24px glyph centred in a 40px circle
   is inset 8px, so without it the icon floats 8px inside the gutter while the logo on the other
   side sits flush against it.
-- **Every icon button also carries `tap-target`**, which extends its *hit* area to the Material 3
+- **Every icon button also carries `tap-target`**, which extends its _hit_ area to the Material 3
   minimum of 48×48px without growing the 40px visual (see §11).
 
 ---
@@ -702,9 +707,9 @@ Every map surface is **a picture with a drawing on top**: the imagery is a real 
 (files in `src/assets/maps/`, exported by `src/data/maps.ts`) and everything the app knows about the
 map — a route line, its stops, a pin — is an SVG overlay from `components/mapArtwork.tsx`.
 
-**Where an image lives.** An asset a component imports belongs in `src/assets/…` and is *imported*,
+**Where an image lives.** An asset a component imports belongs in `src/assets/…` and is _imported_,
 so Vite fingerprints the filename and a redeployed map can never be served from a stale cache.
-`public/` is only for files whose *path* is the contract (the favicon, `robots.txt`). The map files
+`public/` is only for files whose _path_ is the contract (the favicon, `robots.txt`). The map files
 are kebab-case and say what they contain: `zwolle-historic-1652.png`, `zwolle-satellite.png`,
 `zwolle-satellite-places.png`, `zwolle-satellite-places-terrain.png`,
 `zwolle-satellite-places-terrain-roads.png`.
@@ -734,7 +739,7 @@ right rooftop when a card frame crops the picture.
 - **The historic/current swap** is a cross-fade of two stacked pictures: the historic one carries
   `.historic-layer` and inherits `--historic-opacity` (`1 - position / 100`) from the card, which
   `index.css` turns into an opacity transition. Only CSS custom properties may be set inline.
-- **A round place thumbnail** is an SVG whose `viewBox` *is* the crop window (`PoiCrop`) — no CSS
+- **A round place thumbnail** is an SVG whose `viewBox` _is_ the crop window (`PoiCrop`) — no CSS
   positioning maths, and the frame can stay a circle.
 - **Controls over a map** get a solid `surface` panel or a chip (never a gradient scrim), and text
   that has to survive cropping lives in the React layer, never as `<text>` in the artwork.
@@ -764,7 +769,7 @@ right rooftop when a card frame crops the picture.
 ## 10. Motion
 
 **Motion is wanted here.** The app should feel alive: things ripple, lift and settle. The rules
-below exist to keep that motion *coherent and cheap*, never to remove it.
+below exist to keep that motion _coherent and cheap_, never to remove it.
 
 ### The motion tokens
 
@@ -780,22 +785,22 @@ below exist to keep that motion *coherent and cheap*, never to remove it.
 
 ### What animates
 
-| Interaction | Motion | Where |
-| --- | --- | --- |
-| Press / click a control | **BeerCSS ripple** — the `ripple` class (600ms expanding circle) | `ripple` is on every button, toggle and nav row |
-| Hover / keyboard focus a control | State layer: `currentcolor` at 10% | BeerCSS, same `ripple` class |
-| Hover a route card | `motion-safe:hover:-translate-y-1`, 200ms transform | `RouteCard` |
-| Toggle the theme | The sun/moon icon spins out and in (Motion, 150ms, `mode="wait"`) + the ripple | `ThemeToggle` |
-| Drag the map slider | The historic layer's opacity fades over `--speed2` (200ms) | `.historic-layer` |
-| Load the page | Hero columns rise 12px and fade in, staggered 120ms | `animate-rise` (CSS) |
-| Open / close the mobile menu | Height + opacity, 200ms, animates **out** as well as in | `m` + `AnimatePresence` (Motion) |
-| Expand the route grid | New cards fade in, removed ones fade out | `m` + `AnimatePresence` (Motion) |
+| Interaction                      | Motion                                                                         | Where                                           |
+| -------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------- |
+| Press / click a control          | **BeerCSS ripple** — the `ripple` class (600ms expanding circle)               | `ripple` is on every button, toggle and nav row |
+| Hover / keyboard focus a control | State layer: `currentcolor` at 10%                                             | BeerCSS, same `ripple` class                    |
+| Hover a route card               | `motion-safe:hover:-translate-y-1`, 200ms transform                            | `RouteCard`                                     |
+| Toggle the theme                 | The sun/moon icon spins out and in (Motion, 150ms, `mode="wait"`) + the ripple | `ThemeToggle`                                   |
+| Drag the map slider              | The historic layer's opacity fades over `--speed2` (200ms)                     | `.historic-layer`                               |
+| Load the page                    | Hero columns rise 12px and fade in, staggered 120ms                            | `animate-rise` (CSS)                            |
+| Open / close the mobile menu     | Height + opacity, 200ms, animates **out** as well as in                        | `m` + `AnimatePresence` (Motion)                |
+| Expand the route grid            | New cards fade in, removed ones fade out                                       | `m` + `AnimatePresence` (Motion)                |
 
 ### What must not animate
 
 - **Nothing decorative on scroll.** No fade-in-up, no fly-in, no parallax as sections come into
   view: content that animates while you read it is noise, and it is the single most common way a
-  site feels over-animated. Motion is used where it *explains state* — a panel opening, a list
+  site feels over-animated. Motion is used where it _explains state_ — a panel opening, a list
   growing — and nowhere else.
 - **Motion lives on `transform` and `opacity`.** The one exception is the mobile menu's `height`,
   because a dropdown genuinely changes the page height and Motion interpolates it frame-accurately.
@@ -846,10 +851,10 @@ outrank framework animations declared later in the cascade.
 
 > **Before you "fix" an animation, check the environment.** The speed of a machine does not matter
 > here, but a reduced-motion preference does — and it is easy to have on without knowing. Motion even
-> warns about it in the console: *"You have Reduced Motion enabled on your device. Animations may not
-> appear as expected."* Check `matchMedia('(prefers-reduced-motion: reduce)').matches` (this project's
-> VS Code integrated browser reports `true` by default), or use DevTools → Rendering → *Emulate CSS
-> media feature prefers-reduced-motion* to see the difference. **A hidden/backgrounded tab also
+> warns about it in the console: _"You have Reduced Motion enabled on your device. Animations may not
+> appear as expected."_ Check `matchMedia('(prefers-reduced-motion: reduce)').matches` (this project's
+> VS Code integrated browser reports `true` by default), or use DevTools → Rendering → _Emulate CSS
+> media feature prefers-reduced-motion_ to see the difference. **A hidden/backgrounded tab also
 > freezes CSS transitions mid-flight and pauses Motion's frame loop entirely** — so a preview pane
 > that is not visible will show neither animations nor trustworthy computed colours.
 
@@ -876,11 +881,11 @@ Smoothness is measured, not assumed:
 - Toggles use `aria-pressed`; the historic/current slider is a real `<input type="range">`
   inside a `.slider` label with `sr-only` text.
 - Inputs are paired with a `<label>` — visually hidden with `sr-only` when the design shows no
-  label. In a BeerCSS `.field` the label sits *inside* the field (that is what BeerCSS positions),
+  label. In a BeerCSS `.field` the label sits _inside_ the field (that is what BeerCSS positions),
   wired up with `htmlFor` when it cannot wrap the control, and the icon is the field's first child.
 - Icon-only controls need `aria-label`; the hamburger also exposes `aria-expanded`.
 - **Tappable targets are at least 48×48px** (the Material 3 minimum). BeerCSS buttons are 40px
-  tall, so a control smaller than 48px pairs with `.tap-target`, which extends the *hit* area past
+  tall, so a control smaller than 48px pairs with `.tap-target`, which extends the _hit_ area past
   the visual edge via `::before` (BeerCSS already owns `::after` for its state layer). Growing the
   visible circle instead would overrun the bar at 320px.
 - Focus is a 2px `primary` outline **offset 2px** (`:focus-visible` in `@layer base`); BeerCSS
@@ -923,13 +928,13 @@ there — they apply to every file under `split/src/`.
 A piece only ever moves one way: **up**. It starts in the page it was written for, and it is
 promoted the moment a second page needs it — never copied.
 
-| Home | Holds | Rule |
-| --- | --- | --- |
-| `src/pages/` | one file per route, `<name>Page.tsx`, the default export `App.tsx` mounts | resolves the route, owns the state its sections share, and lists the sections in order. It owns a band only when that band holds more than one section. |
-| `src/sections/` | the pieces a page is assembled from: a band, a grid column, a card, a row | **page-scoped**. One component per file, named after the component. |
-| `src/components/` | what two or more pages share, plus the app-level primitives (`AppLayout`, `Navbar`, `Footer`, `ScrollToTop`) | **shared**. Promoted here from `sections/`; a section that turns out to be generic (`MapPanel`, `EmptyState`) belongs here. |
-| `src/data/` | the content and the pure helpers over it | **content and logic only** — no components. |
-| `src/types.ts` | the shape of that content: `Route`, `PointOfInterest`, `MapPicture`, `RouteFilterState`, `AuthMode` | **types only**, no runtime code. A component names the type it needs instead of repeating its fields. |
+| Home              | Holds                                                                                                        | Rule                                                                                                                                                    |
+| ----------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/pages/`      | one file per route, `<name>Page.tsx`, the default export `App.tsx` mounts                                    | resolves the route, owns the state its sections share, and lists the sections in order. It owns a band only when that band holds more than one section. |
+| `src/sections/`   | the pieces a page is assembled from: a band, a grid column, a card, a row                                    | **page-scoped**. One component per file, named after the component.                                                                                     |
+| `src/components/` | what two or more pages share, plus the app-level primitives (`AppLayout`, `Navbar`, `Footer`, `ScrollToTop`) | **shared**. Promoted here from `sections/`; a section that turns out to be generic (`MapPanel`, `EmptyState`) belongs here.                             |
+| `src/data/`       | the content and the pure helpers over it                                                                     | **content and logic only** — no components.                                                                                                             |
+| `src/types.ts`    | the shape of that content: `Route`, `PointOfInterest`, `MapPicture`, `RouteFilterState`, `AuthMode`          | **types only**, no runtime code. A component names the type it needs instead of repeating its fields.                                                   |
 
 The test is the name. If it needs its page in it ("the planner's map"), it is a section
 (`planMap.tsx`). If the name stands on its own (`MapPanel`, `EmptyState`), it is a component — and
@@ -940,42 +945,42 @@ file is more than about a hundred lines of markup, a section is still hiding ins
 
 ### Naming
 
-| Thing | Convention | Example |
-| --- | --- | --- |
-| Page file | **camelCase** + `Page`, in `src/pages/` | `homePage.tsx`, `routeDetailPage.tsx` |
-| Section / component file | **camelCase**, one component per file, named exactly for the component | `heroMap.tsx` → `HeroMap`, `mapPanel.tsx` → `MapPanel` |
-| Domain type | **PascalCase**, in `src/types.ts` | `Route`, `StarBucket`, `MapPicture`, `PoiFilterState` |
-| Content constants | **SCREAMING_SNAKE_CASE**, declared above the component that uses them | `NAV_LINKS`, `HERO_ROUTE`, `ROUTE_PREVIEW_COUNT` |
-| Props, state, locals | **camelCase**, no abbreviations | `historicOpacity`, `visibleRoutes`, `menuOpen` |
-| Custom CSS class | **kebab-case**, only in `index.css` | `.historic-layer` |
-| CSS variable | **kebab-case** custom property | `--surface-container-low`, `--historic-opacity` |
-| Content module | camelCase file, one topic per file, in `src/data/` | `routes.ts`, `pointsOfInterest.ts`, `navigation.ts` |
-| `Poi` | the established short form for a point of interest | `PoiCard`, `PoiOverlay`, `POI_CATEGORIES`, `filterPointsOfInterest` |
+| Thing                    | Convention                                                             | Example                                                             |
+| ------------------------ | ---------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Page file                | **camelCase** + `Page`, in `src/pages/`                                | `homePage.tsx`, `routeDetailPage.tsx`                               |
+| Section / component file | **camelCase**, one component per file, named exactly for the component | `heroMap.tsx` → `HeroMap`, `mapPanel.tsx` → `MapPanel`              |
+| Domain type              | **PascalCase**, in `src/types.ts`                                      | `Route`, `StarBucket`, `MapPicture`, `PoiFilterState`               |
+| Content constants        | **SCREAMING_SNAKE_CASE**, declared above the component that uses them  | `NAV_LINKS`, `HERO_ROUTE`, `ROUTE_PREVIEW_COUNT`                    |
+| Props, state, locals     | **camelCase**, no abbreviations                                        | `historicOpacity`, `visibleRoutes`, `menuOpen`                      |
+| Custom CSS class         | **kebab-case**, only in `index.css`                                    | `.historic-layer`                                                   |
+| CSS variable             | **kebab-case** custom property                                         | `--surface-container-low`, `--historic-opacity`                     |
+| Content module           | camelCase file, one topic per file, in `src/data/`                     | `routes.ts`, `pointsOfInterest.ts`, `navigation.ts`                 |
+| `Poi`                    | the established short form for a point of interest                     | `PoiCard`, `PoiOverlay`, `POI_CATEGORIES`, `filterPointsOfInterest` |
 
 The **suffix says what the thing is**, so a file name can be read without opening it:
 
-| Suffix | Means | Examples |
-| --- | --- | --- |
-| `…Page` | a route's entry point, in `pages/` | `homePage.tsx`, `planningPage.tsx` |
-| `…Preview` | a home-page strip showing a slice of another page, with the link to it | `PopularRoutesPreview`, `PointsOfInterestPreview` |
-| `…Panel` | a framed surface holding a control group or artwork | `MapPanel`, `FilterPanel`, `LoginBrandPanel` |
-| `…Card` | one record on a bordered surface | `RouteCard`, `ReviewCard`, `PoiCard` |
-| `…Row` | one record in a vertical list | `SavedRouteRow` |
-| `…List` | a heading plus the records under it | `SavedRouteList` |
-| `…Grid` | the grid a repeating card is laid out in, fade included | `RouteGrid` |
-| `…Button` | one action, in the shape the design gives it | `ClearFiltersButton` |
-| `…Chip` | a small labelled token that sits on a surface | `MapChip` |
-| `…Form` | the inputs that submit something | `ReviewForm` |
-| `…Filters` | the controls that narrow a list | `RouteFilters`, `PoiFilters` |
-| `…Results` | what a filter left behind, empty state included | `RouteResults`, `PoiResults` |
-| `…Map` | a map panel plus the key that explains it | `PlanMap` |
-| `…Facts` / `…Summary` / `…Story` / `…Stops` | the named column of one page | `RouteFacts`, `RouteSummary`, `RouteStory`, `RouteStops` |
-| `…Overlay` / `…Image` / `…Crop` | artwork: SVG drawn over a map picture, the picture, a cropped piece of it | `RouteOverlay`, `MapImage`, `PoiCrop` |
+| Suffix                                      | Means                                                                     | Examples                                                 |
+| ------------------------------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `…Page`                                     | a route's entry point, in `pages/`                                        | `homePage.tsx`, `planningPage.tsx`                       |
+| `…Preview`                                  | a home-page strip showing a slice of another page, with the link to it    | `PopularRoutesPreview`, `PointsOfInterestPreview`        |
+| `…Panel`                                    | a framed surface holding a control group or artwork                       | `MapPanel`, `FilterPanel`, `LoginBrandPanel`             |
+| `…Card`                                     | one record on a bordered surface                                          | `RouteCard`, `ReviewCard`, `PoiCard`                     |
+| `…Row`                                      | one record in a vertical list                                             | `SavedRouteRow`                                          |
+| `…List`                                     | a heading plus the records under it                                       | `SavedRouteList`                                         |
+| `…Grid`                                     | the grid a repeating card is laid out in, fade included                   | `RouteGrid`                                              |
+| `…Button`                                   | one action, in the shape the design gives it                              | `ClearFiltersButton`                                     |
+| `…Chip`                                     | a small labelled token that sits on a surface                             | `MapChip`                                                |
+| `…Form`                                     | the inputs that submit something                                          | `ReviewForm`                                             |
+| `…Filters`                                  | the controls that narrow a list                                           | `RouteFilters`, `PoiFilters`                             |
+| `…Results`                                  | what a filter left behind, empty state included                           | `RouteResults`, `PoiResults`                             |
+| `…Map`                                      | a map panel plus the key that explains it                                 | `PlanMap`                                                |
+| `…Facts` / `…Summary` / `…Story` / `…Stops` | the named column of one page                                              | `RouteFacts`, `RouteSummary`, `RouteStory`, `RouteStops` |
+| `…Overlay` / `…Image` / `…Crop`             | artwork: SVG drawn over a map picture, the picture, a cropped piece of it | `RouteOverlay`, `MapImage`, `PoiCrop`                    |
 
 - Default-export the one public piece of a file; use named exports for siblings (`mapArtwork.tsx`
   exports `MapImage`, `RouteOverlay`, `PlanningOverlay`, `PoiOverlay` and `PoiCrop`, because they
   are all the same kind of thing — artwork — and none of them owns the file). `container.tsx`
-  makes one exception on purpose: it exports `Container` *and* the bare `CONTAINER` class string,
+  makes one exception on purpose: it exports `Container` _and_ the bare `CONTAINER` class string,
   because the bar's `<nav>` and the hero's grid are containers that have to be another element.
 - A section that is not one of the shapes above is simply named after what it renders
   (`HeroMap`, `SavedRouteList`), never after where it sits or who uses it.
@@ -998,32 +1003,33 @@ The **suffix says what the thing is**, so a file name can be read without openin
 
 ### Comments
 
+- **One line, always if it can be.** A comment is a note in the margin, not a paragraph. If it
+  needs three sentences, cut two — or the code under it is doing too much.
+- **Only the load-bearing half survives.** Keep the trap, the measured number, the deliberate
+  deviation. Drop the restatement of the code, the "what this file is for" tour, and anything a
+  reader can see from the names.
 - Comment **why**, not what. "`-me-2` pulls the glyph onto the gutter" earns its place; "set the
   margin" does not.
-- **Assume the reader has never seen the file** and does not know this design system. Short
-  sentences, plain words. If a comment needs a paragraph, the code under it is probably doing too
-  much.
+- A file's opening line may be one sentence of orientation, never a block. Inline notes stay next
+  to the line they explain.
 - **Everything lowercase**, except where the case carries meaning: an identifier (`MapPanel`,
   `--historic-opacity`), a file name (`index.html`), a proper noun (BeerCSS, Tailwind, Deltion,
   Zwolle) or a quoted UI string. A sentence that opens with one of those keeps its case.
-- Open a component file with a short block saying what the piece is and what it owns; for a
-  section, which page uses it.
 - Note the non-obvious class next to framework behaviour — every BeerCSS quirk in this file exists
   because something silently did the wrong thing once.
 - Mark deliberate deviations so the next reader does not "fix" them.
 
 **No decoration.** Nothing is drawn around a comment: no `-----` rules, no boxes, no `*` down the
-left edge of a multi-line block. Plain lines that start at column zero:
+left edge, no numbered lists. Plain lines that start at column zero, one line each:
 
-```jsx
-/*
-routefilters — the filter card above the route overview.
+```tsx
+/* the filter card above the route overview — FilterPanel is the card, this file owns what goes in it */
+/* the option lists live here and not in data/routes.ts because they are labels, not data */
 
-the card itself is FilterPanel; this file owns what goes in it.
-
-the page keeps the filter state, so this component reports a change as a
-(key, value) pair instead of writing it.
-*/
+interface RouteFiltersProps {
+  /* a patch and not a (key, value) pair, so the page always stores a whole, valid filter set */
+  onFilterChange: (patch: Partial<RouteFilterState>) => void;
+}
 ```
 
 ### React practice
@@ -1052,7 +1058,7 @@ the page keeps the filter state, so this component reports a change as a
   scale, behaviour from the component. A bar height written as `50px` in three places should be one
   edit when it changes; that is only true if it was a token.
 - **One change must propagate.** Promote values as soon as they repeat: hex → palette token → M3
-  role → utility. The theme switch works *only* because no component names a colour directly, so
+  role → utility. The theme switch works _only_ because no component names a colour directly, so
   every new piece inherits light/dark for free. A new fixed colour is a new bug in dark mode.
 - **Compose, don't fight.** Tailwind arranges (flex, gap, grid span, breakpoints); BeerCSS paints
   and behaves. Overriding a BeerCSS property with a Tailwind utility is allowed only when it is
@@ -1150,25 +1156,25 @@ the page keeps the filter state, so this component reports a change as a
 
 ## 14. Do / Don't
 
-| Do | Don't |
-| --- | --- |
-| Use BeerCSS components for Material 3 behaviour | Hand-build buttons, fields, cards or sliders |
-| Paint components through the M3 roles | Override a component's color with a Tailwind `bg-*` |
+| Do                                                          | Don't                                                     |
+| ----------------------------------------------------------- | --------------------------------------------------------- |
+| Use BeerCSS components for Material 3 behaviour             | Hand-build buttons, fields, cards or sliders              |
+| Paint components through the M3 roles                       | Override a component's color with a Tailwind `bg-*`       |
 | **White** text on the brand orange; blue on the light tints | White on a light orange tint, or blue on the brand orange |
-| BeerCSS `.grid` + `.s12 .m6 .l4` | A bare Tailwind `grid` with `grid-cols-*` |
-| Surface steps + a `border-line` hairline for depth | `elevate` / `shadow-*` — there is no elevation at all |
-| Montserrat (`font-display`) for headings | Tailwind's `font-serif`, or serif body copy |
-| Solid steps and hairlines | Gradients — anywhere, including SVG and overlays |
-| Add new icons to the subset URL | Drop an `<i>` ligature in and hope it renders |
-| `text-ink` / `text-ink-muted` / `text-accent` for text | Tailwind's `slate-*`, or any fixed grey |
-| Add a role to both theme blocks in `index.css` | Hardcode a light-only colour in a component |
-| camelCase identifiers, SCREAMING_SNAKE content constants | Abbreviations, or data literals inside JSX |
-| Check 320px → 2560px and both themes | Ship after eyeballing one window size |
-| `aria-label` on icon-only buttons | Ship an unlabelled icon button |
-| `gap-*` for spacing between siblings | `mr-*`/`mt-*` chains on every child |
-| Reach for a built-in slot/class first | Hand-position a control inside a component |
-| Promote a repeated value to a token, then a role | Repeat a hex, a `px` or a breakpoint inline |
-| Add a dependency only for a real gap, and record it | Reach for a library the stack already covers |
+| BeerCSS `.grid` + `.s12 .m6 .l4`                            | A bare Tailwind `grid` with `grid-cols-*`                 |
+| Surface steps + a `border-line` hairline for depth          | `elevate` / `shadow-*` — there is no elevation at all     |
+| Montserrat (`font-display`) for headings                    | Tailwind's `font-serif`, or serif body copy               |
+| Solid steps and hairlines                                   | Gradients — anywhere, including SVG and overlays          |
+| Add new icons to the subset URL                             | Drop an `<i>` ligature in and hope it renders             |
+| `text-ink` / `text-ink-muted` / `text-accent` for text      | Tailwind's `slate-*`, or any fixed grey                   |
+| Add a role to both theme blocks in `index.css`              | Hardcode a light-only colour in a component               |
+| camelCase identifiers, SCREAMING_SNAKE content constants    | Abbreviations, or data literals inside JSX                |
+| Check 320px → 2560px and both themes                        | Ship after eyeballing one window size                     |
+| `aria-label` on icon-only buttons                           | Ship an unlabelled icon button                            |
+| `gap-*` for spacing between siblings                        | `mr-*`/`mt-*` chains on every child                       |
+| Reach for a built-in slot/class first                       | Hand-position a control inside a component                |
+| Promote a repeated value to a token, then a role            | Repeat a hex, a `px` or a breakpoint inline               |
+| Add a dependency only for a real gap, and record it         | Reach for a library the stack already covers              |
 
 ---
 
@@ -1184,7 +1190,7 @@ The one trigger §15 wrote down has since fired — the app became multi-page on
 
 - **The M3 roles are hand-authored, not generated.** `index.css` derives all ~40 roles in both
   themes from the Deltion huisstijl (§3). Generating them from a seed colour would replace the
-  design with a machine-toned approximation of it — the palette *is* the design here.
+  design with a machine-toned approximation of it — the palette _is_ the design here.
 - **`split/backend/` is not ours.** The Express API, the database and everything server-side
   belong to the project collaborator, who installs their own dependencies when they build it. Do
   not add server packages, and do not wire the frontend to an API that does not exist yet.
@@ -1200,14 +1206,14 @@ list whose contents change — and it is used nowhere else. See §10 for the rul
 
 Assessed 2026-09-14 before choosing:
 
-| Candidate | What it gives | Assessment |
-| --- | --- | --- |
-| **`motion`** ✅ | `AnimatePresence` enter/exit, springs, layout animation, gestures, `reducedMotion` built in | **Chosen.** React-first, tree-shakeable, and its reduced-motion handling matches the CSS rule we already had. Trimmed with `LazyMotion` + `domAnimation` to ~28KB gzip |
-| `gsap` | Timeline control, ScrollTrigger, SVG morphing | The most powerful option, but imperative and heavy next to a codebase where 90% of the motion is CSS. Only reconsider if scroll-driven set pieces ever become the core of the site |
-| `@react-spring/web` | Physics-based springs | Good springs, weaker enter/exit story than Motion |
-| `anime.js` | Tiny engine, excellent SVG support | Ideal for the map artwork specifically, but has no React integration |
-| `@formkit/auto-animate` | One-attribute list transitions | Very small and effortless, but cannot choreograph — a cheap complement, not a replacement |
-| `lenis` | Inertial "smooth" scrolling | **No** — it hijacks the scroll, fights the `scroll-behavior` we already set, and is an accessibility hazard on a content site. Wanted the opposite of what this project needs |
+| Candidate               | What it gives                                                                               | Assessment                                                                                                                                                                         |
+| ----------------------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`motion`** ✅         | `AnimatePresence` enter/exit, springs, layout animation, gestures, `reducedMotion` built in | **Chosen.** React-first, tree-shakeable, and its reduced-motion handling matches the CSS rule we already had. Trimmed with `LazyMotion` + `domAnimation` to ~28KB gzip             |
+| `gsap`                  | Timeline control, ScrollTrigger, SVG morphing                                               | The most powerful option, but imperative and heavy next to a codebase where 90% of the motion is CSS. Only reconsider if scroll-driven set pieces ever become the core of the site |
+| `@react-spring/web`     | Physics-based springs                                                                       | Good springs, weaker enter/exit story than Motion                                                                                                                                  |
+| `anime.js`              | Tiny engine, excellent SVG support                                                          | Ideal for the map artwork specifically, but has no React integration                                                                                                               |
+| `@formkit/auto-animate` | One-attribute list transitions                                                              | Very small and effortless, but cannot choreograph — a cheap complement, not a replacement                                                                                          |
+| `lenis`                 | Inertial "smooth" scrolling                                                                 | **No** — it hijacks the scroll, fights the `scroll-behavior` we already set, and is an accessibility hazard on a content site. Wanted the opposite of what this project needs      |
 
 **What it is used for, and nothing more:**
 
@@ -1221,19 +1227,19 @@ tokens in §10, and a library will not make the ripple, the card lift or the her
 
 ### Installed
 
-| Package | Covers |
-| --- | --- |
-| `beercss` | Material 3 components, 12-column grid, slider, ripple, Material Symbols |
-| `react-router-dom` | Client-side routes: the pages, the active nav link, the breadcrumbs (see below) |
-| `motion` | Enter/exit and list animations (menu, route grid) — `LazyMotion` + `domAnimation`, `m.*` components |
-| `tailwindcss` + `@tailwindcss/vite` | Layout utilities, the ink/hairline aliases, the token pipeline |
-| `react` / `react-dom` | UI runtime |
-| `express`, `mysql2`, `jsonwebtoken`, `bcryptjs` | Declared for `backend/index.mjs` — the collaborator's side, currently unused by the UI |
+| Package                                         | Covers                                                                                              |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `beercss`                                       | Material 3 components, 12-column grid, slider, ripple, Material Symbols                             |
+| `react-router-dom`                              | Client-side routes: the pages, the active nav link, the breadcrumbs (see below)                     |
+| `motion`                                        | Enter/exit and list animations (menu, route grid) — `LazyMotion` + `domAnimation`, `m.*` components |
+| `tailwindcss` + `@tailwindcss/vite`             | Layout utilities, the ink/hairline aliases, the token pipeline                                      |
+| `react` / `react-dom`                           | UI runtime                                                                                          |
+| `express`, `mysql2`, `jsonwebtoken`, `bcryptjs` | Declared for `backend/index.mjs` — the collaborator's side, currently unused by the UI              |
 
 ### Routing (added 2026-09-18)
 
-The trigger was written down in advance: *react-router-dom — "revisit the moment a nav link points
-at a page that is not this one"*. The app is now six pages (`/`, `/routes`, `/routes/:routeId`,
+The trigger was written down in advance: _react-router-dom — "revisit the moment a nav link points
+at a page that is not this one"_. The app is now six pages (`/`, `/routes`, `/routes/:routeId`,
 `/planning`, `/points-of-interest`, `/inloggen`) plus a catch-all, so it fired.
 
 Why the library and not a hand-rolled hash router: the routes are real URLs that get linked to,
@@ -1248,16 +1254,16 @@ That is more than the ten lines §13's rule allows before a dependency is justif
 
 ### Evaluated and declined
 
-| Candidate | Would have covered | Verdict |
-| --- | --- | --- |
-| `material-dynamic-colors` | Generating the full M3 palette from one seed colour (already present as BeerCSS's transitive dependency) | **No** — the roles are hand-authored from the Deltion huisstijl; generating them would trade the design for an approximation |
-| `@material/web` | Google's official M3 web components | **No** — duplicates BeerCSS wholesale; two M3 implementations would fight over tokens and naming |
-| `@tanstack/react-query` | Server-state caching | **No** — there is no API to consume, and the backend is the collaborator's |
-| `react-router-dom` | Client-side routes | **Installed 2026-09-18** — the trigger fired with the multi-page app, see above |
-| `leaflet` + `react-leaflet` | Real interactive tile maps | Not yet — revisit if the hand-drawn inline SVG is replaced by a real map |
-| `vitest` + `@testing-library/react` | Unit and component tests | Not yet — revisit when logic moves out of the hero slider and needs a guarantee |
-| `clsx` | Conditional class strings | Not yet — revisit if a class string grows past two conditional branches |
-| A date/format library | Dutch date and number formatting | **No** — `src/format.ts` is four functions (~25 lines) and `Intl`/`toLocaleString` already cover the rest |
+| Candidate                           | Would have covered                                                                                       | Verdict                                                                                                                      |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `material-dynamic-colors`           | Generating the full M3 palette from one seed colour (already present as BeerCSS's transitive dependency) | **No** — the roles are hand-authored from the Deltion huisstijl; generating them would trade the design for an approximation |
+| `@material/web`                     | Google's official M3 web components                                                                      | **No** — duplicates BeerCSS wholesale; two M3 implementations would fight over tokens and naming                             |
+| `@tanstack/react-query`             | Server-state caching                                                                                     | **No** — there is no API to consume, and the backend is the collaborator's                                                   |
+| `react-router-dom`                  | Client-side routes                                                                                       | **Installed 2026-09-18** — the trigger fired with the multi-page app, see above                                              |
+| `leaflet` + `react-leaflet`         | Real interactive tile maps                                                                               | Not yet — revisit if the hand-drawn inline SVG is replaced by a real map                                                     |
+| `vitest` + `@testing-library/react` | Unit and component tests                                                                                 | Not yet — revisit when logic moves out of the hero slider and needs a guarantee                                              |
+| `clsx`                              | Conditional class strings                                                                                | Not yet — revisit if a class string grows past two conditional branches                                                      |
+| A date/format library               | Dutch date and number formatting                                                                         | **No** — `src/format.ts` is four functions (~25 lines) and `Intl`/`toLocaleString` already cover the rest                    |
 
 ---
 
@@ -1268,36 +1274,35 @@ item it **deviates** from is listed here with the reason, so nobody "fixes" it b
 
 ### Following the spec
 
-| Spec item | Where |
-| --- | --- |
-| Every colour role exists in both schemes (incl. `scrim`, `shadow`) | `index.css` — both blocks |
-| Two static schemes selected by a `<body>` class, no wallpaper extraction | `themeToggle.tsx` |
-| Tonal steps + hairlines, no shadows at all | §5 — BeerCSS elevation helpers are disabled in `@layer overrides` |
-| Top app bar: brand orange (`--bar`), full-width, 48px action targets | `Navbar`, 65px tall, white text/icons at 6:1 |
-| Cards: `corner_medium` (12px), 3 columns at desktop | `article.s12.m6.l4`, hero panel `rounded-xl` |
-| Cards per breakpoint: 1 (mobile) / 2 / 3 (desktop), 4 when there is room | BeerCSS `s12 m6 l4` + `xl:col-span-3` |
-| Section rhythm 32–64px, 4px spacing grid | `py-16 sm:py-20`, Tailwind's 4px scale |
-| Motion: 200ms standard curve, exit curve available, reduced-motion respected | §10, `--ease-standard` / `--ease-exit` |
-| Focus ring: 2px `primary` + 2px offset | `@layer base` + BeerCSS |
-| Touch targets ≥ 48×48px | `.tap-target`, `min-h-12` on mobile nav rows |
-| Body vs. label type roles (Inter) and headings (Montserrat) | §4 |
-| Contrast: 4.5:1 body, 3:1 large text | §3; 0 failures in both themes |
-| One filled action per section, clear button hierarchy | §7, §14 |
+| Spec item                                                                    | Where                                                             |
+| ---------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Every colour role exists in both schemes (incl. `scrim`, `shadow`)           | `index.css` — both blocks                                         |
+| Two static schemes selected by a `<body>` class, no wallpaper extraction     | `themeToggle.tsx`                                                 |
+| Tonal steps + hairlines, no shadows at all                                   | §5 — BeerCSS elevation helpers are disabled in `@layer overrides` |
+| Top app bar: brand orange (`--bar`), full-width, 48px action targets         | `Navbar`, 65px tall, white text/icons at 6:1                      |
+| Cards: `corner_medium` (12px), 3 columns at desktop                          | `article.s12.m6.l4`, hero panel `rounded-xl`                      |
+| Cards per breakpoint: 1 (mobile) / 2 / 3 (desktop), 4 when there is room     | BeerCSS `s12 m6 l4` + `xl:col-span-3`                             |
+| Section rhythm 32–64px, 4px spacing grid                                     | `py-16 sm:py-20`, Tailwind's 4px scale                            |
+| Motion: 200ms standard curve, exit curve available, reduced-motion respected | §10, `--ease-standard` / `--ease-exit`                            |
+| Focus ring: 2px `primary` + 2px offset                                       | `@layer base` + BeerCSS                                           |
+| Touch targets ≥ 48×48px                                                      | `.tap-target`, `min-h-12` on mobile nav rows                      |
+| Body vs. label type roles (Inter) and headings (Montserrat)                  | §4                                                                |
+| Contrast: 4.5:1 body, 3:1 large text                                         | §3; 0 failures in both themes                                     |
+| One filled action per section, clear button hierarchy                        | §7, §14                                                           |
 
 ### Deliberate deviations
 
-| Spec | This project | Why |
-| --- | --- | --- |
-| Bottom nav < 600px, rail ≥ 600px | Top app bar at every width | Five in-page anchors, not an app shell with destinations; a rail would eat a third of a phone's map. |
-| Text fields 56px tall | BeerCSS `.field` = 50px | The field's floating-label geometry belongs to BeerCSS; overriding the height breaks it (§13). |
-| Content capped at 960–1200px | `max-w-[100rem]` (1600px) | A map application wants width; 1280px left ~312px dead on each side of a 1920 screen. |
-| Body text ~35ch | 45–65ch (`max-w-md`–`max-w-2xl`) | The hero lead wraps to six lines at 35ch and reads as a paragraph, not a lead. |
-| Headings at weight 600 | `font-bold` (700) | Montserrat 700 holds its own next to the map artwork; 600 goes soft at display sizes. |
-| Screen edge padding 16px mobile | `px-5` (20px) | Optical: the card artwork's own inset needs the extra 4px to look flush. |
-| Dialogs, bottom sheets, snackbars, FABs | Not implemented yet | The app has no transient layer; adopt the recipes from the reference (§7, §12) when one is needed rather than inventing a variant. |
-| Top app bar is `surface` | The bar is the brand orange in light mode, the brand navy in dark | The bar is where the Deltion identity lives, and it carries no content — only a title, links and icon buttons. In light mode the true `#f68221` orange carries **white** text and icons, which is the brand's own pairing; blue on orange would measure 7.8:1 but reads as a different palette, so the accessible option was declined deliberately (white on `#f68221` is 2.6:1 — §3, §11). The alternative, a darker orange bar, is brown. In dark mode the bar is the desaturated brand navy, and the orange moves into the headings, the logo and the avatar. |
-| M3 expresses depth as tonal elevation **plus** a shadow, five levels deep | No shadows at all | A blurred offset edge reads as a smudge or a gradient, and the brief rules gradients out. Depth comes from surface steps and hairlines instead (§5). |
-| State layers 8% hover / 12% press | BeerCSS's own values, `--active` retuned per theme | BeerCSS owns the ripple and state layer; we only correct the *tint* so it reads on dark. |
-| Chips: outlined, transparent background | Filled chips over artwork | A transparent badge on a busy map disappears; artwork badges are not M3 chips (§7). |
-| Connected button group for the map-layer switch | BeerCSS `nav.group.connected` + `.active`, with both segment colours and the corner shape corrected in `@layer overrides` (§7) | BeerCSS's own version steps the selected segment one tonal notch up, which is invisible on white and barely there on navy — so the group keeps its structure and takes `--primary` / `--on-primary` for the selection and `--primary-container` for the rest (light orange on paper, blue in dark mode) |
-
+| Spec                                                                      | This project                                                                                                                   | Why                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bottom nav < 600px, rail ≥ 600px                                          | Top app bar at every width                                                                                                     | Five in-page anchors, not an app shell with destinations; a rail would eat a third of a phone's map.                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Text fields 56px tall                                                     | BeerCSS `.field` = 50px                                                                                                        | The field's floating-label geometry belongs to BeerCSS; overriding the height breaks it (§13).                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Content capped at 960–1200px                                              | `max-w-[100rem]` (1600px)                                                                                                      | A map application wants width; 1280px left ~312px dead on each side of a 1920 screen.                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Body text ~35ch                                                           | 45–65ch (`max-w-md`–`max-w-2xl`)                                                                                               | The hero lead wraps to six lines at 35ch and reads as a paragraph, not a lead.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Headings at weight 600                                                    | `font-bold` (700)                                                                                                              | Montserrat 700 holds its own next to the map artwork; 600 goes soft at display sizes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Screen edge padding 16px mobile                                           | `px-5` (20px)                                                                                                                  | Optical: the card artwork's own inset needs the extra 4px to look flush.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Dialogs, bottom sheets, snackbars, FABs                                   | Not implemented yet                                                                                                            | The app has no transient layer; adopt the recipes from the reference (§7, §12) when one is needed rather than inventing a variant.                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| Top app bar is `surface`                                                  | The bar is the brand orange in light mode, the brand navy in dark                                                              | The bar is where the Deltion identity lives, and it carries no content — only a title, links and icon buttons. In light mode the true `#f68221` orange carries **white** text and icons, which is the brand's own pairing; blue on orange would measure 7.8:1 but reads as a different palette, so the accessible option was declined deliberately (white on `#f68221` is 2.6:1 — §3, §11). The alternative, a darker orange bar, is brown. In dark mode the bar is the desaturated brand navy, and the orange moves into the headings, the logo and the avatar. |
+| M3 expresses depth as tonal elevation **plus** a shadow, five levels deep | No shadows at all                                                                                                              | A blurred offset edge reads as a smudge or a gradient, and the brief rules gradients out. Depth comes from surface steps and hairlines instead (§5).                                                                                                                                                                                                                                                                                                                                                                                                             |
+| State layers 8% hover / 12% press                                         | BeerCSS's own values, `--active` retuned per theme                                                                             | BeerCSS owns the ripple and state layer; we only correct the _tint_ so it reads on dark.                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Chips: outlined, transparent background                                   | Filled chips over artwork                                                                                                      | A transparent badge on a busy map disappears; artwork badges are not M3 chips (§7).                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| Connected button group for the map-layer switch                           | BeerCSS `nav.group.connected` + `.active`, with both segment colours and the corner shape corrected in `@layer overrides` (§7) | BeerCSS's own version steps the selected segment one tonal notch up, which is invisible on white and barely there on navy — so the group keeps its structure and takes `--primary` / `--on-primary` for the selection and `--primary-container` for the rest (light orange on paper, blue in dark mode)                                                                                                                                                                                                                                                          |

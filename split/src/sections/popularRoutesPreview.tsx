@@ -1,11 +1,4 @@
-/*
-popularroutespreview — the home page's strip of the route overview.
-
-it shows only the first few routes and links to the full list instead of growing
-here, so the preview and the overview always describe a route the same way.
-
-"how many routes is a preview" lives in data/routes.js, not here.
-*/
+/* the home page's strip of the route overview; how many routes a preview holds lives in data/routes.ts */
 
 import { Link } from "react-router-dom";
 import RouteGrid from "../components/routeGrid.tsx";
@@ -22,10 +15,7 @@ export default function PopularRoutesPreview() {
           title="Populaire routes"
           description="De hoogst gewaardeerde routes van deze maand, gekozen door de community."
           action={
-            /* border is beerCSS's outlined button, and it defaults to primary text,
-               which is too light on white (2.5:1). so the label takes the theme's
-               ink instead. a link dressed as a button also needs the .button class:
-               a bare <a> has no button box. */
+            /* a link dressed as a button needs .button (a bare <a> has no button box), and border defaults to primary text — 2.5:1 on white — so the ink comes from the theme */
             <Link to={ROUTES_PATH} className="button border text-ink ripple">
               Alle routes bekijken
             </Link>

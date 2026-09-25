@@ -1,12 +1,4 @@
-/*
-scrolltotop — puts a route change back at the top of the new page.
-
-without it, opening a card from halfway down the overview drops you halfway down the
-next page. a hash wins over the top, which is what makes the top bar's "Contact" link
-and the login page's "Registreren" link work from anywhere.
-
-the effect syncs with something outside React, the window's scroll position.
-*/
+/* puts a route change back at the top; a hash wins, so /#contact lands from anywhere */
 
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";

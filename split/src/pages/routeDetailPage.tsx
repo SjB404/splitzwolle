@@ -1,16 +1,4 @@
-/*
-routedetailpage — one route in full: the map, the facts, the story, the reviews and
-what to walk next.
-
-the file has two components on purpose. RouteDetailPage looks up the :routeId, so it
-can render its own 404, and RouteDetail holds the rest. the other way round would
-mean reading a route before knowing whether there is one, which is how a hook ends up
-being called conditionally.
-
-RouteDetail is the page's table of contents: the header band, then the sections in
-order. each section owns its own markup and grid column, so this file is only the
-order and the shared route.
-*/
+/* one route in full — the file has two components on purpose: RouteDetailPage looks up the :routeId so it can render its own 404, and RouteDetail holds the rest (reading a route before knowing there is one is how a hook ends up conditional) */
 
 import { useParams } from "react-router-dom";
 import Breadcrumb from "../components/breadcrumb.tsx";
@@ -44,14 +32,17 @@ function RouteDetail({ route }: RouteDetailProps) {
     <>
       <PageHeader
         breadcrumb={
-          <Breadcrumb to={ROUTES_PATH} label="Alle routes" current={route.title} />
+          <Breadcrumb
+            to={ROUTES_PATH}
+            label="Alle routes"
+            current={route.title}
+          />
         }
         eyebrow={route.theme}
         title={route.title}
         description={route.description}
       >
-        {/* the lead row: where the route is, and how it scores. it is children of the
-            header because it belongs to the band, not to a section. */}
+        {/* the lead row: where the route is, and how it scores — children of the header, because it belongs to the band and not to a section */}
         <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
           <span className="inline-flex items-center gap-2 text-sm text-ink-muted">
             <Icon name="place" className="text-base" />
@@ -64,9 +55,7 @@ function RouteDetail({ route }: RouteDetailProps) {
         </div>
       </PageHeader>
 
-      {/* map and summary. the artwork is the shared map with this route's own points,
-          so a route never needs a second illustration. the two columns belong to the
-          page, because each holds more than one section. */}
+      {/* map and summary: the shared map with this route's own points; the two columns belong to the page, because each holds more than one section */}
       <section className="py-16 sm:py-20">
         <Container className="grid gap-y-10 lg:gap-x-20">
           <div className="s12 l8">

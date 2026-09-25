@@ -1,18 +1,6 @@
-/*
-loginbrandpanel — the brand half of the account screen.
-
-it is the same band the rest of the app uses for its page headers, with the hero's
-ingredients at a smaller scale: eyebrow, display line, illustrated map, and a short
-list of what an account is for. it is a grid column, so above 993px it sits beside
-the form and below that it stacks on top.
-
-two deliberate details:
-
-the display line is a p and not a heading. the page's only heading is the form's
-"Inloggen", and a marketing line above it would announce itself first.
-
-the map is decorative, because the text beside it already says what the app is.
-*/
+/* the brand half of the account screen: the page header band at a smaller scale, as a grid column — beside the form above 993px, on top of it below */
+/* the display line is a p and not a heading: the page's only heading is the form's "Inloggen", and a marketing line above it would announce itself first */
+/* the map is decorative, because the text beside it already says what the app is */
 
 import { Link } from "react-router-dom";
 import Icon from "../components/icon.tsx";
@@ -39,8 +27,7 @@ const LOGIN_BENEFITS: string[] = [
 export default function LoginBrandPanel() {
   return (
     <div className="s12 l6 inverse-surface flex flex-col gap-8 p-8 sm:p-12">
-      {/* the logo links home, because this page is outside the app shell and the bar's
-          own way back is not on screen */}
+      {/* the logo links home, because this page is outside the shell and the bar's own way back is not on screen */}
       <Link
         to={HOME_PATH}
         className="font-display text-lg font-bold tracking-tight text-ink"
@@ -74,8 +61,7 @@ export default function LoginBrandPanel() {
         ))}
       </ul>
 
-      {/* mt-auto pins this line to the bottom of the column, which is what makes the
-          brand half read as a page of its own beside the form */}
+      {/* mt-auto pins the copyright to the bottom, which makes this half read as a page of its own beside the form */}
       <p className="mt-auto text-xs text-ink-muted">
         © {new Date().getFullYear()} Zwolle Routes
       </p>

@@ -1,14 +1,4 @@
-/*
-routeresults — the route cards the filters matched, plus the two states around
-them: nothing found, and more found than shown.
-
-it owns the paging rule (how many is a page lives in data/routes.js) and the empty
-state, so the filters and the "nothing here" card always agree.
-
-the grid only ever grows downwards, so nothing reflows: new cards fade in and
-removed ones fade out. nothing animates on scroll, because content that moves
-while you read it is noise. that is why the fade sits on RouteCard.
-*/
+/* the route cards the filters matched, plus the empty state and the paging rule (how many is a page lives in data/routes.ts) */
 
 import EmptyState from "../components/emptyState.tsx";
 import ClearFiltersButton from "../components/clearFiltersButton.tsx";
@@ -18,8 +8,7 @@ import type { Route } from "../types.ts";
 
 interface RouteResultsProps {
   routes: Route[];
-  /* whether the reader asked for the whole list. the page owns it, because changing a
-     filter collapses it again */
+  /* whether the reader asked for the whole list; the page owns it, because a filter change collapses it again */
   showAll: boolean;
   onShowAll: () => void;
   /* the empty state's way out, which only the page can define */
