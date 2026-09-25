@@ -13,9 +13,14 @@ import type { Route } from "../../types.ts";
 interface RouteCardProps {
   /* the card formats the route's own fields, so no list has to prepare strings for it */
   route: Route;
+  /* false where the section around the card already says the routes are popular */
+  showPopular?: boolean;
 }
 
-export default function RouteCard({ route }: RouteCardProps) {
+export default function RouteCard({
+  route,
+  showPopular = true,
+}: RouteCardProps) {
   return (
     <m.article
       initial={{ opacity: 0 }}
@@ -24,8 +29,8 @@ export default function RouteCard({ route }: RouteCardProps) {
       transition={MOTION_TRANSITION}
       className="s12 m6 l4 xl:col-span-3 no-padding group relative flex flex-col overflow-hidden transition-transform motion-safe:hover:-translate-y-1"
     >
-      {/* a fixed height frame with a cropped picture: it grows with the column on wide screens and keeps most of the map in view */}
-      <div className="relative h-52 overflow-hidden surface-container xl:h-64">
+      {/* the frame takes its height from the column and keeps a map's kind of ratio, so the artwork scales with the card instead of stepping at two widths */}
+      <div className="relative aspect-[16/10] overflow-hidden surface-container">
         {/* decorative, because the card's own title, area and distance say everything; object-cover crops exactly like the overlay's slice, so the route lands on the map at every width */}
         <MapImage
           image={MAP_IMAGES.roads}
@@ -34,7 +39,7 @@ export default function RouteCard({ route }: RouteCardProps) {
         />
         <RouteOverlay path={route.path} />
 
-        {route.popular && (
+        {showPopular && route.popular && (
           <span className="chip primary absolute left-4 top-4 text-[11px] font-bold uppercase tracking-wide">
             <Icon name="local_fire_department" className="mr-1" /> Populair
           </span>
@@ -66,7 +71,7 @@ export default function RouteCard({ route }: RouteCardProps) {
           {formatDuration(route.durationMinutes)}
         </p>
 
-        <div className="mt-4 flex items-center gap-2 border-t border-line pt-4">
+        <div className="mt-4 flex items-center gap-2 border-t border-line rounded-none pt-4">
           <span className="inline-flex items-center gap-1 text-sm font-semibold text-ink">
             <Icon name="star" className="fill text-base text-accent" />
             {formatRating(route.rating)}

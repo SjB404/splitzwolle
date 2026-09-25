@@ -109,6 +109,22 @@ export interface ContactDetails {
   address: string;
 }
 
+/* the search index behind the home page's section bars — one record per searchable thing, with the id the caller resolves against its own content; data/searchIndex.json holds the records and data/search.ts matches on them */
+export type SearchKind = "route" | "poi";
+
+export interface SearchRecord {
+  id: string;
+  /** the words a reader is most likely to type */
+  title: string;
+  /** the rest of the words that should find it: area, theme, a synonym */
+  meta: string;
+}
+
+export interface SearchIndex {
+  routes: SearchRecord[];
+  pointsOfInterest: SearchRecord[];
+}
+
 /* a choice in a BeerCSS select; the value is a union, so a typo is a compile error and not an empty list */
 export interface SelectOption<Value extends string = string> {
   value: Value;

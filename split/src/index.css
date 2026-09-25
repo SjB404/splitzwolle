@@ -73,7 +73,20 @@
   --default-transition-duration: 200ms;
   --default-transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
 
-  /* the app's one entrance: the hero's columns rise into place once on load; declared as a theme animation so motion-safe:animate-rise is a utility, and gated at the call site */
+  /* fluid type: a clamp carries a floor, a viewport-relative middle and a ceiling, so a heading fills the measure it is given instead of stepping at a breakpoint and re-wrapping; the three steps map to the hero h1 (display), a page h1 (headline) and a section h2 (title) — DESIGN.md §4 */
+  --text-display: clamp(2rem, 4.4vw + 0.35rem, 4.5rem);
+  --text-display--line-height: 1.08;
+  --text-headline: clamp(1.875rem, 2.6vw + 0.9rem, 3.25rem);
+  --text-headline--line-height: 1.1;
+  --text-title: clamp(1.625rem, 1.5vw + 1rem, 2.5rem);
+  --text-title--line-height: 1.15;
+
+  /* fluid spacing, same idea: the page gutter, the section rhythm, and the little the hero band keeps — a fixed step looked tight on a phone and wasteful on a 2560 screen */
+  --spacing-gutter: clamp(1.25rem, 2.4vw, 2.5rem);
+  --spacing-band: clamp(3rem, 6.5vw, 5rem);
+  --spacing-hero: clamp(0.75rem, 1.6vw, 1.5rem);
+
+  /* the app's one entrance: the hero's map panel rises into place once on load; declared as a theme animation so motion-safe:animate-rise is a utility, and gated at the call site */
   --animate-rise: rise 0.45s var(--ease-standard) both;
 
   @keyframes rise {
@@ -275,30 +288,30 @@ body.dark {
 
 /* framework overrides — declared before every other layer on purpose: for !important the cascade reverses, so an important rule in an earlier layer beats one in a later layer, which is the only way to take a property back from beerCSS; a normal declaration here would be the weakest in the file */
 @layer overrides {
-  /* the connected button group (the map layer switch): beerCSS gets the grouping right but the unselected segment is a surface step that reads as nothing (takes --primary-container), the selected one gets an invisible tonal step (takes --primary / --on-primary), and its shape is two rounded rectangles where material 3 wants the seam square */
-  nav.group.connected > :is(.button, button):not(.active) {
-    background-color: var(--primary-container) !important;
-    color: var(--on-primary-container) !important;
+  /* a field's own ring has to be invisible: beerCSS paints the boundary on the control inside it (--outline at rest, --primary at 2px on focus), so the hairline tailwind's `border` utility leaves on the wrapper — coloured currentColor, i.e. the ink — drew a second, heavier ring outside it */
+  .field.border {
+    border-color: transparent !important;
   }
 
-  nav.group.connected > :is(.button, button).active {
-    background-color: var(--primary) !important;
-    color: var(--on-primary) !important;
+  /* an outlined button takes the same --outline as a field: beerCSS gives it --outline-variant, which is the card hairline and reads as no border at all beside a field */
+  :is(.button, button).border {
+    border-color: var(--outline) !important;
   }
 
-  /* outer corners: material 3's corner_full, the 2rem pill beerCSS already uses for its buttons, so both ends of the group agree; beerCSS gives the leading segment a pill and the trailing one 8px, which reads as a mistake */
-  nav.group.connected > :is(.button, button):first-child {
-    border-start-start-radius: 2rem !important;
-    border-end-start-radius: 2rem !important;
-    border-start-end-radius: 0 !important;
-    border-end-end-radius: 0 !important;
+  /* an unselected filter chip — a <button>, unlike the badge <span>s that sit over artwork — takes the same --outline boundary as a field or an outlined button: beerCSS leaves it --outline-variant, which all but disappears beside them. The selected chip keeps its border-transparent, which is what stops it moving when it is picked */
+  button.chip:not(.border-transparent) {
+    border-color: var(--outline) !important;
   }
 
-  nav.group.connected > :is(.button, button):last-child {
-    border-start-end-radius: 2rem !important;
-    border-end-end-radius: 2rem !important;
-    border-start-start-radius: 0 !important;
-    border-end-start-radius: 0 !important;
+  /* the map slider: beerCSS lands --_end on the handle's own centre and then insets the filled track 0.5rem further, which leaves a slot of bare track between the fill and the handle — it reads as a broken track rather than as a slider */
+  .slider > span:not([class]) {
+    inset-inline-end: var(--_end) !important;
+  }
+
+  /* and the handle narrows to a hairline while it has focus, which reads as a glitch; the focus itself stays visible through the track colour and the ring around the field */
+  .slider > input:not(:disabled):is(:focus)::-webkit-slider-thumb,
+  .slider > input:not(:disabled):is(:focus)::-moz-range-thumb {
+    transform: none !important;
   }
 
   /* no elevation anywhere: surfaces are separated by tone and hairlines, and a 2px offset shadow on a 12px radius card reads as a smudged edge or, worse, a gradient; beerCSS puts one on every article */

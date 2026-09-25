@@ -41,7 +41,7 @@ export default function PointsOfInterestPage() {
         description="Van middeleeuwse poorten tot de beste lunchplekken van de stad. Filter op categorie en zet een plek op de kaart."
       />
 
-      <section className="py-16 sm:py-20">
+      <section className="py-band">
         <Container>
           <PoiFilters
             filters={filters}

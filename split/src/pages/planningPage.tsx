@@ -52,7 +52,7 @@ export default function PlanningPage() {
         description="Kies de routes die je wilt lopen of fietsen. De kaart en het overzicht rekenen de afstand en de duur voor je uit."
       />
 
-      <section className="py-16 sm:py-20">
+      <section className="py-band">
         <Container className="grid gap-y-10 lg:gap-x-20">
           <div className="s12 l5">
             <SavedRouteList

@@ -59,10 +59,14 @@ Express is a declared dependency for the (currently minimal) `split/backend/` fo
     `pageHeader`, `pageTitle`, `sectionHeading`, `scrollToTop`, `themeToggle`, `breadcrumb`
   - `primitives/` — `icon`, `starRating`, `textButton`
   - `content/` — `routeCard`, `routeGrid`, `emptyState`
-  - `filters/` — `filterPanel`, `filterSelect`, `searchField`, `clearFiltersButton`
+  - `filters/` — `filterPanel`, `filterSelect`, `searchField`, `sectionSearchBar`,
+    `clearFiltersButton`
   - `map/` — `mapArtwork`, `mapPanel`, `mapChip`, `mapLegend`
 - `src/data/` — the content the pages share (`routes.ts`, `pointsOfInterest.ts`,
   `navigation.ts`, `maps.ts`); `src/format.ts` formats the Dutch `nl-NL` values
+- `src/data/searchIndex.json` + `src/data/search.ts` — the search the home previews run on: the
+  JSON is the record set and stands in for the collaborator's endpoint, the module is the one place
+  that will become a `fetch`
 - `src/types.ts` — the shape of that content (`Route`, `PointOfInterest`, `MapPicture`, the filter
   state): the one place the domain vocabulary is written down
 - `src/assets/maps/` — the map imagery, imported by `src/data/maps.ts`

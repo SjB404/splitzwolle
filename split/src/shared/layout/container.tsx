@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 
-export const CONTAINER = "mx-auto max-w-[100rem] px-5 sm:px-8";
+export const CONTAINER = "mx-auto max-w-[100rem] px-gutter";
 
 interface ContainerProps {
   children: ReactNode;

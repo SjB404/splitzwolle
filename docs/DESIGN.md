@@ -73,7 +73,9 @@ Three pieces, and the order between them matters:
 - `overrides` sits **first**, which for `!important` declarations means **last word** (the cascade
   inverts for important rules). It is the one place a framework rule is taken back, and every rule
   in it carries the flag — a normal declaration there would be the weakest in the file. Today it
-  holds exactly one thing: the connected button group's selection colour and corner shape (§7).
+  holds four things: **one boundary for every outlined control** (a field, an outlined button and
+  an unselected filter chip — §7), the two things BeerCSS gets wrong in the **map slider**, and the
+  framework-wide **shadow switch-off**.
 
 Practical consequences:
 
@@ -100,6 +102,20 @@ Tailwind utility of the same name:
 | `border`                                      | outlined variant of a component                           | `border-width: 1px` | Fine together, but the component's own meaning wins                                         |
 | `shadow`                                      | bottom shadow helper                                      | box-shadow          | Prefer `.elevate` / `.medium-elevate` / `.large-elevate`                                    |
 | `transparent`, `fill`, `circle`, `max`, `row` | BeerCSS component states/helpers                          | –                   | BeerCSS only — safe                                                                         |
+
+**Element collisions sit next to the class ones.** BeerCSS reads structure, not only names:
+
+- A `<ul>` or `<ol>` that is a **direct child of a `<nav>`** is one of its dropdown menus
+  (`position: absolute; inset: 0`), so the list is laid _over_ the `<nav>`'s other children. Keep
+  the list one level lower (the footer puts each one in a `div`) or the links land on the heading.
+- `:not(.grid, nav, .row) > * + :is(…, ul, nav, p, …)` adds **`1rem` above any of those elements
+  that follows a sibling**, which doubles up with a `gap-*` already doing the spacing. `mt-0`
+  (a Tailwind utility, so it wins) takes it back.
+- `nav > :is(ol, ul) > li` also `all: unset`s the items, so a list that _is_ meant to be a nav
+  menu never inherits anything by accident.
+- `* { border-radius: inherit }` is on **every element**, so a `border-t` divider inside a 12px
+  card is painted as the top edge of a rounded box and curves away from the card's straight edges.
+  A divider is a line: give it `rounded-none` (§7).
 
 ### Icons
 
@@ -351,18 +367,19 @@ Two families, loaded from Google Fonts in `index.html`. Do not add a third.
 
 ### Scale
 
-| Element            | Classes                                                         | Notes                                       |
-| ------------------ | --------------------------------------------------------------- | ------------------------------------------- |
-| Hero `h1`          | `text-4xl font-bold leading-[1.08] sm:text-5xl lg:text-6xl`     | Tight leading, never above `text-6xl`       |
-| Section `h2`       | `text-3xl font-bold sm:text-4xl`                                |                                             |
-| Card `h3`          | `text-lg font-bold`                                             |                                             |
-| Body copy          | `text-[15px] leading-relaxed text-ink-muted`                    | Cap prose at `max-w-md`–`max-w-2xl`         |
-| Small body / meta  | `text-sm text-ink-muted`                                        |                                             |
-| Micro / label      | `text-xs text-ink-muted`                                        |                                             |
-| Accent link / icon | `text-accent`                                                   | Never `text-orange-500` — it is a fill tone |
-| Eyebrow            | `text-xs font-semibold uppercase tracking-[0.22em] text-accent` | Above `h1` only; legible on both band tones |
-| Chip / badge       | `text-[11px] font-bold uppercase tracking-wide`                 |                                             |
-| Icon               | `text-base` / `text-xl`                                         | Material Symbols are sized by `font-size`   |
+| Element            | Classes                                                         | Notes                                                                                                                      |
+| ------------------ | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Hero `h1`          | `text-display font-bold`, over **two spans**                    | Fluid: `clamp(2rem, 4.4vw + 0.35rem, 4.5rem)`; the spans sit next to each other from `lg`, stacked into two lines below it |
+| Page `h1`          | `text-headline font-bold`                                       | Fluid: `clamp(1.875rem, 2.6vw + 0.9rem, 3.25rem)`                                                                          |
+| Section `h2`       | `text-title font-bold`                                          | Fluid: `clamp(1.625rem, 1.5vw + 1rem, 2.5rem)`                                                                             |
+| Card `h3`          | `text-xl font-bold`                                             |                                                                                                                            |
+| Body copy          | `text-[15px] leading-relaxed text-ink-muted`                    | Cap prose at `max-w-md`–`max-w-2xl`                                                                                        |
+| Small body / meta  | `text-sm text-ink-muted`                                        |                                                                                                                            |
+| Micro / label      | `text-xs text-ink-muted`                                        |                                                                                                                            |
+| Accent link / icon | `text-accent`                                                   | Never `text-orange-500` — it is a fill tone                                                                                |
+| Eyebrow            | `text-xs font-semibold uppercase tracking-[0.22em] text-accent` | Above `h1` only; legible on both band tones                                                                                |
+| Chip / badge       | `text-[11px] font-bold uppercase tracking-wide`                 |                                                                                                                            |
+| Icon               | `text-base` / `text-xl`                                         | Material Symbols are sized by `font-size`                                                                                  |
 
 ### Type rules
 
@@ -381,14 +398,14 @@ Two families, loaded from Google Fonts in `index.html`. Do not add a third.
 
 **Spacing**
 
-| Purpose                 | Classes                                                                                                                                                                                 |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Page gutter             | `px-5 sm:px-8`                                                                                                                                                                          |
-| Content max width       | `max-w-[100rem]` (1600px) on the inner container                                                                                                                                        |
-| Section vertical rhythm | `py-16 sm:py-20` — **the same for every section, hero included**. The hero used to run `lg:py-24`, which left a slab of dead space above the fold that matched nothing else on the page |
-| Grid gutter             | `gap-6` on BeerCSS's `.grid` (see §6 — the gap is multiplied by 11)                                                                                                                     |
-| Card inner padding      | `p-5` (the `article` itself is `no-padding` so the artwork can bleed)                                                                                                                   |
-| Stacked element gap     | `gap-3` (buttons), `gap-6` (footer blocks)                                                                                                                                              |
+| Purpose                 | Classes                                                                                                                                                                                                                 |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Page gutter             | `px-gutter` — `clamp(1.25rem, 2.4vw, 2.5rem)`                                                                                                                                                                           |
+| Content max width       | `max-w-[100rem]` (1600px) on the inner container                                                                                                                                                                        |
+| Section vertical rhythm | `py-band` — `clamp(3rem, 6.5vw, 5rem)` for every content section; the **hero band** trades it for `py-hero` (`clamp(0.75rem, 1.6vw, 1.5rem)`), because that band is one screen tall and the map is what the room is for |
+| Grid gutter             | `gap-6` on BeerCSS's `.grid` (see §6 — the gap is multiplied by 11)                                                                                                                                                     |
+| Card inner padding      | `p-5` (the `article` itself is `no-padding` so the artwork can bleed)                                                                                                                                                   |
+| Stacked element gap     | `gap-3` (buttons), `gap-6` (footer blocks)                                                                                                                                                                              |
 
 **Shape** — Material 3 shape scale, so most of it comes from the components
 
@@ -444,8 +461,9 @@ full-height grid with `header`, `main` and `footer` areas. Keep that structure:
 ```
 
 - `main` carries `p-0` on purpose: BeerCSS pads `main` by `0.5rem`, which would stop the hero
-  band from bleeding edge to edge. The header carries `px-0` for the same reason — its own
-  `px-5 sm:px-8` makes the bar line up with every section below it.
+  band from bleeding edge to edge. The header and the footer carry `px-0` for the same reason —
+  their own `px-gutter` is what makes the bar and the footer start at the same gutter as every
+  section between them.
 - The header is `sticky top-0 z-50` — see the `fixed` collision note in §2.
 - **The bar leads with the brand, and flips with the theme** (`bg-bar` / `text-on-bar`). Light mode:
   the true Deltion orange `#f68221` with **white** text and icons — the brand's own loudest surface
@@ -460,7 +478,7 @@ full-height grid with `header`, `main` and `footer` areas. Keep that structure:
   `menu`/`close` icon, revealing a stacked list of `button min-h-12` rows. The active row is a
   **translucent state layer over the bar's own colour** (`bg-on-bar/20`) with the same `text-on-bar`
   as its neighbours — an _inverted_ pill would put orange text on white, the one unreadable pairing.
-  The standalone search icon collapses below `sm` (the hero already owns a search field) and the gaps
+  The standalone search icon collapses below `sm` (the two preview sections and both overviews own a search field) and the gaps
   tighten to `gap-2`, which is what keeps the bar inside a 320px viewport.
 
 ### Grid
@@ -492,7 +510,7 @@ needs 352px and overflows a phone. Rules:
 - Never use BeerCSS's `.grid.large-space` (32px) / `.medium-space` for a full-width card list.
 
 Tailwind flex utilities (`flex`, `flex-col`, `flex-wrap`, `items-center`, `gap-*`) remain the
-right tool for one-dimensional rows, e.g. the hero search row or the footer.
+right tool for one-dimensional rows, e.g. a section's search bar or the footer.
 
 ### Containers inside `header` / `footer`
 
@@ -501,8 +519,8 @@ to its content and centres itself — which silently breaks the page gutter. Eve
 `mx-auto max-w-[100rem]` container directly inside them needs `w-full`:
 
 ```jsx
-<header …><nav className="mx-auto w-full max-w-[100rem] px-5 sm:px-8">…</nav></header>
-<footer …><div className="mx-auto flex w-full max-w-[100rem] px-5 sm:px-8">…</div></footer>
+<header …><nav className="mx-auto w-full max-w-[100rem] px-gutter">…</nav></header>
+<footer …><div className="mx-auto flex w-full max-w-[100rem] px-gutter">…</div></footer>
 ```
 
 With that in place, the logo, hero copy, section headings, card artwork and footer brand all
@@ -550,9 +568,9 @@ makes "Contact" (`/#contact`) and "Registreren" (`/inloggen#registreren`) work f
   content between them is `surface`. In light mode that is paper (`sand-200`) against white — a real
   step, because a 2% tint made the whole page read as white (§3). Cards sitting _on_ a band take
   `surface` (white on paper) so they step up from it.
-- Every section's inner container is `mx-auto max-w-[100rem] px-5 sm:px-8`. The 1600px cap is
+- Every section's inner container is `mx-auto max-w-[100rem] px-gutter`. The 1600px cap is
   generous on purpose: at 1280px a 1920 desktop wasted a quarter of its width on each side, while
-  1600px still keeps the hero's columns and the card grid at comfortable sizes.
+  1600px still keeps the card grid at comfortable sizes.
 - **Trailing icon buttons get an optical pull** (`-me-2`): a 24px glyph centred in a 40px circle
   is inset 8px, so without it the icon floats 8px inside the gutter while the logo on the other
   side sits flush against it.
@@ -565,11 +583,28 @@ makes "Contact" (`/#contact`) and "Registreren" (`/inloggen#registreren`) work f
 
 Prefer a BeerCSS component over hand-built styles. These are the canonical shapes, as they appear in
 `src/sections/home/hero.tsx` and the pages around it. The shapes that more than one page needs are already
-components — `MapPanel`, `FilterPanel`, `SearchField`, `EmptyState`, `Breadcrumb`, `MapLegend`,
-`SectionHeading`, `PageHeader`, `RouteGrid`, `MapChip`, `ClearFiltersButton`, `Container` — so look
-for one before writing the markup again (§13).
+components — `MapPanel`, `FilterPanel`, `SearchField`, `SectionSearchBar`, `EmptyState`, `Breadcrumb`,
+`MapLegend`, `SectionHeading`, `PageHeader`, `RouteGrid`, `MapChip`, `ClearFiltersButton`,
+`Container` — so look for one before writing the markup again (§13).
 
 ```jsx
+// The hero band — headline over the map panel, both as wide as the gutter allows. The band
+// is one screen tall: the picture's height is capped by the viewport (`100svh`, not `dvh`, so
+// a phone's URL bar cannot relayout it while you scroll) and object-cover centre-crops it
+// when the band is wider than the map's own 1520:984 ratio — the engraving's empty outer
+// fields go first, and the slider's rail (below) is what keeps that crop small: with the
+// controls beside the map instead of under it the crop is 19% at 1440x900 and 0% at 2560x1440,
+// where the bar version cost 35%. `py-hero` stands in for the section rhythm (§5). The
+// headline is one h1 in two spans: next to each other from `lg`, on top of each other below it.
+<section id="home" className="inverse-surface">
+  <Container className="py-hero">
+    <h1 className="text-display font-bold">
+      <span className="block lg:inline">Ontdek Zwolle</span>{" "}
+      <span className="block lg:inline">toen en nu</span>
+    </h1>
+    <HeroMap className="mt-6 motion-safe:animate-rise sm:mt-8" />
+  </Container>
+</section>
 // Filled action — a bare <button> is already Deltion-orange with navy text.
 // `ripple` is BeerCSS's Material 3 press ripple + 10% hover/focus state layer,
 // and the JS for it is part of beer.min.js — no animation code of our own.
@@ -578,6 +613,15 @@ for one before writing the markup again (§13).
 // Outlined action (quiet, on dark or light). BeerCSS's outlined button defaults to
 // `--primary` text, which is only 2.5:1 on white, so it takes the ink colour instead.
 <button type="button" className="border text-ink ripple">Alle routes bekijken</button>
+
+// **One boundary for every outlined control.** A field, an outlined button and an
+// unselected filter chip all draw `1px solid var(--outline)` — Material 3's boundary for
+// each of them. BeerCSS disagrees with itself here (`@layer overrides`, §2): it excludes
+// `.field` from its own outlined rule, so the wrapper fell back to `currentColor` — the
+// ink, i.e. a heavy black ring — while an outlined button got `--outline-variant`, the
+// card hairline, which all but disappears beside it. The control *inside* the field owns
+// the line (`--outline` at rest, `--primary` at 2px on focus), which is also what makes
+// keyboard focus visible.
 
 // Theme switch — the only stateful control in the header.
 // See src/shared/layout/themeToggle.tsx for the <body> class + localStorage sync.
@@ -596,18 +640,6 @@ for one before writing the markup again (§13).
   JB
 </button>
 
-// Toggle group — BeerCSS's built-in **connected button group** (`nav.group
-// .connected`): one container, 2px seams, `.active` on the selected segment.
-// `w-fit` keeps the nav from stretching across its column. `@layer overrides`
-// (§2) supplies the three things BeerCSS leaves too quiet: the selected segment
-// takes `--primary` / `--on-primary`, the unselected one takes
-// `--primary-container` (a **light orange** in light mode, a step of blue in dark),
-// and the shape is the Material 3 one — pill outer corners, square seam.
-<nav className="group connected mt-6 w-fit" aria-label="Kaartlaag">
-  <button className={`ripple text-sm ${on ? "active" : ""}`} aria-pressed={on}>Historische kaart</button>
-  <button className="ripple text-sm" aria-pressed={!on}>Actuele kaart</button>
-</nav>
-
 // Nav row inside the mobile menu — `min-h-12` keeps the row a 48px touch target
 <a href="#routes" className="button left-align min-h-12 ripple fill">Routes</a>
 
@@ -618,11 +650,28 @@ for one before writing the markup again (§13).
 <form onSubmit={(event) => event.preventDefault()} className="max-w-lg">
   <div className="field round border prefix suffix text-sm">
     <Icon name="search" />                       {/* the leading icon must be the first child */}
-    <label htmlFor="hero-search" className="sr-only">Zoek een route, plek of wijk</label>
-    <input id="hero-search" type="search" placeholder="Zoek een route, plek of wijk…" />
+    <label htmlFor="route-search" className="sr-only">Zoek op titel, wijk of thema</label>
+    <input id="route-search" type="search" placeholder="Zoek op titel, wijk of thema…" />
     <a href="#routes" aria-label="Zoeken"><Icon name="arrow_forward" /></a>
   </div>
 </form>
+
+// Section search bar — the home previews' own bar: the section's field, how many matches
+// it found, and the link to the whole list. One row on the **baseline**, so the field's
+// text, the count and the action share a line; centring them leaves the count 4px low,
+// because a BeerCSS field reserves room above its text for a floating label. The count
+// carries `aria-live` because the section filters as you type. The
+// section owns the query, and the matches come from the search index (§13), not from the
+// data module — which is what makes swapping in the api a one-file change.
+<SectionSearchBar
+  id="home-route-search"
+  label="Zoek in de populaire routes"
+  placeholder="Zoek op titel, wijk of thema…"
+  value={query}
+  onChange={setQuery}
+  resultLabel={`${matches.length} routes`}
+  action={<Link to={ROUTES_PATH} className="button border text-ink ripple">Alle routes bekijken</Link>}
+/>
 
 // Card — article is the Material 3 card; no-padding lets the artwork bleed.
 // Corner: 12px (`corner_medium`) from BeerCSS, or `rounded-xl` on a hand-built panel.
@@ -633,30 +682,56 @@ for one before writing the markup again (§13).
 // `xl:col-span-3` takes the grid from 3 to 4 cards per row once there is room for
 // them: 3 columns at 1600px produces ~500px cards, past Material 3's 400px ceiling
 // for multi-column cards, while 4 columns lands at ~380px.
-<article className="s12 m6 l4 xl:col-span-3 no-padding group flex flex-col overflow-hidden transition-transform motion-safe:hover:-translate-y-1">
-  <div className="relative h-52 overflow-hidden surface-container xl:h-64">…artwork + chips…</div>
+<article className="s12 m6 l4 xl:col-span-3 no-padding group relative flex flex-col overflow-hidden transition-transform motion-safe:hover:-translate-y-1">
+  <div className="relative aspect-[16/10] overflow-hidden surface-container">…artwork + chips…</div>
   <div className="flex flex-1 flex-col p-5">…title, meta, footer row…</div>
 </article>
+
+// A divider inside a card needs `rounded-none`: BeerCSS gives *every* element
+// `border-radius: inherit`, so a `border-t` inside a 12px card is painted as the top edge
+// of a rounded box and peels away from the card's straight edges.
 
 // Chips overlaying artwork
 <span className="chip primary absolute left-4 top-4 text-[11px] font-bold uppercase tracking-wide">…</span>
 <span className="chip surface-container-lowest absolute right-4 top-4 text-[11px] font-semibold">…</span>
 
-// Range slider (BeerCSS Material 3 slider — the empty <span /> is the filled track)
-// On a phone the surrounding panel is **static under the map**; only from `sm`
-// up does it become an overlay on the map. An overlay covered a third of a
-// 350px-wide map and hid the very thing it controls.
-// The map-layer switch beside it moves this same value, and the range stays
-// **uncontrolled** (§10) — so the switch re-mounts it (`key={sliderKey}`) instead of
-// writing to it. Writing to the node would leave React's value tracker behind, and the
-// next drag onto that same number would be swallowed as "no change". A re-mounted input
-// never fires the event BeerCSS listens for, so the track is repainted through its own
-// API (`globalThis.__BeerCssGlobals__.slider.updateAllSliders()`) on the next frame.
-<label className="slider w-full">
-  <span className="sr-only">Schakel tussen de historische en de actuele kaart</span>
-  <input key={sliderKey} type="range" min="0" max="100" defaultValue={position} onChange={…} />
-  <span />
-</label>
+// Comparison slider (BeerCSS Material 3 slider — the empty <span /> is the filled track).
+// The rail sits **beside** the picture from `sm` up and **under** it on a phone: beside it,
+// the picture keeps the band's whole height instead of paying for a control bar, and on a
+// phone the panel is only ~200px tall — too short to hold a vertical track. The rail is the
+// same markup turned with its container, so the words' `order` flips too: "Nu" leads a
+// left-to-right track on a phone and sits at the top of the rail above `sm`.
+// The turn needs no measured length: the slider's width is `100cqh` — the height of the box
+// it stands in, which the rail's own layout decides — and that box carries
+// `[container-type:size]` so the unit resolves at all.
+// The two words are the track's two ends, so they are buttons: one tap puts the map where a
+// drag would, and `aria-pressed` marks the side the slider is on. The range stays
+// **uncontrolled** (§10) — so a word re-mounts it (`key={sliderKey}`) instead of writing to
+// it. Writing to the node would leave React's value tracker behind, and the next drag onto
+// that same number would be swallowed as "no change". A re-mounted input never fires the
+// event BeerCSS listens for, so the track is repainted through its own API
+// (`globalThis.__BeerCssGlobals__.slider.updateAllSliders()`) on the next frame.
+// `px-0` takes back BeerCSS's 1rem button padding, which would make a two-letter word wider
+// than the rail, and `bg-transparent` is a Tailwind utility and not BeerCSS's `.transparent`,
+// whose `color: inherit !important` would take the muted ink away from the quiet word (§2).
+// The input takes the label's whole 40px as its hit area (`[block-size:100%]`): the track it
+// draws is only 16px thick, which is a fiddly thing to hit with a thumb.
+<div className="flex w-full items-center gap-3 border-t border-line px-gutter py-3 sm:w-16 sm:flex-none sm:flex-col sm:gap-1 sm:border-t-0 sm:border-l sm:px-2">
+  <button type="button" aria-pressed={layer === "current"} onClick={…}
+          className="tap-target ripple order-3 flex h-10 flex-none items-center bg-transparent px-0 text-xs font-semibold text-ink sm:order-1 sm:h-9">Nu</button>
+
+  <div className="relative order-2 h-10 min-w-0 flex-1 [container-type:size] sm:h-auto sm:w-full">
+    <label className="slider mx-0 w-full sm:absolute sm:left-1/2 sm:top-1/2 sm:w-[100cqh] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:-rotate-90">
+      <span className="sr-only">Schakel tussen de historische kaart van 1652 en de actuele plattegrond</span>
+      <input key={sliderKey} type="range" min="0" max="100" defaultValue={position} onChange={…}
+             className="[block-size:100%]" />
+      <span />
+    </label>
+  </div>
+
+  <button type="button" aria-pressed={layer === "historical"} onClick={…}
+          className="tap-target ripple order-1 flex h-10 flex-none items-center bg-transparent px-0 text-xs font-medium text-ink-muted hover:text-ink sm:order-3 sm:h-9">Toen</button>
+</div>
 
 // Band (hero, footer) — `inverse-surface` is the inverted canvas tone, so it is paper in
 // light mode and navy in dark mode. Its contents use the ink utilities like any other section.
@@ -717,9 +792,9 @@ map — a route line, its stops, a pin — is an SVG overlay from `shared/map/ma
 **Where an image lives.** An asset a component imports belongs in `src/assets/…` and is _imported_,
 so Vite fingerprints the filename and a redeployed map can never be served from a stale cache.
 `public/` is only for files whose _path_ is the contract (the favicon, `robots.txt`). The map files
-are kebab-case and say what they contain: `zwolle-historic-1652.png`, `zwolle-satellite.png`,
-`zwolle-satellite-places.png`, `zwolle-satellite-places-terrain.png`,
-`zwolle-satellite-places-terrain-roads.png`.
+are kebab-case and say what they contain: `zwolle-historic-1652.webp`, `zwolle-satellite.webp`,
+`zwolle-satellite-places.webp`, `zwolle-satellite-places-terrain.webp`,
+`zwolle-satellite-places-terrain-roads.webp`.
 
 **One coordinate system.** Overlay points are in 0–100 space and are scaled onto the imagery's own
 viewBox (`1520 × 984`). `object-cover` on the `<img>` and `preserveAspectRatio="xMidYMid slice"` on
@@ -732,7 +807,7 @@ right rooftop when a card frame crops the picture.
 ```
 
 - **`MapImage`** owns the `<img>`: `width`/`height` so the page cannot reflow while a multi-megabyte
-  PNG arrives, `loading="lazy"` for anything below the fold, `priority` (eager + `fetchPriority`)
+  picture arrives, `loading="lazy"` for anything below the fold, `priority` (eager + `fetchPriority`)
   for the one picture that is on the first screen, and `decorative` for a picture the surrounding
   text already describes.
 - **Overlays are `pointer-events-none` + `aria-hidden`**, and the `<img>`'s `alt` carries the
@@ -743,17 +818,24 @@ right rooftop when a card frame crops the picture.
   white halo and a glow at `opacity` 0.22. A single orange line disappears into the red roofs and
   the dark water of a photograph; the casing is the map-design answer, and it adds no colour that is
   not already in the palette.
-- **The historic/current swap** is a cross-fade of two stacked pictures: the historic one carries
-  `.historic-layer` and inherits `--historic-opacity` (`1 - position / 100`) from the card, which
-  `index.css` turns into an opacity transition. Only CSS custom properties may be set inline.
+- **The historic/current swap** is a cross-fade of two stacked pictures — the hero's are the 1652
+  engraving over the satellite photo. The historic one carries `.historic-layer` and inherits
+  `--historic-opacity` (`1 - position / 100`) from the panel, which `index.css` turns into an opacity
+  transition. Only CSS custom properties may be set inline.
 - **A round place thumbnail** is an SVG whose `viewBox` _is_ the crop window (`PoiCrop`) — no CSS
   positioning maths, and the frame can stay a circle.
-- **Controls over a map** get a solid `surface` panel or a chip (never a gradient scrim), and text
+- **Controls over a map** get a solid `surface` panel or a chip (never a gradient scrim) — and a
+  control placed _beside_ the picture beats one over or under it: the hero's slider is a rail on the
+  map's trailing edge, so the whole map stays readable while you cross-fade it, and the picture keeps
+  the height a bar under it would have cost. Text
   that has to survive cropping lives in the React layer, never as `<text>` in the artwork.
-- **Weight is the open item.** Each export is ~3.5 MB. Re-encoding them as WebP at the same
-  dimensions would cut that to roughly a tenth with no visible difference, but the build cannot do
-  it (Vite copies assets as they are) — so it is a job for whoever owns the imagery. Until then,
-  only the pictures a page actually renders are fetched: the hero's two, one per map below it, and
+- **Weight: the exports are WebP now.** They were 3.3–3.6 MB PNGs (17 MB for the five), and they are
+  400–570 kB WebP at the same 1520 × 984 — an 87% cut, which is why the home page fetches ~2 MB of
+  imagery instead of ~18 MB. The build still cannot re-encode (Vite copies assets as they are), so
+  **an export arrives as WebP**: `quality 0.9` for the engraving, whose line work rings at lower
+  settings, and `0.82` for the satellite frames, and the same kebab-case name at the new extension
+  (`src/data/maps.ts` is the only place the extension appears).
+  Only the pictures a page actually renders are fetched: the hero's two, one per map below it, and
   none at all on the pages that show no map.
 
 ---
@@ -787,8 +869,8 @@ below exist to keep that motion _coherent and cheap_, never to remove it.
   `--default-transition-duration` / `--default-transition-timing-function`. A component writes
   `transition-colors` and is already on the spec curve; naming a duration again is a smell.
 - Entrances come from `@theme`: `--animate-rise` → `animate-rise` (0.45s, standard curve, fill
-  `both`). The hero's two columns use it with a 120ms stagger on the artwork column, so the fold
-  assembles instead of blinking in.
+  `both`). The hero's map panel uses it — a `transform` + `opacity` entrance and nothing else — so
+  the fold assembles instead of blinking in.
 
 ### What animates
 
@@ -799,7 +881,7 @@ below exist to keep that motion _coherent and cheap_, never to remove it.
 | Hover a route card               | `motion-safe:hover:-translate-y-1`, 200ms transform                            | `RouteCard`                                     |
 | Toggle the theme                 | The sun/moon icon spins out and in (Motion, 150ms, `mode="wait"`) + the ripple | `ThemeToggle`                                   |
 | Drag the map slider              | The historic layer's opacity fades over `--speed2` (200ms)                     | `.historic-layer`                               |
-| Load the page                    | Hero columns rise 12px and fade in, staggered 120ms                            | `animate-rise` (CSS)                            |
+| Load the page                    | The hero's map panel rises 12px and fades in                                   | `animate-rise` (CSS)                            |
 | Open / close the mobile menu     | Height + opacity, 200ms, animates **out** as well as in                        | `m` + `AnimatePresence` (Motion)                |
 | Expand the route grid            | New cards fade in, removed ones fade out                                       | `m` + `AnimatePresence` (Motion)                |
 
@@ -921,7 +1003,7 @@ Smoothness is measured, not assumed:
   durations use `u`/`min` (`1 u 30`, `45 min`).
 - Sentence case in prose; labels and badges are short (`Populair`, `Bekijk`).
 - Tone: inviting and place-specific — name real Zwolle areas (Binnenstad, Assendorp, Berkum).
-- Keep hero copy to one short paragraph; the design has no room for more.
+- The hero carries no prose: one headline in two spans, then the map. Section copy stays a line.
 
 ---
 
@@ -935,13 +1017,13 @@ there — they apply to every file under `split/src/`.
 A piece only ever moves one way: **up**. It starts in the page it was written for, and it is
 promoted the moment a second page needs it — never copied.
 
-| Home                     | Holds                                                                                                                                                                                               | Rule                                                                                                                                                    |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/pages/`             | one file per route, `<name>Page.tsx`, the default export `App.tsx` mounts                                                                                                                           | resolves the route, owns the state its sections share, and lists the sections in order. It owns a band only when that band holds more than one section. |
-| `src/sections/<page>/`   | the pieces a page is assembled from: a band, a grid column, a card, a row — in the folder of the page that owns it (`home/`, `routes/`, `routeDetail/`, `pointsOfInterest/`, `planning/`, `login/`) | **page-scoped**. One component per file, named after the component.                                                                                     |
-| `src/shared/<category>/` | what two or more pages share, in a category folder: `layout/` (the shell and the page scaffolding), `primitives/`, `content/`, `filters/`, `map/`                                                   | **shared**. Promoted here from `sections/`; a section that turns out to be generic (`MapPanel`, `EmptyState`) belongs here.                             |
-| `src/data/`              | the content and the pure helpers over it                                                                                                                                                            | **content and logic only** — no components.                                                                                                             |
-| `src/types.ts`           | the shape of that content: `Route`, `PointOfInterest`, `MapPicture`, `RouteFilterState`, `AuthMode`                                                                                                 | **types only**, no runtime code. A component names the type it needs instead of repeating its fields.                                                   |
+| Home                     | Holds                                                                                                                                                                                               | Rule                                                                                                                                                        |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/pages/`             | one file per route, `<name>Page.tsx`, the default export `App.tsx` mounts                                                                                                                           | resolves the route, owns the state its sections share, and lists the sections in order. It owns a band only when that band holds more than one section.     |
+| `src/sections/<page>/`   | the pieces a page is assembled from: a band, a grid column, a card, a row — in the folder of the page that owns it (`home/`, `routes/`, `routeDetail/`, `pointsOfInterest/`, `planning/`, `login/`) | **page-scoped**. One component per file, named after the component.                                                                                         |
+| `src/shared/<category>/` | what two or more pages share, in a category folder: `layout/` (the shell and the page scaffolding), `primitives/`, `content/`, `filters/`, `map/`                                                   | **shared**. Promoted here from `sections/`; a section that turns out to be generic (`MapPanel`, `EmptyState`) belongs here.                                 |
+| `src/data/`              | the content and the pure helpers over it (`routes.ts`, `pointsOfInterest.ts`, `maps.ts`, `navigation.ts`, `search.ts`)                                                                              | **content and logic only** — no components. `searchIndex.json` is the one data file that is not TypeScript, because it stands in for an api response (§15). |
+| `src/types.ts`           | the shape of that content: `Route`, `PointOfInterest`, `MapPicture`, `RouteFilterState`, `AuthMode`                                                                                                 | **types only**, no runtime code. A component names the type it needs instead of repeating its fields.                                                       |
 
 The test is the name. If it needs its page in it ("the planner's map"), it is a section
 (`planMap.tsx`). If the name stands on its own (`MapPanel`, `EmptyState`), it is a component — and
@@ -957,7 +1039,7 @@ file is more than about a hundred lines of markup, a section is still hiding ins
 | Page file                | **camelCase** + `Page`, in `src/pages/`                                | `homePage.tsx`, `routeDetailPage.tsx`                               |
 | Section / component file | **camelCase**, one component per file, named exactly for the component | `heroMap.tsx` → `HeroMap`, `mapPanel.tsx` → `MapPanel`              |
 | Domain type              | **PascalCase**, in `src/types.ts`                                      | `Route`, `StarBucket`, `MapPicture`, `PoiFilterState`               |
-| Content constants        | **SCREAMING_SNAKE_CASE**, declared above the component that uses them  | `NAV_LINKS`, `HERO_ROUTE`, `ROUTE_PREVIEW_COUNT`                    |
+| Content constants        | **SCREAMING_SNAKE_CASE**, declared above the component that uses them  | `NAV_LINKS`, `MAP_LAYERS`, `ROUTE_PREVIEW_COUNT`                    |
 | Props, state, locals     | **camelCase**, no abbreviations                                        | `historicOpacity`, `visibleRoutes`, `menuOpen`                      |
 | Custom CSS class         | **kebab-case**, only in `index.css`                                    | `.historic-layer`                                                   |
 | CSS variable             | **kebab-case** custom property                                         | `--surface-container-low`, `--historic-opacity`                     |
@@ -976,6 +1058,7 @@ The **suffix says what the thing is**, so a file name can be read without openin
 | `…List`                                     | a heading plus the records under it                                       | `SavedRouteList`                                         |
 | `…Grid`                                     | the grid a repeating card is laid out in, fade included                   | `RouteGrid`                                              |
 | `…Button`                                   | one action, in the shape the design gives it                              | `ClearFiltersButton`                                     |
+| `…Bar`                                      | a control strip that belongs to a section                                 | `SectionSearchBar`                                       |
 | `…Chip`                                     | a small labelled token that sits on a surface                             | `MapChip`                                                |
 | `…Form`                                     | the inputs that submit something                                          | `ReviewForm`                                             |
 | `…Filters`                                  | the controls that narrow a list                                           | `RouteFilters`, `PoiFilters`                             |
@@ -988,7 +1071,7 @@ The **suffix says what the thing is**, so a file name can be read without openin
   exports `MapImage`, `RouteOverlay`, `PlanningOverlay`, `PoiOverlay` and `PoiCrop`, because they
   are all the same kind of thing — artwork — and none of them owns the file). `container.tsx`
   makes one exception on purpose: it exports `Container` _and_ the bare `CONTAINER` class string,
-  because the bar's `<nav>` and the hero's grid are containers that have to be another element.
+  because the bar's `<nav>` is a container that has to be another element.
 - A section that is not one of the shapes above is simply named after what it renders
   (`HeroMap`, `SavedRouteList`), never after where it sits or who uses it.
 - Data that the JSX maps over is a named constant, not an array literal buried in the markup.
@@ -1201,6 +1284,10 @@ The one trigger §15 wrote down has since fired — the app became multi-page on
 - **`split/backend/` is not ours.** The Express API, the database and everything server-side
   belong to the project collaborator, who installs their own dependencies when they build it. Do
   not add server packages, and do not wire the frontend to an API that does not exist yet.
+  **The search is the one place that waits on them**: `src/data/searchIndex.json` holds the
+  records `src/data/search.ts` matches on, so the home previews already run through a search
+  module rather than filtering their own data. When the endpoint exists, that module's import
+  becomes a `fetch` and no component changes (§7, §13).
 - **A dependency has to replace a real gap**, not a helper that costs ten lines. If one ever
   earns its place, it is added below in the same change that uses it — never speculatively.
 
@@ -1281,35 +1368,36 @@ item it **deviates** from is listed here with the reason, so nobody "fixes" it b
 
 ### Following the spec
 
-| Spec item                                                                    | Where                                                             |
-| ---------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| Every colour role exists in both schemes (incl. `scrim`, `shadow`)           | `index.css` — both blocks                                         |
-| Two static schemes selected by a `<body>` class, no wallpaper extraction     | `themeToggle.tsx`                                                 |
-| Tonal steps + hairlines, no shadows at all                                   | §5 — BeerCSS elevation helpers are disabled in `@layer overrides` |
-| Top app bar: brand orange (`--bar`), full-width, 48px action targets         | `Navbar`, 65px tall, white text/icons at 6:1                      |
-| Cards: `corner_medium` (12px), 3 columns at desktop                          | `article.s12.m6.l4`, hero panel `rounded-xl`                      |
-| Cards per breakpoint: 1 (mobile) / 2 / 3 (desktop), 4 when there is room     | BeerCSS `s12 m6 l4` + `xl:col-span-3`                             |
-| Section rhythm 32–64px, 4px spacing grid                                     | `py-16 sm:py-20`, Tailwind's 4px scale                            |
-| Motion: 200ms standard curve, exit curve available, reduced-motion respected | §10, `--ease-standard` / `--ease-exit`                            |
-| Focus ring: 2px `primary` + 2px offset                                       | `@layer base` + BeerCSS                                           |
-| Touch targets ≥ 48×48px                                                      | `.tap-target`, `min-h-12` on mobile nav rows                      |
-| Body vs. label type roles (Inter) and headings (Montserrat)                  | §4                                                                |
-| Contrast: 4.5:1 body, 3:1 large text                                         | §3; 0 failures in both themes                                     |
-| One filled action per section, clear button hierarchy                        | §7, §14                                                           |
+| Spec item                                                                    | Where                                                                                    |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Every colour role exists in both schemes (incl. `scrim`, `shadow`)           | `index.css` — both blocks                                                                |
+| Two static schemes selected by a `<body>` class, no wallpaper extraction     | `themeToggle.tsx`                                                                        |
+| Tonal steps + hairlines, no shadows at all                                   | §5 — BeerCSS elevation helpers are disabled in `@layer overrides`                        |
+| Top app bar: brand orange (`--bar`), full-width, 48px action targets         | `Navbar`, 65px tall, white text/icons at 6:1                                             |
+| Cards: `corner_medium` (12px), 3 columns at desktop                          | `article.s12.m6.l4`, hero panel `rounded-xl`                                             |
+| Cards per breakpoint: 1 (mobile) / 2 / 3 (desktop), 4 when there is room     | BeerCSS `s12 m6 l4` + `xl:col-span-3`                                                    |
+| Section rhythm 32–64px, 4px spacing grid                                     | `py-band` (48–80px) and `px-gutter` (20–40px), both `clamp()`ed, on Tailwind's 4px scale |
+| Motion: 200ms standard curve, exit curve available, reduced-motion respected | §10, `--ease-standard` / `--ease-exit`                                                   |
+| Focus ring: 2px `primary` + 2px offset                                       | `@layer base` + BeerCSS                                                                  |
+| Touch targets ≥ 48×48px                                                      | `.tap-target`, `min-h-12` on mobile nav rows                                             |
+| Body vs. label type roles (Inter) and headings (Montserrat)                  | §4                                                                                       |
+| Contrast: 4.5:1 body, 3:1 large text                                         | §3; 0 failures in both themes                                                            |
+| One filled action per section, clear button hierarchy                        | §7, §14                                                                                  |
 
 ### Deliberate deviations
 
-| Spec                                                                      | This project                                                                                                                   | Why                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Bottom nav < 600px, rail ≥ 600px                                          | Top app bar at every width                                                                                                     | Five in-page anchors, not an app shell with destinations; a rail would eat a third of a phone's map.                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| Text fields 56px tall                                                     | BeerCSS `.field` = 50px                                                                                                        | The field's floating-label geometry belongs to BeerCSS; overriding the height breaks it (§13).                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| Content capped at 960–1200px                                              | `max-w-[100rem]` (1600px)                                                                                                      | A map application wants width; 1280px left ~312px dead on each side of a 1920 screen.                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| Body text ~35ch                                                           | 45–65ch (`max-w-md`–`max-w-2xl`)                                                                                               | The hero lead wraps to six lines at 35ch and reads as a paragraph, not a lead.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| Headings at weight 600                                                    | `font-bold` (700)                                                                                                              | Montserrat 700 holds its own next to the map artwork; 600 goes soft at display sizes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| Screen edge padding 16px mobile                                           | `px-5` (20px)                                                                                                                  | Optical: the card artwork's own inset needs the extra 4px to look flush.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| Dialogs, bottom sheets, snackbars, FABs                                   | Not implemented yet                                                                                                            | The app has no transient layer; adopt the recipes from the reference (§7, §12) when one is needed rather than inventing a variant.                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| Top app bar is `surface`                                                  | The bar is the brand orange in light mode, the brand navy in dark                                                              | The bar is where the Deltion identity lives, and it carries no content — only a title, links and icon buttons. In light mode the true `#f68221` orange carries **white** text and icons, which is the brand's own pairing; blue on orange would measure 7.8:1 but reads as a different palette, so the accessible option was declined deliberately (white on `#f68221` is 2.6:1 — §3, §11). The alternative, a darker orange bar, is brown. In dark mode the bar is the desaturated brand navy, and the orange moves into the headings, the logo and the avatar. |
-| M3 expresses depth as tonal elevation **plus** a shadow, five levels deep | No shadows at all                                                                                                              | A blurred offset edge reads as a smudge or a gradient, and the brief rules gradients out. Depth comes from surface steps and hairlines instead (§5).                                                                                                                                                                                                                                                                                                                                                                                                             |
-| State layers 8% hover / 12% press                                         | BeerCSS's own values, `--active` retuned per theme                                                                             | BeerCSS owns the ripple and state layer; we only correct the _tint_ so it reads on dark.                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| Chips: outlined, transparent background                                   | Filled chips over artwork                                                                                                      | A transparent badge on a busy map disappears; artwork badges are not M3 chips (§7).                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| Connected button group for the map-layer switch                           | BeerCSS `nav.group.connected` + `.active`, with both segment colours and the corner shape corrected in `@layer overrides` (§7) | BeerCSS's own version steps the selected segment one tonal notch up, which is invisible on white and barely there on navy — so the group keeps its structure and takes `--primary` / `--on-primary` for the selection and `--primary-container` for the rest (light orange on paper, blue in dark mode)                                                                                                                                                                                                                                                          |
+| Spec                                                                                  | This project                                                                       | Why                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bottom nav < 600px, rail ≥ 600px                                                      | Top app bar at every width                                                         | Five in-page anchors, not an app shell with destinations; a rail would eat a third of a phone's map.                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Text fields 56px tall                                                                 | BeerCSS `.field` = 50px                                                            | The field's floating-label geometry belongs to BeerCSS; overriding the height breaks it (§13).                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Content capped at 960–1200px                                                          | `max-w-[100rem]` (1600px)                                                          | A map application wants width; 1280px left ~312px dead on each side of a 1920 screen.                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Body text ~35ch                                                                       | 45–65ch (`max-w-md`–`max-w-2xl`)                                                   | The hero lead wraps to six lines at 35ch and reads as a paragraph, not a lead.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Headings at weight 600                                                                | `font-bold` (700)                                                                  | Montserrat 700 holds its own next to the map artwork; 600 goes soft at display sizes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Screen edge padding 16px mobile                                                       | `px-5` (20px)                                                                      | Optical: the card artwork's own inset needs the extra 4px to look flush.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Dialogs, bottom sheets, snackbars, FABs                                               | Not implemented yet                                                                | The app has no transient layer; adopt the recipes from the reference (§7, §12) when one is needed rather than inventing a variant.                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| Top app bar is `surface`                                                              | The bar is the brand orange in light mode, the brand navy in dark                  | The bar is where the Deltion identity lives, and it carries no content — only a title, links and icon buttons. In light mode the true `#f68221` orange carries **white** text and icons, which is the brand's own pairing; blue on orange would measure 7.8:1 but reads as a different palette, so the accessible option was declined deliberately (white on `#f68221` is 2.6:1 — §3, §11). The alternative, a darker orange bar, is brown. In dark mode the bar is the desaturated brand navy, and the orange moves into the headings, the logo and the avatar. |
+| M3 expresses depth as tonal elevation **plus** a shadow, five levels deep             | No shadows at all                                                                  | A blurred offset edge reads as a smudge or a gradient, and the brief rules gradients out. Depth comes from surface steps and hairlines instead (§5).                                                                                                                                                                                                                                                                                                                                                                                                             |
+| State layers 8% hover / 12% press                                                     | BeerCSS's own values, `--active` retuned per theme                                 | BeerCSS owns the ripple and state layer; we only correct the _tint_ so it reads on dark.                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Chips: outlined, transparent background                                               | Filled chips over artwork                                                          | A transparent badge on a busy map disappears; artwork badges are not M3 chips (§7).                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| A hero is a full-width image band under the app bar                                   | Full width, one screen tall, centre cropped, controls in a rail beside the picture | The band uses the page's whole width instead of a column, and the picture's height comes from the viewport — so it gives up its empty outer fields rather than pushing the map's own controls under the fold. The rail is what keeps that crop small: 19% at 1440x900 and none at all once the window is taller (§7).                                                                                                                                                                                                                                            |
+| Type and spacing are fixed steps (display 57, headline 32, title 22; 4/8/12… spacing) | `clamp()`ed display/headline/title type and gutter/band spacing                    | Fixed steps re-wrap a headline mid-phrase at one width and waste room at another; a floor, a slope and a ceiling keep the same proportions at every window size (§4, §5).                                                                                                                                                                                                                                                                                                                                                                                        |

@@ -13,7 +13,7 @@ interface RelatedRoutesProps {
 
 export default function RelatedRoutes({ routes }: RelatedRoutesProps) {
   return (
-    <section className="py-16 sm:py-20">
+    <section className="py-band">
       <Container>
         <SectionHeading
           title="Vergelijkbare routes"

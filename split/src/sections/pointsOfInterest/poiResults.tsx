@@ -23,7 +23,7 @@ export default function PoiResults({
   onReset,
 }: PoiResultsProps) {
   return (
-    <section className="py-16 sm:py-20">
+    <section className="py-band">
       <Container>
         <SectionHeading
           title="Alle bezienswaardigheden"

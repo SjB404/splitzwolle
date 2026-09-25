@@ -24,7 +24,7 @@ export default function LoginFormPanel({
   return (
     <div role="main" className="s12 l6 surface flex items-center p-8 sm:p-12">
       <div className="mx-auto w-full max-w-md">
-        <h1 className="text-3xl font-bold sm:text-4xl">
+        <h1 className="text-headline font-bold">
           {isRegister ? "Account aanmaken" : "Inloggen"}
         </h1>
         <p className="mt-3 text-[15px] text-ink-muted">
@@ -97,11 +97,11 @@ export default function LoginFormPanel({
             <>
               {/* a hairline rule with the word in it; the design has no gradients, so the divider is two borders and a label */}
               <div className="flex items-center gap-3" aria-hidden="true">
-                <span className="flex-1 border-t border-line" />
+                <span className="flex-1 border-t border-line rounded-none" />
                 <span className="text-xs uppercase tracking-wider text-ink-muted">
                   of
                 </span>
-                <span className="flex-1 border-t border-line" />
+                <span className="flex-1 border-t border-line rounded-none" />
               </div>
 
               <div className="flex items-center gap-3">

@@ -25,7 +25,7 @@ export default function RouteSummary({ route }: RouteSummaryProps) {
         Plan deze route
       </Link>
 
-      <dl className="flex flex-col gap-3 border-t border-line pt-5 text-sm">
+      <dl className="flex flex-col gap-3 border-t border-line rounded-none pt-5 text-sm">
         <div className="flex items-start gap-2">
           <dt className="inline-flex items-center gap-1.5 text-ink-muted">
             <Icon name="place" className="text-base" />
@@ -56,7 +56,7 @@ export default function RouteSummary({ route }: RouteSummaryProps) {
         </div>
       </dl>
 
-      <ul className="flex flex-wrap gap-2 border-t border-line pt-5">
+      <ul className="flex flex-wrap gap-2 border-t border-line rounded-none pt-5">
         {[route.theme, route.difficulty, route.area].map((tag) => (
           <li key={tag} className="chip">
             {tag}

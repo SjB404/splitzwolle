@@ -26,9 +26,7 @@ export default function SectionHeading({
           </p>
         )}
 
-        <h2
-          className={`text-3xl font-bold sm:text-4xl ${eyebrow ? "mt-3" : ""}`}
-        >
+        <h2 className={`text-title font-bold ${eyebrow ? "mt-3" : ""}`}>
           {title}
         </h2>
 

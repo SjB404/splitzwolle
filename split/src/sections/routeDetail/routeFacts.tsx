@@ -21,7 +21,7 @@ export default function RouteFacts({ route }: RouteFactsProps) {
   ];
 
   return (
-    <dl className="mt-6 flex flex-wrap gap-x-10 gap-y-4 border-t border-line pt-6">
+    <dl className="mt-6 flex flex-wrap gap-x-10 gap-y-4 border-t border-line rounded-none pt-6">
       {facts.map(({ label, value }) => (
         <div key={label}>
           <dt className="text-xs uppercase tracking-wider text-ink-muted">

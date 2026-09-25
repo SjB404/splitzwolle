@@ -26,7 +26,7 @@ export default function PageHeader({
     <section className="inverse-surface">
       <PageTitle title={title} />
 
-      <Container className="py-16 sm:py-20">
+      <Container className="py-band">
         {breadcrumb}
 
         {eyebrow && (
@@ -39,11 +39,7 @@ export default function PageHeader({
           </p>
         )}
 
-        <h1
-          className={`text-4xl leading-[1.08] font-bold sm:text-5xl ${
-            eyebrow ? "mt-5" : ""
-          }`}
-        >
+        <h1 className={`text-headline font-bold ${eyebrow ? "mt-5" : ""}`}>
           {title}
         </h1>
 

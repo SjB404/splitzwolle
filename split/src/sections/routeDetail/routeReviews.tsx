@@ -16,7 +16,7 @@ export default function RouteReviews({ route }: RouteReviewsProps) {
   const breakdown = buildReviewBreakdown(route.reviews);
 
   return (
-    <section className="py-16 sm:py-20">
+    <section className="py-band">
       <Container>
         <SectionHeading
           title={`Reviews (${route.reviews})`}

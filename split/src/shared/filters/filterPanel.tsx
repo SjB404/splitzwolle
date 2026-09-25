@@ -19,7 +19,7 @@ export default function FilterPanel({
     <article className="p-5">
       {children}
 
-      <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-line pt-5">
+      <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-line rounded-none pt-5">
         <p className="text-sm text-ink-muted" aria-live="polite">
           {resultLabel}
         </p>

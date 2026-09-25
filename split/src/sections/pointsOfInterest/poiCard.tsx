@@ -41,7 +41,7 @@ export default function PoiCard({ point, selected, onSelect }: PoiCardProps) {
           {point.description}
         </p>
 
-        <div className="mt-auto flex flex-wrap items-center gap-3 border-t border-line pt-4">
+        <div className="mt-auto flex flex-wrap items-center gap-3 border-t border-line rounded-none pt-4">
           <p className="inline-flex items-center gap-1 text-xs text-ink-muted">
             <Icon name="place" className="text-base" />
             {point.area} · {formatDistance(point.distanceKm)} vanaf de Grote

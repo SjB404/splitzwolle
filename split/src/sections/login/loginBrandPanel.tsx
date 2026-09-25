@@ -39,7 +39,7 @@ export default function LoginBrandPanel() {
         <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
           Welkom terug
         </p>
-        <p className="font-display mt-5 text-4xl leading-[1.08] font-bold text-heading sm:text-5xl">
+        <p className="font-display mt-5 text-display font-bold text-heading">
           Ontdek Zwolle toen en nu
         </p>
         <p className="mt-6 max-w-md text-[15px] leading-relaxed text-ink-muted">

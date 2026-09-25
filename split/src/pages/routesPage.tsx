@@ -37,8 +37,8 @@ export default function RoutesPage() {
         description="Blader door alle wandel- en fietsroutes van Zwolle en omstreken. Filter op thema, afstand of moeilijkheid en bekijk de route die bij je past."
       />
 
-      <section className="py-16 sm:py-20">
-        <div className="mx-auto max-w-[100rem] px-5 sm:px-8">
+      <section className="py-band">
+        <div className="mx-auto max-w-[100rem] px-gutter">
           {/* onReset stays undefined while nothing is filtered, which is how "Filters wissen" stays away */}
           <RouteFilters
             filters={filters}

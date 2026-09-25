@@ -7,14 +7,19 @@ import type { Route } from "../../types.ts";
 interface RouteGridProps {
   /** the routes to draw, in the caller's order */
   routes: Route[];
+  /** false where the section around the grid already says the routes are popular (the home preview) */
+  showPopular?: boolean;
 }
 
-export default function RouteGrid({ routes }: RouteGridProps) {
+export default function RouteGrid({
+  routes,
+  showPopular = true,
+}: RouteGridProps) {
   return (
     <div className="mt-10 grid gap-6">
       <AnimatePresence initial={false}>
         {routes.map((route) => (
-          <RouteCard key={route.id} route={route} />
+          <RouteCard key={route.id} route={route} showPopular={showPopular} />
         ))}
       </AnimatePresence>
     </div>

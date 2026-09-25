@@ -31,7 +31,7 @@ export default function PlanSummary({ routes }: PlanSummaryProps) {
         De som van de routes die je hebt aangevinkt.
       </p>
 
-      <dl className="mt-4 flex flex-col gap-3 border-t border-line pt-5 text-sm">
+      <dl className="mt-4 flex flex-col gap-3 border-t border-line rounded-none pt-5 text-sm">
         <div className="flex items-center gap-2">
           <dt className="text-ink-muted">Routes</dt>
           <dd className="ml-auto font-semibold text-ink">{routes.length}</dd>
@@ -57,7 +57,7 @@ export default function PlanSummary({ routes }: PlanSummaryProps) {
       <p className="mt-4 text-xs text-ink-muted">{PACE_NOTE}</p>
 
       {/* the section's one filled action, and it goes somewhere real: saving a plan belongs to an account, and nothing is stored yet */}
-      <div className="mt-5 border-t border-line pt-5">
+      <div className="mt-5 border-t border-line rounded-none pt-5">
         <Link to={LOGIN_PATH} className="button ripple">
           <Icon name="check_circle" className="mr-1.5 text-base" />
           Route opslaan

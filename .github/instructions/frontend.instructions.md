@@ -40,6 +40,14 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   `slate-*`**, and never dim text with opacity (`text-ink-muted/70` measures 3.4:1) — use size for
   restraint. Never write `text-orange-*` either: it is a **fill** tone (2.6:1 on white). Accent text
   uses `text-accent` — Deltion blue in light mode, the true brand orange in dark mode.
+- **One boundary for every outlined control**: a field, an outlined button and an unselected filter
+  chip all draw `1px solid var(--outline)`. BeerCSS disagrees with itself ([`@layer overrides`] §7),
+  and the control _inside_ a field owns its line (`--outline`, `--primary` at 2px on focus). Never
+  add a second ring to a `.field`, and never reach for BeerCSS's `.transparent` on a control whose
+  ink has to change — it is `color: inherit !important`; use the `bg-transparent` _utility_.
+- **A `border-t` divider needs `rounded-none`.** BeerCSS gives every element
+  `border-radius: inherit`, so a divider inside a 12px card is painted as the top edge of a rounded
+  box and curves away from the card's edges.
 - **Both themes are supported.** The palette is chosen by the `light`/`dark` class on `<body>`
   (see `src/shared/layout/themeToggle.tsx`); components never branch on the theme, they just read
   roles. Anything hardcoded to the light palette will break dark mode.
@@ -50,6 +58,9 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   DESIGN.md §3/§11/§16 — don't "fix" it, and don't extend white onto a tint.
 - **Typography:** `font-display` (Montserrat) for headings — already applied to `h1`–`h6` in
   `@layer base` — and `font-sans` (Inter) for everything else. Never Tailwind's `font-serif`.
+  **Headings and the page rhythm are fluid**: `text-display` (hero `h1`), `text-headline` (page
+  `h1`), `text-title` (section `h2`) and `px-gutter` / `py-band` / `py-hero` are `clamp()`ed tokens
+  in `@theme`, so reach for the token instead of a breakpoint pair (DESIGN.md §4, §5).
 - **Elevation:** **there is none**, by design — no `elevate`/`medium-elevate`/`large-elevate`, no
   Tailwind `shadow-*` (shadows are switched off framework-wide in `@layer overrides`). Separate
   surfaces with a step in the `--surface-container-*` ramp and a `border-line` hairline instead.
@@ -69,18 +80,22 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   band take `surface`.
 - **One filled orange action per section** — plus chips, map pins and route lines.
 - **Collisions:** never put a Tailwind `grid`/`grid-cols-*` where BeerCSS `.grid` is meant (use
-  `.s12/.m6/.l4`), and never `fixed` on the header (BeerCSS `.fixed` means sticky — use
-  `sticky top-0 z-50`).
+  `.s12/.m6/.l4`), never `fixed` on the header (BeerCSS `.fixed` means sticky — use
+  `sticky top-0 z-50`), and never a `<ul>`/`<ol>` as a **direct child of a `<nav>`** — BeerCSS reads
+  that as a dropdown menu and absolutely positions the list over the heading (DESIGN.md §2).
 - **`!important` lives in `@layer overrides` only** (`src/index.css`, declared first so important
-  rules there win). It is for properties BeerCSS declares with the flag itself — today just the
-  connected button group's segment colours (`--primary` / `--primary-container`) and corner shape,
-  plus the framework-wide shadow switch-off (DESIGN.md §2, §7). Anywhere else, a
-  needed `!important` means the framework is being fought instead of used.
+  rules there win). It is for properties BeerCSS declares with the flag itself, and for the few
+  places it disagrees with itself — today the framework-wide shadow switch-off, the boundary of
+  every outlined control, and the two things wrong with the map slider (its filled track stops
+  short of the handle, and the handle narrows to a hairline while focused) (DESIGN.md §2, §7).
+  Anywhere else, a needed `!important` means the framework is being fought instead of used.
 - **Light mode must separate, not just contrast.** A white page hides white cards: the bands are
   white, the canvas is warm paper (`sand-200`) and cards are white again, so the sections read as
   bands. When you add a surface, check it against its _parent_ in both themes, not only its text
   contrast.
-- **Layout:** `max-w-[100rem]` container with `px-5 sm:px-8`, sections `py-16 sm:py-20`. The hero
+- **Layout:** `max-w-[100rem]` container with the fluid `px-gutter`, sections `py-band`; the hero
+  band trades that for `py-hero`, because it is one screen tall and the map is what the room is for
+  (DESIGN.md §5, §7). The hero
   and footer bands use `inverse-surface` (white in light mode, deep blue in dark): never paint a band
   with a fixed dark colour, and let its contents use the normal ink utilities. `index.css` already
   handles `scroll-margin-block-start` for anchored sections.
@@ -111,12 +126,17 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   paragraph. `docs/DESIGN.md` §13 has the full craft rules.
 - **Icons are Material Symbols** via `<Icon name="…" />`. Adding an icon means adding its name to
   the subset URL in `split/index.html` first.
-- **Maps are a picture plus a drawing.** The imagery lives in `src/assets/maps/` and is imported
-  through `src/data/maps.js` (imported assets are fingerprinted by Vite — `public/` is only for
+- **Maps are a picture plus a drawing.** The imagery lives in `src/assets/maps/` (WebP, 1520 × 984,
+  400–570 kB each — an export arrives as WebP, because the build copies assets as they are) and is
+  imported through `src/data/maps.ts` (imported assets are fingerprinted by Vite — `public/` is only for
   files whose _path_ is fixed, like the favicon). Routes, stops and pins are inline SVG overlays
   from `shared/map/mapArtwork.tsx`, painted with Tailwind `fill-*` / `stroke-*` utilities so no hex
   appears in JSX, positioned in 0–100 space. Overlays never take pointer events; the picture's
   `alt` carries the meaning (DESIGN.md §8).
+- **Search goes through a module, not through a filter in a component.** `src/data/search.ts`
+  answers with ids from `src/data/searchIndex.json`, which stands in for the collaborator's
+  endpoint; a section resolves those ids against the content it already renders, so swapping the
+  index for the api is a one-file change (DESIGN.md §7, §15).
 - **Keep `docs/DESIGN.md` current, automatically.** A change that alters a token, role, recipe,
   class, path or rule updates the source of truth in the same change — including every reference to
   a file that moved. A design system nobody can trust is worse than none.
@@ -153,7 +173,7 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   `src/pages/homePage.tsx` → `HomePage`, `src/sections/routeDetail/routeStops.tsx` → `RouteStops`,
   `src/shared/map/mapPanel.tsx` → `MapPanel`. A page owns its route, the state its sections share and
   the order they appear in; the markup lives in its sections. `App.tsx` only maps paths to pages.
-- **Routing:** paths live in `src/data/navigation.js` and are used with `<Link to={…}>`. A link that
+- **Routing:** paths live in `src/data/navigation.ts` and are used with `<Link to={…}>`. A link that
   has to look like a button carries BeerCSS's `.button` (`className="button border text-ink ripple"`)
   — a bare `<a>` has no height, padding or fill, so `ripple` alone renders a text link. The bar,
   `main` and footer are `shared/layout/appLayout.tsx`; a content page starts with `<PageHeader>`

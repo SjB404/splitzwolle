@@ -1,14 +1,14 @@
-/* the map pictures — imported rather than served from public/, so Vite fingerprints them and a redeploy cannot serve a stale map; all six are 1520 x 984 and ~3.5 MB, since Vite copies assets without re-encoding them */
+/* the map pictures — imported rather than served from public/, so Vite fingerprints them and a redeploy cannot serve a stale map; all five are 1520 x 984 WebP at 400-570 kB (they were 3.3-3.6 MB PNGs: the browser re-encodes nothing, so the weight is whatever the export is) */
 
-/* the exports differ only in what is burned into the picture: historic (the hero's 1652 layer), satellite (decoration), places (round crops), terrain (the poi map, so its pins are only ours), roads (anything with an app drawn route) */
+/* the exports differ only in what is burned into the picture: historic (one half of the hero's cross-fade), satellite (the other half, and decoration), places (round crops), terrain (the poi map, so its pins are only ours), roads (anything with an app drawn route) */
 
 import type { MapImageId, MapPicture } from "../types.ts";
 
-import historic1652 from "../assets/maps/zwolle-historic-1652.png";
-import satellite from "../assets/maps/zwolle-satellite.png";
-import satellitePlaces from "../assets/maps/zwolle-satellite-places.png";
-import satelliteTerrain from "../assets/maps/zwolle-satellite-places-terrain.png";
-import satelliteRoads from "../assets/maps/zwolle-satellite-places-terrain-roads.png";
+import historic1652 from "../assets/maps/zwolle-historic-1652.webp";
+import satellite from "../assets/maps/zwolle-satellite.webp";
+import satellitePlaces from "../assets/maps/zwolle-satellite-places.webp";
+import satelliteTerrain from "../assets/maps/zwolle-satellite-places-terrain.webp";
+import satelliteRoads from "../assets/maps/zwolle-satellite-places-terrain-roads.webp";
 
 export const MAP_SIZE = { width: 1520, height: 984 };
 
@@ -29,6 +29,3 @@ export const MAP_IMAGES: Record<MapImageId, MapPicture> = {
     alt: "Luchtfoto van Zwolle met wegen en plaatsaanduidingen",
   },
 };
-
-/* the hero's "Actuele kaart": point this at a richer export once that file is in src/assets/maps — one line, no other change */
-export const HERO_CURRENT_IMAGE: MapPicture = MAP_IMAGES.roads;

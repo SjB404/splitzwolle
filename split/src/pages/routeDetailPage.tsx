@@ -56,7 +56,7 @@ function RouteDetail({ route }: RouteDetailProps) {
       </PageHeader>
 
       {/* map and summary: the shared map with this route's own points; the two columns belong to the page, because each holds more than one section */}
-      <section className="py-16 sm:py-20">
+      <section className="py-band">
         <Container className="grid gap-y-10 lg:gap-x-20">
           <div className="s12 l8">
             <MapPanel
@@ -75,7 +75,7 @@ function RouteDetail({ route }: RouteDetailProps) {
         </Container>
       </section>
 
-      <section className="py-16 sm:py-20">
+      <section className="py-band">
         <Container className="grid gap-y-10 lg:gap-x-20">
           <RouteStory route={route} />
           <RouteStops route={route} />

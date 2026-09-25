@@ -18,8 +18,8 @@ export default function NotFoundPage({
     <>
       <PageHeader eyebrow="404" title={title} description={description} />
 
-      <section className="py-16 sm:py-20">
-        <div className="mx-auto flex max-w-[100rem] flex-wrap gap-3 px-5 sm:px-8">
+      <section className="py-band">
+        <div className="mx-auto flex max-w-[100rem] flex-wrap gap-3 px-gutter">
           <Link to={HOME_PATH} className="button ripple">
             Terug naar home
           </Link>
