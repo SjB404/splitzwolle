@@ -6,7 +6,7 @@ import FilterSelect from "../../shared/filters/filterSelect.tsx";
 import Icon from "../../shared/primitives/icon.tsx";
 import SearchField from "../../shared/filters/searchField.tsx";
 import {
-  POI_CATEGORIES,
+  CATEGORIES,
   POI_SORTS,
   poiCategoryIcon,
 } from "../../data/pointsOfInterest.ts";
@@ -21,10 +21,10 @@ interface CategoryChip {
 
 const CATEGORY_CHIPS: CategoryChip[] = [
   { id: "all", label: "Alles", icon: "apps" },
-  ...POI_CATEGORIES.map(({ category }) => ({
-    id: category,
-    label: category,
-    icon: poiCategoryIcon(category),
+  ...CATEGORIES.map(({ id }) => ({
+    id,
+    label: id,
+    icon: poiCategoryIcon(id),
   })),
 ];
 

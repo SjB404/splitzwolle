@@ -10,18 +10,16 @@ import type {
   SelectOption,
 } from "../types.ts";
 
-export const POI_CATEGORIES: PoiCategory[] = [
-  { category: "Monumenten", icon: "account_balance" },
-  { category: "Musea", icon: "museum" },
-  { category: "Parken", icon: "park" },
-  { category: "Culinair", icon: "restaurant" },
+export const CATEGORIES: PoiCategory[] = [
+  { id: "Monumenten", icon: "account_balance" },
+  { id: "Musea", icon: "museum" },
+  { id: "Parken", icon: "park" },
+  { id: "Culinair", icon: "restaurant" },
 ];
 
 /** the glyph for a category, used by chips and cards. falls back to a pin. */
 export function poiCategoryIcon(category: PoiCategoryName): string {
-  return (
-    POI_CATEGORIES.find((item) => item.category === category)?.icon ?? "place"
-  );
+  return CATEGORIES.find((item) => item.id === category)?.icon ?? "place";
 }
 
 /* cheapest sort first: rating, name, distance */

@@ -1034,17 +1034,17 @@ file is more than about a hundred lines of markup, a section is still hiding ins
 
 ### Naming
 
-| Thing                    | Convention                                                             | Example                                                             |
-| ------------------------ | ---------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Page file                | **camelCase** + `Page`, in `src/pages/`                                | `homePage.tsx`, `routeDetailPage.tsx`                               |
-| Section / component file | **camelCase**, one component per file, named exactly for the component | `heroMap.tsx` → `HeroMap`, `mapPanel.tsx` → `MapPanel`              |
-| Domain type              | **PascalCase**, in `src/types.ts`                                      | `Route`, `StarBucket`, `MapPicture`, `PoiFilterState`               |
-| Content constants        | **SCREAMING_SNAKE_CASE**, declared above the component that uses them  | `NAV_LINKS`, `MAP_LAYERS`, `ROUTE_PREVIEW_COUNT`                    |
-| Props, state, locals     | **camelCase**, no abbreviations                                        | `historicOpacity`, `visibleRoutes`, `menuOpen`                      |
-| Custom CSS class         | **kebab-case**, only in `index.css`                                    | `.historic-layer`                                                   |
-| CSS variable             | **kebab-case** custom property                                         | `--surface-container-low`, `--historic-opacity`                     |
-| Content module           | camelCase file, one topic per file, in `src/data/`                     | `routes.ts`, `pointsOfInterest.ts`, `navigation.ts`                 |
-| `Poi`                    | the established short form for a point of interest                     | `PoiCard`, `PoiOverlay`, `POI_CATEGORIES`, `filterPointsOfInterest` |
+| Thing                    | Convention                                                             | Example                                                        |
+| ------------------------ | ---------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Page file                | **camelCase** + `Page`, in `src/pages/`                                | `homePage.tsx`, `routeDetailPage.tsx`                          |
+| Section / component file | **camelCase**, one component per file, named exactly for the component | `heroMap.tsx` → `HeroMap`, `mapPanel.tsx` → `MapPanel`         |
+| Domain type              | **PascalCase**, in `src/types.ts`                                      | `Route`, `StarBucket`, `MapPicture`, `PoiFilterState`          |
+| Content constants        | **SCREAMING_SNAKE_CASE**, declared above the component that uses them  | `NAV_LINKS`, `MAP_LAYERS`, `ROUTE_PREVIEW_COUNT`               |
+| Props, state, locals     | **camelCase**, no abbreviations                                        | `historicOpacity`, `visibleRoutes`, `menuOpen`                 |
+| Custom CSS class         | **kebab-case**, only in `index.css`                                    | `.historic-layer`                                              |
+| CSS variable             | **kebab-case** custom property                                         | `--surface-container-low`, `--historic-opacity`                |
+| Content module           | camelCase file, one topic per file, in `src/data/`                     | `routes.ts`, `pointsOfInterest.ts`, `navigation.ts`            |
+| `Poi`                    | the established short form for a point of interest                     | `PoiCard`, `PoiOverlay`, `POI_SORTS`, `filterPointsOfInterest` |
 
 The **suffix says what the thing is**, so a file name can be read without opening it:
 
