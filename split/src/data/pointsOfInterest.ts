@@ -11,15 +11,17 @@ import type {
 } from "../types.ts";
 
 export const POI_CATEGORIES: PoiCategory[] = [
-  { id: "Monumenten", icon: "account_balance" },
-  { id: "Musea", icon: "museum" },
-  { id: "Parken", icon: "park" },
-  { id: "Culinair", icon: "restaurant" },
+  { category: "Monumenten", icon: "account_balance" },
+  { category: "Musea", icon: "museum" },
+  { category: "Parken", icon: "park" },
+  { category: "Culinair", icon: "restaurant" },
 ];
 
 /** the glyph for a category, used by chips and cards. falls back to a pin. */
 export function poiCategoryIcon(category: PoiCategoryName): string {
-  return POI_CATEGORIES.find((item) => item.id === category)?.icon ?? "place";
+  return (
+    POI_CATEGORIES.find((item) => item.category === category)?.icon ?? "place"
+  );
 }
 
 /* cheapest sort first: rating, name, distance */
@@ -44,6 +46,7 @@ export function hasActivePoiFilters(filters: PoiFilterState): boolean {
   return restingKeys.some((key) => filters[key] !== INITIAL_POI_FILTERS[key]);
 }
 
+/* these come from the database later: this sample set stands in for it, and data/searchIndex.json points at these ids */
 export const POINTS_OF_INTEREST: PointOfInterest[] = [
   {
     id: "peperbus",
@@ -198,6 +201,7 @@ export function filterPointsOfInterest(
   const needle = filters.query.trim().toLowerCase();
 
   const matches = POINTS_OF_INTEREST.filter((point) => {
+    /* the chip row rests on "all", which stands for "no category chosen" and so matches every place */
     if (filters.category !== "all" && point.category !== filters.category)
       return false;
     if (

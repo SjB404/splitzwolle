@@ -529,8 +529,8 @@ start on the same 20px (mobile) / 32px (desktop) gutter.
 ### Pages & routing
 
 The app is **client-routed** (`react-router-dom` — see §15 for why it was added). `src/App.tsx`
-maps paths to pages and wraps the content pages in `AppLayout` (bar → `main` → footer); the login
-page is deliberately **outside** that shell. The paths themselves live in
+maps paths to pages and wraps them in `AppLayout` (bar → `main` → footer); the account screen, once
+the collaborator's login lands, is deliberately **outside** that shell. The paths themselves live in
 `src/data/navigation.js`, so the router, the top bar and the footer cannot disagree about a URL.
 
 The shell is the only place `<main>` appears, and it carries `p-0`:
@@ -557,7 +557,7 @@ second page can use is promoted to `src/shared/<category>/`. §13 ("Where a piec
 homes and the rule for moving a piece up.
 
 `ScrollToTop` puts a route change back at the top, and honours a `#hash` instead — which is what
-makes "Contact" (`/#contact`) and "Registreren" (`/inloggen#registreren`) work from any page.
+makes "Contact" (`/#contact`) work from any page.
 
 ### Sections
 
@@ -1020,10 +1020,10 @@ promoted the moment a second page needs it — never copied.
 | Home                     | Holds                                                                                                                                                                                               | Rule                                                                                                                                                        |
 | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `src/pages/`             | one file per route, `<name>Page.tsx`, the default export `App.tsx` mounts                                                                                                                           | resolves the route, owns the state its sections share, and lists the sections in order. It owns a band only when that band holds more than one section.     |
-| `src/sections/<page>/`   | the pieces a page is assembled from: a band, a grid column, a card, a row — in the folder of the page that owns it (`home/`, `routes/`, `routeDetail/`, `pointsOfInterest/`, `planning/`, `login/`) | **page-scoped**. One component per file, named after the component.                                                                                         |
+| `src/sections/<page>/`   | the pieces a page is assembled from: a band, a grid column, a card, a row — in the folder of the page that owns it (`home/`, `routes/`, `routeDetail/`, `pointsOfInterest/`, `planning/`) | **page-scoped**. One component per file, named after the component.                                                                                         |
 | `src/shared/<category>/` | what two or more pages share, in a category folder: `layout/` (the shell and the page scaffolding), `primitives/`, `content/`, `filters/`, `map/`                                                   | **shared**. Promoted here from `sections/`; a section that turns out to be generic (`MapPanel`, `EmptyState`) belongs here.                                 |
 | `src/data/`              | the content and the pure helpers over it (`routes.ts`, `pointsOfInterest.ts`, `maps.ts`, `navigation.ts`, `search.ts`)                                                                              | **content and logic only** — no components. `searchIndex.json` is the one data file that is not TypeScript, because it stands in for an api response (§15). |
-| `src/types.ts`           | the shape of that content: `Route`, `PointOfInterest`, `MapPicture`, `RouteFilterState`, `AuthMode`                                                                                                 | **types only**, no runtime code. A component names the type it needs instead of repeating its fields.                                                       |
+| `src/types.ts`           | the shape of that content: `Route`, `PointOfInterest`, `MapPicture`, `RouteFilterState`                                                                                                             | **types only**, no runtime code. A component names the type it needs instead of repeating its fields.                                                       |
 
 The test is the name. If it needs its page in it ("the planner's map"), it is a section
 (`planMap.tsx`). If the name stands on its own (`MapPanel`, `EmptyState`), it is a component — and
@@ -1052,7 +1052,7 @@ The **suffix says what the thing is**, so a file name can be read without openin
 | ------------------------------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------- |
 | `…Page`                                     | a route's entry point, in `pages/`                                        | `homePage.tsx`, `planningPage.tsx`                       |
 | `…Preview`                                  | a home-page strip showing a slice of another page, with the link to it    | `PopularRoutesPreview`, `PointsOfInterestPreview`        |
-| `…Panel`                                    | a framed surface holding a control group or artwork                       | `MapPanel`, `FilterPanel`, `LoginBrandPanel`             |
+| `…Panel`                                    | a framed surface holding a control group or artwork                       | `MapPanel`, `FilterPanel`                                |
 | `…Card`                                     | one record on a bordered surface                                          | `RouteCard`, `ReviewCard`, `PoiCard`                     |
 | `…Row`                                      | one record in a vertical list                                             | `SavedRouteRow`                                          |
 | `…List`                                     | a heading plus the records under it                                       | `SavedRouteList`                                         |
@@ -1084,8 +1084,8 @@ The **suffix says what the thing is**, so a file name can be read without openin
 - Every component's props are an **interface above it**, named `<Component>Props`, with optional
   fields defaulted in the signature.
 - A value that can only be one of a few strings is a **union**, never `string` — `RouteTheme`,
-  `PoiCategoryName`, `AuthMode`, the route filter values. A typo in an option is then a compile
-  error instead of a list that quietly filters nothing.
+  `PoiCategoryName`, the route filter values. A typo in an option is then a compile error instead
+  of a list that quietly filters nothing.
 - An absent value is written down as such (`string | null` for "nothing is selected", `undefined`
   for "nothing is filtered"), so empty and missing can never be mistaken for each other.
 - `strict` is on in `tsconfig.app.json`, and `src/` is TypeScript throughout: `.tsx` for anything
@@ -1333,15 +1333,15 @@ tokens in §10, and a library will not make the ripple, the card lift or the her
 ### Routing (added 2026-09-18)
 
 The trigger was written down in advance: _react-router-dom — "revisit the moment a nav link points
-at a page that is not this one"_. The app is now six pages (`/`, `/routes`, `/routes/:routeId`,
-`/planning`, `/points-of-interest`, `/inloggen`) plus a catch-all, so it fired.
+at a page that is not this one"_. The app is now five pages (`/`, `/routes`, `/routes/:routeId`,
+`/planning`, `/points-of-interest`) plus a catch-all, so it fired.
 
 Why the library and not a hand-rolled hash router: the routes are real URLs that get linked to,
 shared and bookmarked, and back/forward, active-link state and breadcrumbs all have to behave.
 That is more than the ten lines §13's rule allows before a dependency is justified.
 
-- Paths live in `src/data/navigation.js`; `App.tsx` maps them to pages and `AppLayout` gives the
-  content pages their shell.
+- Paths live in `src/data/navigation.js`; `App.tsx` maps them to pages and `AppLayout` gives every
+  page its shell.
 - `BrowserRouter` (clean URLs, no `#`) expects the host to serve `index.html` for unknown paths.
   Vite's dev server and `vite preview` both do; **a static host needs an SPA fallback** (or the
   router has to move to `HashRouter`), otherwise a deep link 404s on load.

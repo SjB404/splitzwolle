@@ -49,10 +49,10 @@ Express is a declared dependency for the (currently minimal) `split/backend/` fo
 - `src/pages/*.tsx` — one page per route, camelCase file name ending in `Page`, default export.
   A page is a table of contents: it resolves the route, owns the state its sections share, and
   lists them in order (`homePage`, `routesPage`, `routeDetailPage`, `planningPage`,
-  `pointsOfInterestPage`, `loginPage`, `notFoundPage`).
+  `pointsOfInterestPage`, `notFoundPage`).
 - `src/sections/<page>/` — the pieces a page is assembled from (a band, a grid column, a card, a
   row), one component per file, **page-scoped**, grouped by the page that owns them: `home/`,
-  `routes/`, `routeDetail/`, `pointsOfInterest/`, `planning/`, `login/`. Promoted to `src/shared/`
+  `routes/`, `routeDetail/`, `pointsOfInterest/`, `planning/`. Promoted to `src/shared/`
   the moment a second page needs one.
 - `src/shared/<category>/` — what two or more pages share, grouped by category:
   - `layout/` — the shell and the page scaffolding: `appLayout`, `navbar`, `footer`, `container`,

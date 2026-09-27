@@ -21,10 +21,10 @@ interface CategoryChip {
 
 const CATEGORY_CHIPS: CategoryChip[] = [
   { id: "all", label: "Alles", icon: "apps" },
-  ...POI_CATEGORIES.map(({ id }) => ({
-    id,
-    label: id,
-    icon: poiCategoryIcon(id),
+  ...POI_CATEGORIES.map(({ category }) => ({
+    id: category,
+    label: category,
+    icon: poiCategoryIcon(category),
   })),
 ];
 

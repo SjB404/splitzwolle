@@ -55,7 +55,8 @@ export interface Route {
 export type PoiCategoryName = "Monumenten" | "Musea" | "Parken" | "Culinair";
 
 export interface PoiCategory {
-  id: PoiCategoryName;
+  /** the category itself, not an id: the value is the name a chip shows */
+  category: PoiCategoryName;
   icon: string;
 }
 

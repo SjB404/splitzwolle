@@ -147,8 +147,8 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
 - **Types first.** The content's shape comes from `src/types.ts` (`Route`, `PointOfInterest`,
   `MapPicture`, the filter state) — a component names the type it needs instead of listing the
   fields it reads. Props are an `interface <Component>Props` above the component, optional fields
-  defaulted in the signature, and a closed set of values (`RouteTheme`, `AuthMode`, a filter) is a
-  **union**, never `string`.
+  defaulted in the signature, and a closed set of values (`RouteTheme`, `RouteDifficulty`, a filter)
+  is a **union**, never `string`.
 - **Reuse before you write markup.** `Container` owns the page width and gutter, `RouteGrid` the
   grid route cards are listed in, `ClearFiltersButton` the way out of a filtered list and `MapChip`
   a label on a map. If a piece exists, it takes props — copy it into a second file and the two
@@ -177,7 +177,7 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   has to look like a button carries BeerCSS's `.button` (`className="button border text-ink ripple"`)
   — a bare `<a>` has no height, padding or fill, so `ripple` alone renders a text link. The bar,
   `main` and footer are `shared/layout/appLayout.tsx`; a content page starts with `<PageHeader>`
-  (band + title, and it sets the document title). The login page is outside the shell on purpose.
+  (band + title, and it sets the document title).
 
 ## Accessibility
 

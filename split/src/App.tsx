@@ -5,7 +5,6 @@ import "./index.css";
 import AppLayout from "./shared/layout/appLayout.tsx";
 import ScrollToTop from "./shared/layout/scrollToTop.tsx";
 import HomePage from "./pages/homePage.tsx";
-import LoginPage from "./pages/loginPage.tsx";
 import NotFoundPage from "./pages/notFoundPage.tsx";
 import PlanningPage from "./pages/planningPage.tsx";
 import PointsOfInterestPage from "./pages/pointsOfInterestPage.tsx";
@@ -13,7 +12,6 @@ import RouteDetailPage from "./pages/routeDetailPage.tsx";
 import RoutesPage from "./pages/routesPage.tsx";
 import {
   HOME_PATH,
-  LOGIN_PATH,
   PLANNING_PATH,
   POI_PATH,
   ROUTES_PATH,
@@ -29,9 +27,6 @@ function App() {
           <ScrollToTop />
 
           <Routes>
-            {/* the account screen is the one page outside the shell: a split screen with no navigation */}
-            <Route path={LOGIN_PATH} element={<LoginPage />} />
-
             <Route element={<AppLayout />}>
               <Route path={HOME_PATH} element={<HomePage />} />
               <Route path={ROUTES_PATH} element={<RoutesPage />} />
