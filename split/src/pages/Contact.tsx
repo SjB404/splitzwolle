@@ -19,6 +19,36 @@ const SUBJECT_OPTIONS = [
   "Overig",
 ];
 
+const API_BASE = "http://localhost:3000/api";
+
+async function apiPost(body: unknown) {
+
+  try {
+    const res = await fetch(`${API_BASE}/contact`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(body),
+    });
+
+    let json: any = null;
+    try {
+      json = await res.json();
+    } catch {
+      json = null;
+    }
+
+    return { status: res.status, body: json };
+  } catch (err) {
+    return {
+      status: 0,
+      body: {
+        error: err instanceof Error ? err.message : "cannot connect to server",
+      },
+    };
+  }
+}
+
 interface ContactDetail {
   icon: React.ElementType;
   label: string;
@@ -85,28 +115,9 @@ function Header() {
   return (
     <header className="sticky top-0 z-10 border-b border-gray-200 bg-white">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-10">
-        <span className="font-serif text-xl font-bold text-gray-900">
+        <span className="font-heading text-xl font-bold text-gray-900">
           Zwolle Routes
         </span>
-
-        <nav className="hidden items-center gap-8 md:flex">
-          {NAV_LINKS.map((link) => {
-            const isActive = link === "Contact";
-            return (
-              <a
-                key={link}
-                href="#"
-                className={
-                  isActive
-                    ? "text-sm font-medium text-orange-600"
-                    : "text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
-                }
-              >
-                {link}
-              </a>
-            );
-          })}
-        </nav>
 
         <div className="flex items-center gap-3">
           <button
@@ -126,13 +137,57 @@ function Header() {
 }
 
 function ContactForm() {
+  const [naam, setNaam] = useState("");
+  const [email, setEmail] = useState("");
+  const [onderwerp, setOnderwerp] = useState(SUBJECT_OPTIONS[0]);
+  const [bericht, setBericht] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(false);
+
+    if (!naam || !email || !bericht) {
+      setError("Vul alle verplichte velden in.");
+      return;
+    }
+
+    setLoading(true);
+
+    // The backend only stores name/email/message, so the chosen subject
+    // is folded into the message rather than silently dropped.
+    const { status, body } = await apiPost({
+      name: naam,
+      email,
+      message: `[${onderwerp}] ${bericht}`,
+    });
+
+    setLoading(false);
+
+    if (status >= 200 && status < 300) {
+      setSuccess(true);
+      setNaam("");
+      setEmail("");
+      setOnderwerp(SUBJECT_OPTIONS[0]);
+      setBericht("");
+      return;
+    }
+
+    setError(
+      body?.error || "Er is iets misgegaan bij het verzenden. Probeer het opnieuw."
+    );
+  };
+
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-6 sm:p-8">
-      <h2 className="mb-6 font-serif text-xl font-semibold text-gray-900">
+      <h2 className="mb-6 font-heading text-xl font-semibold text-gray-900">
         Stuur een bericht
       </h2>
 
-      <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+      <form className="space-y-5" onSubmit={handleSubmit}>
         <div>
           <label
             htmlFor="naam"
@@ -145,6 +200,8 @@ function ContactForm() {
             name="naam"
             type="text"
             placeholder="Jouw naam"
+            value={naam}
+            onChange={(e) => setNaam(e.target.value)}
             className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition-shadow focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30"
           />
         </div>
@@ -161,6 +218,8 @@ function ContactForm() {
             name="email"
             type="email"
             placeholder="jij@voorbeeld.nl"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition-shadow focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30"
           />
         </div>
@@ -176,7 +235,8 @@ function ContactForm() {
             <select
               id="onderwerp"
               name="onderwerp"
-              defaultValue={SUBJECT_OPTIONS[0]}
+              value={onderwerp}
+              onChange={(e) => setOnderwerp(e.target.value)}
               className="w-full appearance-none rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-shadow focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30"
             >
               {SUBJECT_OPTIONS.map((option) => (
@@ -201,15 +261,30 @@ function ContactForm() {
             name="bericht"
             rows={4}
             placeholder="Wat wil je ons vragen of vertellen?"
+            value={bericht}
+            onChange={(e) => setBericht(e.target.value)}
             className="w-full resize-none rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition-shadow focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30"
           />
         </div>
 
+        {error && (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="rounded-lg border border-green-200 bg-green-50 px-3.5 py-2.5 text-sm text-green-700">
+            Bedankt! Je bericht is verstuurd, we reageren binnen 24 uur.
+          </div>
+        )}
+
         <button
           type="submit"
-          className="w-full rounded-lg bg-orange-600 py-3 text-sm font-medium text-white transition-colors hover:bg-orange-700"
+          disabled={loading}
+          className="w-full rounded-lg bg-orange-600 py-3 text-sm font-medium text-white transition-colors hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          Verstuur bericht
+          {loading ? "Bezig met verzenden…" : "Verstuur bericht"}
         </button>
       </form>
     </div>
@@ -291,11 +366,17 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap');
+        .font-sans { font-family: 'Inter', system-ui, sans-serif; }
+        .font-heading { font-family: 'Montserrat', system-ui, sans-serif; }
+      `}</style>
+
       <Header />
 
       <main className="mx-auto max-w-6xl px-6 py-12 lg:px-10">
         <div className="mb-10">
-          <h1 className="font-serif text-4xl font-bold text-gray-900">
+          <h1 className="font-heading text-4xl font-bold text-gray-900">
             Contact
           </h1>
           <p className="mt-2 text-sm text-gray-500">
@@ -316,7 +397,7 @@ export default function ContactPage() {
         </div>
 
         <div className="mt-16 border-t border-gray-200 pt-10">
-          <h2 className="mb-6 font-serif text-2xl font-bold text-gray-900">
+          <h2 className="mb-6 font-heading text-2xl font-bold text-gray-900">
             Veelgestelde vragen
           </h2>
 

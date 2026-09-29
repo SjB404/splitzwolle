@@ -1,7 +1,6 @@
 import { Router, Request, Response } from "express";
 import mysql, { RowDataPacket, ResultSetHeader } from "mysql2/promise";
 
-
 const router = Router();
 
 const pool = mysql.createPool({
@@ -31,3 +30,5 @@ router.post("/", async (req: Request, res: Response) => {
     res.status(500).send("Error sending message");
   }
 });
+
+export default router;

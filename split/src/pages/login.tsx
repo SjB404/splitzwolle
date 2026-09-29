@@ -1,8 +1,43 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import type { InputHTMLAttributes, ReactNode } from "react";
 
 const API_BASE = "http://localhost:3000/api";
 
-async function apiPost(path: string, body) {
+
+type Mode = "login" | "register";
+type AlertTone = "error" | "success" | "info";
+type GoogleStatus = "success" | "error" | null;
+
+interface ApiError {
+  error?: string;
+  detail?: string;
+  message?: string;
+}
+
+interface User {
+  id?: string | number;
+  name?: string;
+  email?: string;
+}
+
+interface LoginResponse extends ApiError {
+  twoFactorRequired?: boolean;
+  user?: User;
+}
+
+interface RegisterResponse extends ApiError {
+  qrCode?: string;
+}
+
+interface ApiResult<T> {
+  status: number;
+  body: T | null;
+}
+
+async function apiPost<T extends ApiError>(
+  path: string,
+  body: unknown
+): Promise<ApiResult<T>> {
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
   try {
     const res = await fetch(`${API_BASE}${cleanPath}`, {
@@ -12,9 +47,9 @@ async function apiPost(path: string, body) {
       body: JSON.stringify(body),
     });
 
-    let json = null;
+    let json: T | null = null;
     try {
-      json = await res.json();
+      json = (await res.json()) as T;
     } catch {
       json = null;
     }
@@ -25,15 +60,22 @@ async function apiPost(path: string, body) {
       status: 0,
       body: {
         error:
-          err instanceof Error
-            ? err.message
-            : "cannot connect to server",
-      },
+          err instanceof Error ? err.message : "cannot connect to server",
+      } as T,
     };
   }
 }
 
-function Toggle({ checked, onChange, id, label }) {
+/* ---------- Small components ---------- */
+
+interface ToggleProps {
+  checked: boolean;
+  onChange: (value: boolean) => void;
+  id: string;
+  label: string;
+}
+
+function Toggle({ checked, onChange, id, label }: ToggleProps) {
   return (
     <button
       type="button"
@@ -55,7 +97,12 @@ function Toggle({ checked, onChange, id, label }) {
   );
 }
 
-function Field({ id, label, className = "", ...props }) {
+interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {
+  id: string;
+  label: string;
+}
+
+function Field({ id, label, className = "", ...props }: FieldProps) {
   return (
     <div className={className}>
       <label htmlFor={id} className="block text-sm font-medium text-gray-700">
@@ -70,8 +117,13 @@ function Field({ id, label, className = "", ...props }) {
   );
 }
 
-function Alert({ tone = "error", children }) {
-  const styles = {
+interface AlertProps {
+  tone?: AlertTone;
+  children: ReactNode;
+}
+
+function Alert({ tone = "error", children }: AlertProps) {
+  const styles: Record<AlertTone, string> = {
     error: "bg-red-50 border-red-200 text-red-700",
     success: "bg-green-50 border-green-200 text-green-700",
     info: "bg-orange-50 border-orange-200 text-orange-700",
@@ -107,7 +159,7 @@ function GoogleIcon() {
 }
 
 function RouteMap() {
-  const points = [
+  const points: [number, number][] = [
     [60, 150],
     [150, 60],
     [230, 110],
@@ -138,30 +190,31 @@ function RouteMap() {
   );
 }
 
+/* ---------- Page ---------- */
+
 export default function LoginPage() {
-  const [mode, setMode] = useState("login");
-  const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<Mode>("login");
+  const [loading, setLoading] = useState<boolean>(false);
 
   // Login state
-  const [loginEmail, setLoginEmail] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
-  const [loginToken, setLoginToken] = useState("");
-  const [tokenRequired, setTokenRequired] = useState(false);
-  const [loginError, setLoginError] = useState(null);
-  const [loginNotice, setLoginNotice] = useState(null);
-  const [loginUser, setLoginUser] = useState(null);
-  const [forgotNotice, setForgotNotice] = useState(false);
+  const [loginEmail, setLoginEmail] = useState<string>("");
+  const [loginPassword, setLoginPassword] = useState<string>("");
+  const [loginToken, setLoginToken] = useState<string>("");
+  const [tokenRequired, setTokenRequired] = useState<boolean>(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [loginNotice, setLoginNotice] = useState<string | null>(null);
+  const [loginUser, setLoginUser] = useState<User | null>(null);
+  const [forgotNotice, setForgotNotice] = useState<boolean>(false);
 
   // Register state
-  const [regName, setRegName] = useState("");
-  const [regEmail, setRegEmail] = useState("");
-  const [regPassword, setRegPassword] = useState("");
-  const [regTwofa, setRegTwofa] = useState(false);
-  const [regError, setRegError] = useState(null);
-  const [regResult, setRegResult] = useState(null);
+  const [regName, setRegName] = useState<string>("");
+  const [regEmail, setRegEmail] = useState<string>("");
+  const [regPassword, setRegPassword] = useState<string>("");
+  const [regTwofa, setRegTwofa] = useState<boolean>(false);
+  const [regError, setRegError] = useState<string | null>(null);
+  const [regResult, setRegResult] = useState<RegisterResponse | null>(null);
 
-
-  const [googleStatus, setGoogleStatus] = useState(null);
+  const [googleStatus, setGoogleStatus] = useState<GoogleStatus>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -176,7 +229,7 @@ export default function LoginPage() {
     window.history.replaceState({}, "", window.location.pathname);
   }, []);
 
-  const switchMode = (next) => {
+  const switchMode = (next: Mode) => {
     setMode(next);
     setLoginError(null);
     setLoginNotice(null);
@@ -195,12 +248,16 @@ export default function LoginPage() {
     setLoginNotice(null);
     setLoginUser(null);
 
-    const payload = { email: loginEmail, password: loginPassword };
-    const token = loginToken.trim();
-    if (token) payload.token = token;
+    const payload = {
+      email: loginEmail,
+      password: loginPassword,
+      token: loginToken.trim(),
+    };
 
-    const { status, body } = await apiPost("/auth/login", payload);
-    console.log(body)
+    const { status, body } = await apiPost<LoginResponse>(
+      "/auth/login",
+      payload
+    );
     setLoading(false);
 
     if (body?.twoFactorRequired) {
@@ -212,12 +269,15 @@ export default function LoginPage() {
     }
 
     if (status >= 200 && status < 300) {
-      setLoginUser(body?.user || null);
+      setLoginUser(body?.user ?? null);
       return;
     }
 
     setLoginError(
-      body?.error || body?.detail || body?.message || "Inloggen mislukt. Controleer je gegevens."
+      body?.error ||
+        body?.detail ||
+        body?.message ||
+        "Inloggen mislukt. Controleer je gegevens."
     );
   };
 
@@ -234,16 +294,22 @@ export default function LoginPage() {
       role: "user",
     };
 
-    const { status, body } = await apiPost("/users/register", payload);
+    const { status, body } = await apiPost<RegisterResponse>(
+      "/users/register",
+      payload
+    );
     setLoading(false);
 
     if (status >= 200 && status < 300) {
-      setRegResult(body);
+      setRegResult(body ?? {});
       setLoginEmail(regEmail);
       setLoginPassword(regPassword);
     } else {
       setRegError(
-        body?.error || body?.detail || body?.message || "Registreren is niet gelukt. Probeer het opnieuw."
+        body?.error ||
+          body?.detail ||
+          body?.message ||
+          "Registreren is niet gelukt. Probeer het opnieuw."
       );
     }
   };
@@ -251,9 +317,9 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen w-full flex-col bg-gray-50 font-sans md:flex-row">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap');
         .font-sans { font-family: 'Inter', system-ui, sans-serif; }
-        .font-serif { font-family: 'Playfair Display', Georgia, serif; }
+        .font-heading { font-family: 'Montserrat', system-ui, sans-serif; }
       `}</style>
 
       {/* Left / brand panel */}
@@ -262,7 +328,7 @@ export default function LoginPage() {
           <p className="text-xs font-semibold tracking-widest text-orange-400">
             Swolla — Zwolle
           </p>
-          <h1 className="font-serif mt-3 text-3xl font-bold sm:text-4xl">
+          <h1 className="font-heading mt-3 text-3xl font-bold sm:text-4xl">
             Zwolle Routes
           </h1>
 
@@ -288,7 +354,7 @@ export default function LoginPage() {
         <div className="w-full max-w-sm">
           {mode === "login" ? (
             <>
-              <h2 className="text-3xl font-bold text-gray-900">Inloggen</h2>
+              <h2 className="font-heading text-3xl font-bold text-gray-900">Inloggen</h2>
               <p className="mt-2 text-sm text-gray-500">
                 Welkom terug! Log in om je opgeslagen routes te bekijken.
               </p>
@@ -395,7 +461,7 @@ export default function LoginPage() {
             </>
           ) : (
             <>
-              <h2 className="text-3xl font-bold text-gray-900">Account aanmaken</h2>
+              <h2 className="font-heading text-3xl font-bold text-gray-900">Account aanmaken</h2>
               <p className="mt-2 text-sm text-gray-500">
                 Maak een account om je eigen routes op te slaan en te delen.
               </p>
@@ -458,7 +524,7 @@ export default function LoginPage() {
 
                   <div className="rounded-xl border border-orange-200 bg-orange-50 p-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-orange-600 text-xs font-bold text-white">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-600 text-xs font-bold text-white">
                         2FA
                       </div>
                       <div className="flex-1">

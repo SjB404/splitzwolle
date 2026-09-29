@@ -1,7 +1,7 @@
 import './App.css'
 import "./index.css"
-// import ContactPage from './pages/Contact.tsx'
-import LoginTest from './pages/login.tsx'
+import ContactPage from './pages/Contact.tsx'
+// import LoginTest from './pages/login.tsx'
 
 
 function App() {
@@ -9,8 +9,8 @@ function App() {
   return (
     <>
 
-    <LoginTest />
-    {/*<ContactPage />*/}
+    {/* <LoginTest /> */}
+    <ContactPage />
     </>
   )
 }
