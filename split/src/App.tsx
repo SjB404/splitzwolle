@@ -1,12 +1,3 @@
-<<<<<<< HEAD
-import './App.css'
-import "./index.css"
-import ContactPage from './pages/Contact.tsx'
-// import LoginTest from './pages/login.tsx'
-
-
-function App() {
-=======
 import { LazyMotion, MotionConfig, domAnimation } from "motion/react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import "./App.css";
@@ -25,19 +16,10 @@ import {
   POI_PATH,
   ROUTES_PATH,
 } from "./data/navigation.ts";
->>>>>>> main
 
 /* reducedMotion="user" makes every motion animation follow the OS setting, and LazyMotion + domAnimation + strict keeps the layout engine out of the bundle — hence m.div, never motion.div */
 function App() {
   return (
-<<<<<<< HEAD
-    <>
-
-    {/* <LoginTest /> */}
-    <ContactPage />
-    </>
-  )
-=======
     <LazyMotion features={domAnimation} strict>
       <MotionConfig reducedMotion="user">
         {/* the paths come from data/navigation.ts, so renaming one re-points the router and every link at once */}
@@ -61,7 +43,6 @@ function App() {
       </MotionConfig>
     </LazyMotion>
   );
->>>>>>> main
 }
 
 export default App;
