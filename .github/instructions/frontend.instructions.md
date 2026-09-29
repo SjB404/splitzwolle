@@ -126,13 +126,26 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   paragraph. `docs/DESIGN.md` §13 has the full craft rules.
 - **Icons are Material Symbols** via `<Icon name="…" />`. Adding an icon means adding its name to
   the subset URL in `split/index.html` first.
-- **Maps are a picture plus a drawing.** The imagery lives in `src/assets/maps/` (WebP, 1520 × 984,
-  400–570 kB each — an export arrives as WebP, because the build copies assets as they are) and is
-  imported through `src/data/maps.ts` (imported assets are fingerprinted by Vite — `public/` is only for
-  files whose _path_ is fixed, like the favicon). Routes, stops and pins are inline SVG overlays
-  from `shared/map/mapArtwork.tsx`, painted with Tailwind `fill-*` / `stroke-*` utilities so no hex
-  appears in JSX, positioned in 0–100 space. Overlays never take pointer events; the picture's
-  `alt` carries the meaning (DESIGN.md §8).
+- **Maps: the hero is a picture, everything else is Google Maps.** The hero's historic/current
+  cross-fade stays artwork (two exports in `src/assets/maps/`, WebP, imported through `src/data/maps.ts`
+  because imported assets are fingerprinted by Vite — `public/` is only for files whose _path_ is
+  fixed, like the favicon). **`AreaMap`** (`shared/map/areaMap.tsx`) is the interactive map: places as
+  dots whose fill says which era they belong to, the picked ones numbered in visit order, the route
+  as a white casing under the brand line, a hover preview per place and a nudge that keeps overlapping
+  dots clickable. It is scoped to `src/data/area.ts` (the binnenstad + the Noorder Eiland) and built
+  outside React — read §8 of DESIGN.md before touching it (the instance, the theme rebuild, the
+  id-reconciled markers, the pixel maths behind the nudge). Previews use **`MapSnapshot`** (a static
+  map picture, off until the key has that api) or **`RouteShape`** (drawn from the route's own
+  coordinates, always available). **Never place anything by hand**: a place's `coordinates`, `address`
+  and `placeId` come from Google's Places API, and a line comes from the Routes API (`travelMode` is
+  `"WALKING"` / `"BICYCLING"` in the JS api — the REST spellings throw). **Never hardcode a map
+  colour**: the api colours are read off the design tokens at draw time (`routeLineColors()`).
+- **The map key is an environment variable** (`VITE_GOOGLE_MAPS_API_KEY`, documented in
+  `.env.example`), and it is public by nature, so it is restricted by referrer in the cloud console.
+  `VITE_GOOGLE_MAPS_STATIC_MAPS` and `VITE_GOOGLE_MAPS_MAP_ID` are the two optional switches (the
+  static previews, and a cloud-styled map id that takes Google's own place dots off the base map).
+  Every service must **degrade, never break**: a refused call answers `null` and the caller draws its
+  own estimate, its own shape, or says the map could not load.
 - **Search goes through a module, not through a filter in a component.** `src/data/search.ts`
   answers with ids from `src/data/searchIndex.json`, which stands in for the collaborator's
   endpoint; a section resolves those ids against the content it already renders, so swapping the

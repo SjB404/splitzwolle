@@ -785,9 +785,90 @@ components — `MapPanel`, `FilterPanel`, `SearchField`, `SectionSearchBar`, `Em
 
 ## 8. Maps
 
-Every map surface is **a picture with a drawing on top**: the imagery is a real export of Zwolle
-(files in `src/assets/maps/`, exported by `src/data/maps.ts`) and everything the app knows about the
-map — a route line, its stops, a pin — is an SVG overlay from `shared/map/mapArtwork.tsx`.
+**Two kinds of map live in this app.** The hero is **artwork** — the 1652 engraving over a satellite
+photo with a slider between them — and it is the one place a map is a picture: two exports in
+`src/assets/maps/`, drawn by `MapImage` (`shared/map/mapArtwork.tsx`). **Every other map is Google
+Maps.** The hand-placed 0–100 overlay layer that used to draw routes and pins on those exports is
+**retired**: nothing on the site positions anything by hand any more.
+
+### The area
+
+The site covers **de binnenstad en het Noorder Eiland**, and that is written down once, in
+`src/data/area.ts`: `AREA_BOUNDS` (a lat/lng box), `AREA_CORNERS` (the two corners the maps api
+wants), `AREA_CENTER`, `isInArea` and `pointsInArea`. Every place in `data/pointsOfInterest.ts` is
+inside the box, every route is built from those places, and the map is handed the box as its
+`restriction`, so it cannot be panned out of the area. `strictBounds` is deliberately **not** set:
+with it, `fitBounds` stopped framing the places and zoomed past them (measured).
+
+### A route is a list of places
+
+`Route.poiIds` is the whole geometry story — a route stores the places it visits, in order, and
+nothing else. `routePoints` (the places), `routePath` (their 0–100 positions, for the artwork) and
+`routeCoordinates` (their real coordinates, for the map) are derived in `data/routes.ts`. A route
+therefore cannot drift from its stops, and editing a place moves every line that visits it.
+`PointOfInterest` carries both spaces — `position` for the artwork, `coordinates` for the map — plus
+`era` (`"Toen"` / `"Nu"`), the axis the route builder groups on.
+
+### The interactive map
+
+`AreaMap` (`shared/map/areaMap.tsx`) is the one interactive map. Four pages use it: the routes
+overview (with the place picker beside it), the places overview, the planner, and a route's detail
+page. It takes the places to pin, the line to draw, the visit order and a click handler — the page
+decides what a click means there.
+
+- **The instance lives outside react.** It is created once in an effect, into a host `<div>` react
+  never touches again, and a `mapGeneration` counter (raised whenever an instance exists) is what
+  tells the drawing effects that there is something to draw on.
+- **The theme is state, not a `setOptions` call.** The api reads `colorScheme` when the map is made
+  and ignores it afterwards (measured), so flipping `body.light`/`body.dark` empties the host and
+  builds a second map in its place — the map keeps following both themes.
+- **Markers are reconciled by id**, never re-created: the marker's content is a DOM element the
+  component paints itself (`paintDot`), because it carries the era's fill and, once the place has
+  joined the route, its visit number.
+- **`DEMO_MAP_ID`** is the api's own development map id. Advanced markers need one, and a
+  cloud-styled map id is not this app's to create. It is also a **demo tier with a daily cap**
+  (measured 2026-09-28): a day of map loads ends in _"Maps Demo Key limit reached: Your daily quota
+  for Maps JavaScript 2D has been met"_, and after that the api builds no map dom at all, fires
+  `gm_authFailure`, and throws inside its own code (`setAttribute`, `IntersectionObserver`,
+  `getRootNode`). Every map then shows the panel below — which is why
+  `VITE_GOOGLE_MAPS_MAP_ID` is not only a styling nicety.
+- **`gestureHandling: "cooperative"`** keeps the page scrollable: the map zooms on ctrl/cmd + scroll
+  or a pinch, never on a plain wheel.
+- **The line is two polylines** — a white casing under the brand line, the same recipe the artwork
+  uses — with the colours read off the design tokens at draw time, so javascript holds no palette.
+- **Nothing the map draws may throw.** The line and the drawn route shape are filtered down to real,
+  distinct coordinates before they become polylines or svg, so a path from the api (or from a stale
+  module in a long dev session) can never blank the page it is drawn on.
+
+### Where the route between the places comes from
+
+`requestDirections` (`shared/map/googleMaps.ts`) asks the **Routes API**
+(`google.maps.routes.Route.computeRoutes`, `fields: ["path", "distanceMeters", "durationMillis"]`),
+and `usePlannedRoute` (`shared/map/usePlannedRoute.ts`) is the hook around it. A key without the
+Routes API gets **one refusal remembered for the session**; the hook then answers with
+`straightRoute()` from `data/routeGeometry.ts` — the places connected, length haversine × 1.25,
+duration from the pace in `PACE_KM_PER_HOUR` — and the summary says which of the two the reader is
+looking at, "via de straten" or "hemelsbreed geschat". The estimate is also what is drawn while the
+api is still answering, so the line never lags behind the picker. The same request — the same places
+in the same order, in the same way of travelling — is answered **from memory** once it has been
+asked, refusal included: the api is rate limited, and a reader who comes back to a page should not be
+charged for the same route twice.
+
+### Previews
+
+A card wants a picture, not a second map instance.
+
+- **`MapPreview`** is a **Maps Static API** image of a route's places or of a single place, and it is
+  **off by default**: the static api is a second service on the key, and a card that asks for a
+  picture the key cannot give logs a console error _per card_ (measured: nine on one page). Set
+  `VITE_GOOGLE_MAPS_STATIC_MAPS=true` once the api is enabled for the key.
+- **`RouteShape`** (`shared/map/routeShape.tsx`) is the route preview that always works: the places
+  projected from their real coordinates into the card's own 16:10 box, **one scale for both axes** so
+  the shape keeps its proportions, in the same casing-plus-orange recipe, with bigger dots at the two
+  ends to show the direction of travel. It costs no request at all. (Stretching each axis was tried
+  and rejected: a route with one far stop turned into an unreadable spike.)
+- **`PoiCrop`** (the artwork) is the round thumbnail a place uses, centred on the place's own 0–100
+  position.
 
 **Where an image lives.** An asset a component imports belongs in `src/assets/…` and is _imported_,
 so Vite fingerprints the filename and a redeployed map can never be served from a stale cache.
@@ -811,13 +892,15 @@ right rooftop when a card frame crops the picture.
   for the one picture that is on the first screen, and `decorative` for a picture the surrounding
   text already describes.
 - **Overlays are `pointer-events-none` + `aria-hidden`**, and the `<img>`'s `alt` carries the
-  meaning (`alt="Kaart van Zwolle met de route …"`). Choosing a route or a place happens in the
-  React layer — the cards — never on the map itself (§11).
+  meaning (`alt="Kaart van Zwolle met de route …"`). They are the **fallback layer** now: choosing a
+  place happens on the interactive map (a dot is a button with the place's name on it) and in the
+  list beside it, and the list is the keyboard's way in (§11).
 - **Route drawing:** a white **casing** under the accent line (`stroke-white` at 16 units, then
   `stroke-orange-500` at 9, dashed, round caps and joins), stops as a `fill-orange-500` dot with a
   white halo and a glow at `opacity` 0.22. A single orange line disappears into the red roofs and
   the dark water of a photograph; the casing is the map-design answer, and it adds no colour that is
-  not already in the palette.
+  not already in the palette. The interactive map draws the same recipe with casings 10/5 and **no
+  dash** — a real map has streets to read, so the dash would only be noise.
 - **The historic/current swap** is a cross-fade of two stacked pictures — the hero's are the 1652
   engraving over the satellite photo. The historic one carries `.historic-layer` and inherits
   `--historic-opacity` (`1 - position / 100`) from the panel, which `index.css` turns into an opacity
@@ -1022,7 +1105,7 @@ promoted the moment a second page needs it — never copied.
 | `src/pages/`             | one file per route, `<name>Page.tsx`, the default export `App.tsx` mounts                                                                                                                 | resolves the route, owns the state its sections share, and lists the sections in order. It owns a band only when that band holds more than one section.     |
 | `src/sections/<page>/`   | the pieces a page is assembled from: a band, a grid column, a card, a row — in the folder of the page that owns it (`home/`, `routes/`, `routeDetail/`, `pointsOfInterest/`, `planning/`) | **page-scoped**. One component per file, named after the component.                                                                                         |
 | `src/shared/<category>/` | what two or more pages share, in a category folder: `layout/` (the shell and the page scaffolding), `primitives/`, `content/`, `filters/`, `map/`                                         | **shared**. Promoted here from `sections/`; a section that turns out to be generic (`MapPanel`, `EmptyState`) belongs here.                                 |
-| `src/data/`              | the content and the pure helpers over it (`routes.ts`, `pointsOfInterest.ts`, `maps.ts`, `navigation.ts`, `search.ts`)                                                                    | **content and logic only** — no components. `searchIndex.json` is the one data file that is not TypeScript, because it stands in for an api response (§15). |
+| `src/data/`              | the content and the pure helpers over it (`routes.ts`, `pointsOfInterest.ts`, `area.ts`, `maps.ts`, `routeGeometry.ts`, `directions.ts`, `navigation.ts`, `search.ts`)                    | **content and logic only** — no components. `searchIndex.json` is the one data file that is not TypeScript, because it stands in for an api response (§15). |
 | `src/types.ts`           | the shape of that content: `Route`, `PointOfInterest`, `MapPicture`, `RouteFilterState`                                                                                                   | **types only**, no runtime code. A component names the type it needs instead of repeating its fields.                                                       |
 
 The test is the name. If it needs its page in it ("the planner's map"), it is a section
@@ -1048,24 +1131,25 @@ file is more than about a hundred lines of markup, a section is still hiding ins
 
 The **suffix says what the thing is**, so a file name can be read without opening it:
 
-| Suffix                                      | Means                                                                     | Examples                                                 |
-| ------------------------------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------- |
-| `…Page`                                     | a route's entry point, in `pages/`                                        | `homePage.tsx`, `planningPage.tsx`                       |
-| `…Preview`                                  | a home-page strip showing a slice of another page, with the link to it    | `PopularRoutesPreview`, `PointsOfInterestPreview`        |
-| `…Panel`                                    | a framed surface holding a control group or artwork                       | `MapPanel`, `FilterPanel`                                |
-| `…Card`                                     | one record on a bordered surface                                          | `RouteCard`, `ReviewCard`, `PoiCard`                     |
-| `…Row`                                      | one record in a vertical list                                             | `SavedRouteRow`                                          |
-| `…List`                                     | a heading plus the records under it                                       | `SavedRouteList`                                         |
-| `…Grid`                                     | the grid a repeating card is laid out in, fade included                   | `RouteGrid`                                              |
-| `…Button`                                   | one action, in the shape the design gives it                              | `ClearFiltersButton`                                     |
-| `…Bar`                                      | a control strip that belongs to a section                                 | `SectionSearchBar`                                       |
-| `…Chip`                                     | a small labelled token that sits on a surface                             | `MapChip`                                                |
-| `…Form`                                     | the inputs that submit something                                          | `ReviewForm`                                             |
-| `…Filters`                                  | the controls that narrow a list                                           | `RouteFilters`, `PoiFilters`                             |
-| `…Results`                                  | what a filter left behind, empty state included                           | `RouteResults`, `PoiResults`                             |
-| `…Map`                                      | a map panel plus the key that explains it                                 | `PlanMap`                                                |
-| `…Facts` / `…Summary` / `…Story` / `…Stops` | the named column of one page                                              | `RouteFacts`, `RouteSummary`, `RouteStory`, `RouteStops` |
-| `…Overlay` / `…Image` / `…Crop`             | artwork: SVG drawn over a map picture, the picture, a cropped piece of it | `RouteOverlay`, `MapImage`, `PoiCrop`                    |
+| Suffix                                      | Means                                                                                                             | Examples                                                 |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `…Page`                                     | a route's entry point, in `pages/`                                                                                | `homePage.tsx`, `planningPage.tsx`                       |
+| `…Preview`                                  | a home-page strip showing a slice of another page, with the link to it                                            | `PopularRoutesPreview`, `PointsOfInterestPreview`        |
+| `…Panel`                                    | a framed surface holding a control group or artwork                                                               | `MapPanel`, `FilterPanel`                                |
+| `…Card`                                     | one record on a bordered surface                                                                                  | `RouteCard`, `ReviewCard`, `PoiCard`                     |
+| `…Row`                                      | one record in a vertical list                                                                                     | `SavedRouteRow`                                          |
+| `…List`                                     | a heading plus the records under it                                                                               | `SavedRouteList`                                         |
+| `…Grid`                                     | the grid a repeating card is laid out in, fade included                                                           | `RouteGrid`                                              |
+| `…Button`                                   | one action, in the shape the design gives it                                                                      | `ClearFiltersButton`                                     |
+| `…Bar`                                      | a control strip that belongs to a section                                                                         | `SectionSearchBar`                                       |
+| `…Chip`                                     | a small labelled token that sits on a surface                                                                     | `MapChip`                                                |
+| `…Form`                                     | the inputs that submit something                                                                                  | `ReviewForm`                                             |
+| `…Filters`                                  | the controls that narrow a list                                                                                   | `RouteFilters`, `PoiFilters`                             |
+| `…Results`                                  | what a filter left behind, empty state included                                                                   | `RouteResults`, `PoiResults`                             |
+| `…Map`                                      | a map panel plus the key that explains it                                                                         | `PlanMap`                                                |
+| `…Facts` / `…Summary` / `…Story` / `…Stops` | the named column of one page                                                                                      | `RouteFacts`, `RouteSummary`, `RouteStory`, `RouteStops` |
+| `…Overlay` / `…Image` / `…Crop` / `…Shape`  | artwork: SVG drawn over a map picture, the picture, a cropped piece of it, a route drawn from its own coordinates | `RouteOverlay`, `MapImage`, `PoiCrop`, `RouteShape`      |
+| `…Snapshot`                                 | a picture of a map, drawn by an api rather than by us                                                             | `MapSnapshot`                                            |
 
 - Default-export the one public piece of a file; use named exports for siblings (`mapArtwork.tsx`
   exports `MapImage`, `RouteOverlay`, `PlanningOverlay`, `PoiOverlay` and `PoiCrop`, because they
@@ -1130,9 +1214,10 @@ interface RouteFiltersProps {
   `EmptyState` are the shapes that got there.
 - Destructure props in the signature and default them (`function Icon({ name, className = "" })`).
 - Derive, don't duplicate: no state that can be computed (`visibleRoutes` from `showAll`).
-- Effects only to sync with something outside React. There are three, and each one has to be:
-  `ThemeToggle` (the `<body>` class + `localStorage`), `ScrollToTop` (the scroll position) and
-  `PageTitle` (`document.title`).
+- Effects only to sync with something outside React: `ThemeToggle` (the `<body>` class +
+  `localStorage`), `ScrollToTop` (the scroll position), `PageTitle` (`document.title`) and the
+  Google Maps layer — `AreaMap` (creating the map, rebuilding it for the theme, reconciling the dots
+  and the line) and `usePlannedRoute` (asking the Routes API). Nothing else has one.
 - Key lists by a stable id; never the array index.
 - Inline `style` only for CSS custom properties; everything else is a class.
 
@@ -1321,14 +1406,46 @@ tokens in §10, and a library will not make the ripple, the card lift or the her
 
 ### Installed
 
-| Package                                         | Covers                                                                                              |
-| ----------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `beercss`                                       | Material 3 components, 12-column grid, slider, ripple, Material Symbols                             |
-| `react-router-dom`                              | Client-side routes: the pages, the active nav link, the breadcrumbs (see below)                     |
-| `motion`                                        | Enter/exit and list animations (menu, route grid) — `LazyMotion` + `domAnimation`, `m.*` components |
-| `tailwindcss` + `@tailwindcss/vite`             | Layout utilities, the ink/hairline aliases, the token pipeline                                      |
-| `react` / `react-dom`                           | UI runtime                                                                                          |
-| `express`, `mysql2`, `jsonwebtoken`, `bcryptjs` | Declared for `backend/index.mjs` — the collaborator's side, currently unused by the UI              |
+| Package                                         | Covers                                                                                                                     |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `beercss`                                       | Material 3 components, 12-column grid, slider, ripple, Material Symbols                                                    |
+| _Google Maps JavaScript API_                    | Loaded as a script, not installed as a package: the live maps, the routes between places and the map snapshots (see below) |
+| `react-router-dom`                              | Client-side routes: the pages, the active nav link, the breadcrumbs (see below)                                            |
+| `motion`                                        | Enter/exit and list animations (menu, route grid) — `LazyMotion` + `domAnimation`, `m.*` components                        |
+| `tailwindcss` + `@tailwindcss/vite`             | Layout utilities, the ink/hairline aliases, the token pipeline                                                             |
+| `react` / `react-dom`                           | UI runtime                                                                                                                 |
+| `express`, `mysql2`, `jsonwebtoken`, `bcryptjs` | Declared for `backend/index.mjs` — the collaborator's side, currently unused by the UI                                     |
+
+### Google Maps (added 2026-09-28)
+
+The app's maps are the **Google Maps JavaScript API**, loaded as a script by
+`src/shared/map/googleMaps.ts` — **not** as a package, so the "no new dependencies" rule above still
+holds: nothing was added to `package.json`, and `src/googleMaps.d.ts` declares the slice of the api
+the app uses by hand, the same trade `beercss.d.ts` makes.
+
+- **The key lives in `split/split/.env.local`** (already gitignored by the `*.local` rule) as
+  `VITE_GOOGLE_MAPS_API_KEY`; `.env.example` documents it. Without a key every map is replaced by a
+  panel that says it could not load, and the rest of the app is unaffected.
+- **Required: Maps JavaScript API.** Two further services are optional and **off by default**,
+  because each is a separate switch on the same key: the **Routes API** (`requestDirections` — with
+  it the planner draws real street routes with real distances; it is on for the development key, and
+  `travelMode` must be the JS spelling, `"WALKING"` / `"BICYCLING"`) and the **Maps Static API**
+  (`VITE_GOOGLE_MAPS_STATIC_MAPS=true` — with it the cards show real map pictures instead of
+  `RouteShape`).
+- **Places API (New)** is what the places were resolved with (§8) — it is on for the development key,
+  and a Geocoding or Places lookup at runtime is deliberately _not_ done: the list is resolved once
+  and stored, so a page load costs no place lookups.
+- **`VITE_GOOGLE_MAPS_MAP_ID`** takes a cloud-configured map id. Without it the api's own
+  `DEMO_MAP_ID` is used, which cannot be styled — and styling is the only way to hide Google's own
+  place dots from the base map (measured: a map id and `styles` are mutually exclusive) — and which
+  sits on the demo tier's daily cap (§8). A map id is what puts the map on the project's own quota.
+- **A refused service is a value, not an exception.** Routing answers `null` and remembers one
+  refusal for the session; a snapshot falls back to the drawn shape. Neither leaves a broken image
+  or an empty frame, and neither floods the console with the same error on every page.
+- **The key is public by nature** — it is in the browser, in the script url. So it is protected by a
+  referrer restriction (`http://localhost:5173/*`) in the cloud console, never by hiding it.
+- **`leaflet` stays declined**, and the row below predates this: Google Maps was chosen because the
+  brief asks for it and because one key brings the map, the place data, the routes and the images.
 
 ### Routing (added 2026-09-18)
 
@@ -1348,16 +1465,16 @@ That is more than the ten lines §13's rule allows before a dependency is justif
 
 ### Evaluated and declined
 
-| Candidate                           | Would have covered                                                                                       | Verdict                                                                                                                      |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `material-dynamic-colors`           | Generating the full M3 palette from one seed colour (already present as BeerCSS's transitive dependency) | **No** — the roles are hand-authored from the Deltion huisstijl; generating them would trade the design for an approximation |
-| `@material/web`                     | Google's official M3 web components                                                                      | **No** — duplicates BeerCSS wholesale; two M3 implementations would fight over tokens and naming                             |
-| `@tanstack/react-query`             | Server-state caching                                                                                     | **No** — there is no API to consume, and the backend is the collaborator's                                                   |
-| `react-router-dom`                  | Client-side routes                                                                                       | **Installed 2026-09-18** — the trigger fired with the multi-page app, see above                                              |
-| `leaflet` + `react-leaflet`         | Real interactive tile maps                                                                               | Not yet — revisit if the hand-drawn inline SVG is replaced by a real map                                                     |
-| `vitest` + `@testing-library/react` | Unit and component tests                                                                                 | Not yet — revisit when logic moves out of the hero slider and needs a guarantee                                              |
-| `clsx`                              | Conditional class strings                                                                                | Not yet — revisit if a class string grows past two conditional branches                                                      |
-| A date/format library               | Dutch date and number formatting                                                                         | **No** — `src/format.ts` is four functions (~25 lines) and `Intl`/`toLocaleString` already cover the rest                    |
+| Candidate                           | Would have covered                                                                                       | Verdict                                                                                                                                  |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `material-dynamic-colors`           | Generating the full M3 palette from one seed colour (already present as BeerCSS's transitive dependency) | **No** — the roles are hand-authored from the Deltion huisstijl; generating them would trade the design for an approximation             |
+| `@material/web`                     | Google's official M3 web components                                                                      | **No** — duplicates BeerCSS wholesale; two M3 implementations would fight over tokens and naming                                         |
+| `@tanstack/react-query`             | Server-state caching                                                                                     | **No** — there is no API to consume, and the backend is the collaborator's                                                               |
+| `react-router-dom`                  | Client-side routes                                                                                       | **Installed 2026-09-18** — the trigger fired with the multi-page app, see above                                                          |
+| `leaflet` + `react-leaflet`         | Real interactive tile maps                                                                               | **Superseded** — the maps are Google Maps since 2026-09-28 (above); leaflet would need tiles, a routing service and map images beside it |
+| `vitest` + `@testing-library/react` | Unit and component tests                                                                                 | Not yet — revisit when logic moves out of the hero slider and needs a guarantee                                                          |
+| `clsx`                              | Conditional class strings                                                                                | Not yet — revisit if a class string grows past two conditional branches                                                                  |
+| A date/format library               | Dutch date and number formatting                                                                         | **No** — `src/format.ts` is four functions (~25 lines) and `Intl`/`toLocaleString` already cover the rest                                |
 
 ---
 

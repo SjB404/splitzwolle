@@ -2,8 +2,8 @@
 
 import type { ReactNode } from "react";
 
-/* the shapes an overlay can draw; a union, so an entry cannot name a symbol no overlay knows */
-export type LegendShape = "route" | "start" | "end";
+/* the shapes a map can draw; a union, so an entry cannot name a symbol no map knows */
+export type LegendShape = "route" | "historic" | "current";
 
 export interface MapLegendItem {
   shape: LegendShape;
@@ -14,15 +14,16 @@ const LEGEND_SWATCHES: Record<LegendShape, ReactNode> = {
   route: (
     <span className="h-1 w-6 rounded-full bg-orange-500" aria-hidden="true" />
   ),
-  start: (
+  /* the two dot styles the interactive maps draw: today's places in the brand orange, the ones van toen as a white dot with a dark ring */
+  historic: (
     <span
-      className="h-2.5 w-2.5 rounded-full border-2 border-white bg-orange-500"
+      className="h-4 w-4 rounded-full border-2 border-blue-900 bg-white"
       aria-hidden="true"
     />
   ),
-  end: (
+  current: (
     <span
-      className="h-2.5 w-2.5 rounded-full border-2 border-orange-500"
+      className="h-4 w-4 rounded-full border-2 border-white bg-orange-500"
       aria-hidden="true"
     />
   ),

@@ -4,13 +4,12 @@
 import { Link } from "react-router-dom";
 import Icon from "../../shared/primitives/icon.tsx";
 import { LOGIN_PATH } from "../../data/navigation.ts";
+import { PACE_KM_PER_HOUR } from "../../data/routeGeometry.ts";
 import { formatDecimal, formatDistance, formatDuration } from "../../format.ts";
 import type { Route } from "../../types.ts";
 
-/* the average dutch walking pace, used to turn the selected distance into a duration */
-const PACE_KM_PER_HOUR = 4.5;
-
-const PACE_NOTE = `Gerekend met een wandeltempo van ${formatDecimal(PACE_KM_PER_HOUR)} km per uur.`;
+/* the walking pace is the one the route planner measures with, so the two pages cannot disagree about how fast a walk is */
+const PACE_NOTE = `Gerekend met een wandeltempo van ${formatDecimal(PACE_KM_PER_HOUR.walking)} km per uur.`;
 
 interface PlanSummaryProps {
   routes: Route[];
@@ -21,8 +20,11 @@ export default function PlanSummary({ routes }: PlanSummaryProps) {
     (sum, route) => sum + route.distanceKm,
     0,
   );
-  const totalMinutes = Math.round((totalDistanceKm / PACE_KM_PER_HOUR) * 60);
-  const totalStops = routes.reduce((sum, route) => sum + route.stops.length, 0);
+  const totalMinutes = Math.round(
+    (totalDistanceKm / PACE_KM_PER_HOUR.walking) * 60,
+  );
+  /* the places of every ticked route, without counting a place twice when two routes both visit it */
+  const stopCount = new Set(routes.flatMap((route) => route.poiIds)).size;
 
   return (
     <article className="mt-6 p-5">
@@ -38,7 +40,7 @@ export default function PlanSummary({ routes }: PlanSummaryProps) {
         </div>
         <div className="flex items-center gap-2">
           <dt className="text-ink-muted">Stopplaatsen</dt>
-          <dd className="ml-auto font-semibold text-ink">{totalStops}</dd>
+          <dd className="ml-auto font-semibold text-ink">{stopCount}</dd>
         </div>
         <div className="flex items-center gap-2">
           <dt className="text-ink-muted">Totale afstand</dt>

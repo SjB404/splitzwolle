@@ -1,64 +1,44 @@
 {
   "routes": [
     {
+      "id": "binnenstad-highlights",
+      "title": "Binnenstad Highlights",
+      "meta": "Binnenstad · Historisch · Sassenpoort · Peperbus · Melkmarkt"
+    },
+    {
       "id": "hanzekwartier-peperbus",
       "title": "Hanzekwartier & Peperbus",
-      "meta": "Binnenstad · Historisch · Grote Markt"
+      "meta": "Binnenstad · Wandel · Thorbeckegracht · Melkmarkt · Peperbus"
+    },
+    {
+      "id": "musea-in-het-centrum",
+      "title": "Musea in het centrum",
+      "meta": "Binnenstad · Kunst · Museum de Fundatie · ANNO Stadsmuseum · Melkmarkt"
+    },
+    {
+      "id": "culinair-centrum",
+      "title": "Culinair centrum",
+      "meta": "Binnenstad · Culinair · Melkmarkt · Thorbeckegracht · Restaurant De Librije"
+    },
+    {
+      "id": "park-en-gracht",
+      "title": "Park & gracht",
+      "meta": "Buitensingel · Natuur · Park Eekhout · Museum de Fundatie · Thorbeckegracht"
     },
     {
       "id": "rondje-stadsgracht",
       "title": "Rondje Stadsgracht",
-      "meta": "Stadsgracht · Wandel · Sassenpoort"
+      "meta": "Buitensingel · Wandel · Sassenpoort · Thorbeckegracht · Museum de Fundatie · Park Eekhout"
     },
     {
-      "id": "assendorp-art-route",
-      "title": "Assendorp Art Route",
-      "meta": "Assendorp · Kunst · Museum de Fundatie"
-    },
-    {
-      "id": "ijssel-spoolderbos",
-      "title": "IJssel & Spoolderbos",
-      "meta": "Spoolderbos · Fiets · IJsselbrug"
-    },
-    {
-      "id": "binnenstad-highlights",
-      "title": "Binnenstad Highlights",
-      "meta": "Centrum · Historisch · Grote Markt"
-    },
-    {
-      "id": "berkum-buiten",
-      "title": "Berkum Buiten",
-      "meta": "Berkum · Natuur · Agnietenberg"
+      "id": "grachten-fietsroute",
+      "title": "Grachten & singel",
+      "meta": "Buitensingel · Fiets · Sassenpoort · Grote Kerk · Peperbus · Thorbeckegracht"
     },
     {
       "id": "historische-singel-route",
       "title": "Historische Singel-route",
-      "meta": "Binnenstad · Historisch · Stadsmuur · Singel"
-    },
-    {
-      "id": "diezerpoort-katerveer",
-      "title": "Diezerpoort & Katerveer",
-      "meta": "Diezerpoort · Historisch · IJsselkade"
-    },
-    {
-      "id": "wezenlanden-wandeling",
-      "title": "Wezenlanden wandeling",
-      "meta": "Wezenlanden · Natuur · Park de Wezenlanden"
-    },
-    {
-      "id": "molenroute-langs-de-ijssel",
-      "title": "Molenroute langs de IJssel",
-      "meta": "Westenholte · Fiets · Molen De Passiebloem"
-    },
-    {
-      "id": "katerveer-culinair",
-      "title": "Katerveer Culinair",
-      "meta": "Katerveer · Culinair · Melkmarkt · IJsselkade"
-    },
-    {
-      "id": "groene-singel-rond-zwolle",
-      "title": "Groene singel rond Zwolle",
-      "meta": "Zwolle-Zuid · Fiets · Oosterenk"
+      "meta": "Binnenstad · Historisch · Grote Kerk · Sassenpoort · Thorbeckegracht"
     }
   ],
   "pointsOfInterest": [
@@ -73,9 +53,9 @@
       "meta": "Monumenten · Binnenstad · stadspoort"
     },
     {
-      "id": "grote-of-sint-michaelskerk",
-      "title": "Grote of Sint-Michaëlskerk",
-      "meta": "Monumenten · Binnenstad · kerk · orgel"
+      "id": "grote-kerk",
+      "title": "Grote Kerk (Academiehuis)",
+      "meta": "Monumenten · Binnenstad · kerk · orgel · toen"
     },
     {
       "id": "museum-de-fundatie",
@@ -83,29 +63,14 @@
       "meta": "Musea · Binnenstad · kunst"
     },
     {
-      "id": "stedelijk-museum-zwolle",
-      "title": "Stedelijk Museum Zwolle",
-      "meta": "Musea · Binnenstad · geschiedenis"
+      "id": "anno-stadsmuseum",
+      "title": "ANNO Stadsmuseum Zwolle",
+      "meta": "Musea · Binnenstad · geschiedenis · nu"
     },
     {
-      "id": "bonami-spelcomputer-museum",
-      "title": "Bonami SpelComputer Museum",
-      "meta": "Musea · Assendorp · games"
-    },
-    {
-      "id": "het-engelse-werk",
-      "title": "Het Engelse Werk",
-      "meta": "Parken · Westenholte · park · wandelen"
-    },
-    {
-      "id": "park-de-wezenlanden",
-      "title": "Park de Wezenlanden",
-      "meta": "Parken · Wezenlanden · park · vijver"
-    },
-    {
-      "id": "rijsterborgherpark",
-      "title": "Rijsterborgherpark",
-      "meta": "Parken · Centrum · park"
+      "id": "park-eekhout",
+      "title": "Park Eekhout",
+      "meta": "Parken · Binnenstad · park · groen · nu"
     },
     {
       "id": "restaurant-de-librije",
@@ -113,9 +78,9 @@
       "meta": "Culinair · Binnenstad · eten"
     },
     {
-      "id": "ijsselkade",
-      "title": "IJsselkade",
-      "meta": "Culinair · Binnenstad · eten · terras"
+      "id": "thorbeckegracht",
+      "title": "Thorbeckegracht",
+      "meta": "Culinair · Binnenstad · gracht · terras · nu"
     },
     {
       "id": "melkmarkt",

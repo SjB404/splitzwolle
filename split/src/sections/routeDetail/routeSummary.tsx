@@ -3,7 +3,11 @@
 import { Link } from "react-router-dom";
 import Icon from "../../shared/primitives/icon.tsx";
 import { PLANNING_PATH } from "../../data/navigation.ts";
-import { ROUTE_THEME_ICONS } from "../../data/routes.ts";
+import {
+  ROUTE_THEME_ICONS,
+  routePoints,
+  routeStart,
+} from "../../data/routes.ts";
 import type { Route } from "../../types.ts";
 
 interface RouteSummaryProps {
@@ -11,6 +15,9 @@ interface RouteSummaryProps {
 }
 
 export default function RouteSummary({ route }: RouteSummaryProps) {
+  const places = routePoints(route);
+  const start = routeStart(route);
+
   return (
     <article className="flex flex-col gap-5 p-5">
       <div>
@@ -32,7 +39,7 @@ export default function RouteSummary({ route }: RouteSummaryProps) {
             Startpunt
           </dt>
           <dd className="ml-auto text-right font-semibold text-ink">
-            {route.startPoint}
+            {start?.name ?? "—"}
           </dd>
         </div>
         <div className="flex items-start gap-2">
@@ -51,7 +58,7 @@ export default function RouteSummary({ route }: RouteSummaryProps) {
             Stopplaatsen
           </dt>
           <dd className="ml-auto text-right font-semibold text-ink">
-            {route.stops.length}
+            {places.length}
           </dd>
         </div>
       </dl>

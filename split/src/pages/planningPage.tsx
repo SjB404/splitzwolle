@@ -16,7 +16,7 @@ import type { Route } from "../types.ts";
 const SAVED_ROUTE_IDS: string[] = [
   "historische-singel-route",
   "rondje-stadsgracht",
-  "molenroute-langs-de-ijssel",
+  "musea-in-het-centrum",
 ];
 
 /* the ids above, looked up in the data; the type predicate is what satisfies typescript, since find() answers with Route | undefined */

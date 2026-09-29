@@ -4,18 +4,16 @@ import { useParams } from "react-router-dom";
 import Breadcrumb from "../shared/layout/breadcrumb.tsx";
 import Icon from "../shared/primitives/icon.tsx";
 import Container from "../shared/layout/container.tsx";
-import MapPanel from "../shared/map/mapPanel.tsx";
 import PageHeader from "../shared/layout/pageHeader.tsx";
 import StarRating from "../shared/primitives/starRating.tsx";
-import { RouteOverlay } from "../shared/map/mapArtwork.tsx";
 import RelatedRoutes from "../sections/routeDetail/relatedRoutes.tsx";
 import RouteFacts from "../sections/routeDetail/routeFacts.tsx";
+import RouteMap from "../sections/routeDetail/routeMap.tsx";
 import RouteReviews from "../sections/routeDetail/routeReviews.tsx";
 import RouteStory from "../sections/routeDetail/routeStory.tsx";
 import RouteStops from "../sections/routeDetail/routeStops.tsx";
 import RouteSummary from "../sections/routeDetail/routeSummary.tsx";
 import NotFoundPage from "./notFoundPage.tsx";
-import { MAP_IMAGES } from "../data/maps.ts";
 import { ROUTES_PATH } from "../data/navigation.ts";
 import { ROUTES, getRelatedRoutes } from "../data/routes.ts";
 import { formatRating } from "../format.ts";
@@ -55,16 +53,11 @@ function RouteDetail({ route }: RouteDetailProps) {
         </div>
       </PageHeader>
 
-      {/* map and summary: the shared map with this route's own points; the two columns belong to the page, because each holds more than one section */}
+      {/* map and summary: the shared map with this route's own places; the two columns belong to the page, because each holds more than one section */}
       <section className="py-band">
         <Container className="grid gap-y-10 lg:gap-x-20">
           <div className="s12 l8">
-            <MapPanel
-              image={MAP_IMAGES.roads}
-              alt={`Kaart van Zwolle met de route ${route.title}`}
-            >
-              <RouteOverlay path={route.path} />
-            </MapPanel>
+            <RouteMap route={route} />
 
             <RouteFacts route={route} />
           </div>

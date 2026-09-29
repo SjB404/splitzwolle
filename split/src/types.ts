@@ -1,7 +1,13 @@
 /* domain types — the vocabulary every other file shares; the data modules are the only place these values are produced, and writing the shape down once turns a renamed field into a compile error */
 
-/* a point in the artwork's own 0-100 space, scaled onto a picture by shared/map/mapArtwork.tsx; routes, stops and pins all speak it */
+/* a point in the artwork's own 0-100 space — the hero's pictures are the only thing that still speaks it */
 export type MapPosition = [number, number];
+
+/* a real-world coordinate for the interactive maps — deliberately a second type, because the 0-100 space above is placed by hand on one export and must never be confused with a latitude */
+export interface LatLng {
+  lat: number;
+  lng: number;
+}
 
 /* a map picture; not called MapImage because that name belongs to the component that draws one, and two things with one name is how a file imports the wrong one */
 export interface MapPicture {
@@ -26,7 +32,22 @@ export type RouteTheme =
   | "Natuur"
   | "Culinair";
 
-export type RouteDifficulty = "Makkelijk" | "Gemiddeld" | "Uitdagend";
+export type RouteDifficulty = "Makkelijk" | "Gemiddeld";
+
+/* which half of "toen en nu" a place belongs to: a place van toen is a monument that is on the historic map, a place van nu is what the city is today (a museum, a park, a restaurant) */
+export type PoiEra = "Toen" | "Nu";
+
+/* the two ways this site travels the city, spelled the way the directions api spells them */
+export type TravelMode = "walking" | "bicycling";
+
+/* what a planned route turned out to be — the api's answer when it had one, and our own estimate when it did not */
+export interface RouteGeometry {
+  path: LatLng[];
+  distanceKm: number;
+  durationMinutes: number;
+  /* true when the line follows the streets, false when it is a straight connector with an estimated length */
+  followsStreets: boolean;
+}
 
 export interface Route {
   id: string;
@@ -44,11 +65,9 @@ export interface Route {
   /** how many ratings the score above is built from */
   reviews: number;
   popular: boolean;
-  startPoint: string;
   description: string;
-  stops: string[];
-  /** the line drawn over the map, in 0-100 space */
-  path: MapPosition[];
+  /** the places the route visits, in order — a route is a walk from point to point, and both of its lines (the map's and the artwork's) are derived from these */
+  poiIds: string[];
 }
 
 /* the four kinds of place, each with the glyph that stands for it, so a chip and a card cannot disagree */
@@ -63,14 +82,22 @@ export interface PointOfInterest {
   id: string;
   name: string;
   category: PoiCategoryName;
+  /* toen or nu — the axis that decides which map layer a place belongs to */
+  era: PoiEra;
   area: string;
   description: string;
   rating: number;
   reviews: number;
-  /** walking distance from the Grote Markt, which is what the overview sorts on */
+  /** the walk from the Grote Markt, measured from the place's own coordinates when the data module loads */
   distanceKm: number;
-  /** where the pin goes, in 0-100 space */
-  position: MapPosition;
+  /* the id the places api answered with; a re-resolve of the list finds this same pin again, which is what keeps a place from moving */
+  placeId: string;
+  /* the address the places api gave back, shown to the reader and used to look the place up elsewhere */
+  address: string;
+  /** where the place really is — resolved from the places api, never typed by hand */
+  coordinates: LatLng;
+  /** a picture of the place, once the collaborator supplies one; the preview falls back to a plain card without it */
+  image?: string;
 }
 
 export interface RouteReview {

@@ -1,7 +1,9 @@
-/* one place in the poi grid — the card selects and the map above shows it; the picture is a crop of the illustrated map, since a real photo per place would be a hundred images to keep in step */
+/* one place in the poi grid — the card selects and the map above shows it; its picture comes from the data when the collaborator supplies one, and the round glyph stands in until then */
 
+import { Link } from "react-router-dom";
 import Icon from "../../shared/primitives/icon.tsx";
 import { formatDistance, formatRating } from "../../format.ts";
+import { ROUTES_PATH } from "../../data/navigation.ts";
 import { poiCategoryIcon } from "../../data/pointsOfInterest.ts";
 import type { PointOfInterest } from "../../types.ts";
 
@@ -29,6 +31,9 @@ export default function PoiCard({ point, selected, onSelect }: PoiCardProps) {
             {point.category}
           </span>
 
+          {/* the axis the whole site is built on: which half of "toen en nu" this place belongs to */}
+          <span className="chip flex-none">{point.era}</span>
+
           <span className="ml-auto inline-flex flex-none items-center gap-1 text-sm font-semibold text-ink">
             <Icon name="star" className="fill text-base text-accent" />
             {formatRating(point.rating)}
@@ -48,14 +53,24 @@ export default function PoiCard({ point, selected, onSelect }: PoiCardProps) {
             Markt
           </p>
 
-          <button
-            type="button"
-            aria-pressed={selected}
-            onClick={() => onSelect(point.id)}
-            className="button border text-ink ripple tap-target ml-auto"
-          >
-            {selected ? "Op de kaart" : "Toon op kaart"}
-          </button>
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              aria-pressed={selected}
+              onClick={() => onSelect(point.id)}
+              className="button border text-ink ripple tap-target"
+            >
+              {selected ? "Op de kaart" : "Toon op kaart"}
+            </button>
+
+            <Link
+              to={`${ROUTES_PATH}?plek=${point.id}`}
+              className="button border text-ink ripple tap-target"
+            >
+              <Icon name="route" className="mr-1 text-base" />
+              In een route
+            </Link>
+          </div>
         </div>
       </div>
     </article>

@@ -318,6 +318,11 @@ body.dark {
   article {
     box-shadow: none !important;
   }
+
+  /* beerCSS resets every element to `border-radius: inherit`, which leaks our 12px card radius into google's own dom: 168 elements inside one map were rounded (measured), so the map canvas was a rounded rectangle sitting inside our rounded frame and the tiles read as a card in a card. our own dots are excluded, they are the one thing that has to stay round */
+  .gm-style *:not(gmp-advanced-marker, gmp-advanced-marker *) {
+    border-radius: 0 !important;
+  }
 }
 
 /* material 3's minimum touch target is 48x48px and beerCSS draws icon buttons at 40px, so the hit area is extended past the visual edge instead of growing the button, which would overrun the 320px bar; ::before, because beerCSS already owns ::after on buttons for its state layer */

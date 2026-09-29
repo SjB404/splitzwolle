@@ -1,6 +1,10 @@
-/* route content — the data behind the home page, the overview, the detail page and the planner; paths are in 0-100 space, distances are kilometres and durations minutes (numbers, so they can be filtered and summed), and it is still placeholder content for the collaborator's api */
+/* route content — the data behind the home page, the overview, the detail page and the planner; a route is a walk from point to point, so it stores the places it visits and nothing else: the line on the map artwork and the line on the interactive map are both derived from those places */
+/* every route is inside the area the site covers (data/area.ts); distances are kilometres and durations minutes, numbers so they can be filtered and summed, and it is still placeholder content for the collaborator's api */
 
+import { getPointOfInterest } from "./pointsOfInterest.ts";
 import type {
+  LatLng,
+  PointOfInterest,
   Route,
   RouteDifficulty,
   RouteFilterState,
@@ -18,11 +22,8 @@ export const ROUTE_THEMES: RouteTheme[] = [
   "Culinair",
 ];
 
-export const ROUTE_DIFFICULTIES: RouteDifficulty[] = [
-  "Makkelijk",
-  "Gemiddeld",
-  "Uitdagend",
-];
+/* two levels, not three: everything here is a walk through the centre, and a "uitdagend" route of 1.5 km would be a lie */
+export const ROUTE_DIFFICULTIES: RouteDifficulty[] = ["Makkelijk", "Gemiddeld"];
 
 /* one glyph per theme, so a card, a filter and a detail panel describe a route type the same way; every name is in the material symbols subset in index.html */
 export const ROUTE_THEME_ICONS: Record<RouteTheme, string> = {
@@ -36,155 +37,130 @@ export const ROUTE_THEME_ICONS: Record<RouteTheme, string> = {
 
 /* how many cards the home page previews, and how many the overview shows before "Toon meer routes" */
 export const ROUTE_PREVIEW_COUNT = 3;
-export const ROUTE_PAGE_SIZE = 9;
+export const ROUTE_PAGE_SIZE = 6;
 
 export const ROUTES: Route[] = [
+  {
+    id: "binnenstad-highlights",
+    title: "Binnenstad Highlights",
+    area: "Binnenstad",
+    theme: "Historisch",
+    difficulty: "Makkelijk",
+    distanceKm: 1.1,
+    durationMinutes: 20,
+    elevation: 3,
+    rating: 4.9,
+    reviews: 203,
+    popular: true,
+    description:
+      "De klassiekers op een rij: van de Sassenpoort via de Grote Kerk en de Peperbus naar de Melkmarkt.",
+    poiIds: ["sassenpoort", "grote-kerk", "peperbus", "melkmarkt"],
+  },
   {
     id: "hanzekwartier-peperbus",
     title: "Hanzekwartier & Peperbus",
     area: "Binnenstad",
-    theme: "Historisch",
+    theme: "Wandel",
     difficulty: "Makkelijk",
-    distanceKm: 3.2,
-    durationMinutes: 45,
-    elevation: 8,
-    rating: 4.9,
+    distanceKm: 1.4,
+    durationMinutes: 25,
+    elevation: 3,
+    rating: 4.8,
     reviews: 128,
     popular: true,
-    startPoint: "Grote Markt",
     description:
-      "Langs de oude pakhuizen van het Hanzekwartier naar de Peperbus, met onderweg de Grote Markt en de Thorbeckegracht.",
-    stops: ["Grote Markt", "Peperbus", "Thorbeckegracht", "Melkmarkt"],
-    path: [
-      [24, 56],
-      [44, 36],
-      [62, 50],
-      [74, 32],
-    ],
+      "Langs de oude pakhuizen van het Hanzekwartier en de Thorbeckegracht, via de Melkmarkt naar de Peperbus.",
+    poiIds: ["thorbeckegracht", "melkmarkt", "peperbus"],
+  },
+  {
+    id: "musea-in-het-centrum",
+    title: "Musea in het centrum",
+    area: "Binnenstad",
+    theme: "Kunst",
+    difficulty: "Makkelijk",
+    distanceKm: 1,
+    durationMinutes: 20,
+    elevation: 2,
+    rating: 4.6,
+    reviews: 76,
+    popular: false,
+    description:
+      "Twee musea op een steenworp afstand: de Fundatie aan het Blijmarkt en het ANNO Stadsmuseum, met de Melkmarkt als pauze.",
+    poiIds: ["museum-de-fundatie", "anno-stadsmuseum", "melkmarkt"],
+  },
+  {
+    id: "culinair-centrum",
+    title: "Culinair centrum",
+    area: "Binnenstad",
+    theme: "Culinair",
+    difficulty: "Makkelijk",
+    distanceKm: 1.3,
+    durationMinutes: 30,
+    elevation: 3,
+    rating: 4.7,
+    reviews: 119,
+    popular: true,
+    description:
+      "Van de terrassen op de Melkmarkt langs de Thorbeckegracht naar de Librije: eten en drinken in de binnenstad.",
+    poiIds: ["melkmarkt", "thorbeckegracht", "restaurant-de-librije"],
+  },
+  {
+    id: "park-en-gracht",
+    title: "Park & gracht",
+    area: "Buitensingel",
+    theme: "Natuur",
+    difficulty: "Makkelijk",
+    distanceKm: 1.8,
+    durationMinutes: 30,
+    elevation: 5,
+    rating: 4.6,
+    reviews: 88,
+    popular: false,
+    description:
+      "Van Park Eekhout langs de Fundatie naar de Thorbeckegracht: het groen van de stad en het water in één ronde.",
+    poiIds: ["park-eekhout", "museum-de-fundatie", "thorbeckegracht"],
   },
   {
     id: "rondje-stadsgracht",
     title: "Rondje Stadsgracht",
-    area: "Stadsgracht",
+    area: "Buitensingel",
     theme: "Wandel",
     difficulty: "Gemiddeld",
-    distanceKm: 6.8,
-    durationMinutes: 90,
-    elevation: 14,
+    distanceKm: 2.6,
+    durationMinutes: 45,
+    elevation: 6,
     rating: 4.7,
     reviews: 94,
     popular: false,
-    startPoint: "Sassenpoort",
     description:
-      "Een volledige ronde over de wallen die Zwolle ooit verdedigden, met de singel als groene rand.",
-    stops: ["Sassenpoort", "Willemskade", "Park de Wezenlanden", "Diezerpoort"],
-    path: [
-      [22, 30],
-      [40, 58],
-      [60, 40],
-      [76, 62],
+      "Een ronde over de wallen die Zwolle ooit verdedigden: de Sassenpoort, de Thorbeckegracht, de Fundatie en Park Eekhout.",
+    poiIds: [
+      "sassenpoort",
+      "thorbeckegracht",
+      "museum-de-fundatie",
+      "park-eekhout",
     ],
   },
   {
-    id: "assendorp-art-route",
-    title: "Assendorp Art Route",
-    area: "Assendorp",
-    theme: "Kunst",
-    difficulty: "Makkelijk",
-    distanceKm: 4.1,
-    durationMinutes: 55,
-    elevation: 6,
-    rating: 4.8,
-    reviews: 76,
-    popular: true,
-    startPoint: "Museum de Fundatie",
-    description:
-      "Langs muurschilderingen, ateliers en galeries in de wijk waar de Zwolse kunstenaars werken.",
-    stops: [
-      "Museum de Fundatie",
-      "Hofvlietstraat",
-      "Ateliers Assendorp",
-      "Vondelkwartier",
-    ],
-    path: [
-      [22, 62],
-      [46, 44],
-      [56, 62],
-      [74, 38],
-    ],
-  },
-  {
-    id: "ijssel-spoolderbos",
-    title: "IJssel & Spoolderbos",
-    area: "Spoolderbos",
+    id: "grachten-fietsroute",
+    title: "Grachten & singel",
+    area: "Buitensingel",
     theme: "Fiets",
-    difficulty: "Uitdagend",
-    distanceKm: 8.4,
-    durationMinutes: 125,
-    elevation: 21,
-    rating: 4.6,
-    reviews: 61,
-    popular: false,
-    startPoint: "IJsselbrug",
-    description:
-      "Het langste rondje van de set: langs de IJssel het bos in, met de beste uitzichten van de stad.",
-    stops: ["IJsselbrug", "Katerveer", "Spoolderbos", "Nieuwe Wetering"],
-    path: [
-      [20, 42],
-      [38, 26],
-      [56, 50],
-      [74, 58],
-    ],
-  },
-  {
-    id: "binnenstad-highlights",
-    title: "Binnenstad Highlights",
-    area: "Centrum",
-    theme: "Historisch",
-    difficulty: "Makkelijk",
-    distanceKm: 2.6,
-    durationMinutes: 35,
-    elevation: 5,
-    rating: 4.9,
-    reviews: 203,
-    popular: true,
-    startPoint: "Grote Markt",
-    description:
-      "De kortste route langs alle hoogtepunten van de binnenstad: ideaal voor een eerste bezoek aan Zwolle.",
-    stops: [
-      "Grote Markt",
-      "Peperbus",
-      "Sassenpoort",
-      "Grote of Sint-Michaëlskerk",
-    ],
-    path: [
-      [26, 62],
-      [42, 40],
-      [62, 30],
-      [74, 52],
-    ],
-  },
-  {
-    id: "berkum-buiten",
-    title: "Berkum Buiten",
-    area: "Berkum",
-    theme: "Natuur",
     difficulty: "Gemiddeld",
-    distanceKm: 5.5,
-    durationMinutes: 75,
-    elevation: 11,
+    distanceKm: 2.4,
+    durationMinutes: 25,
+    elevation: 6,
     rating: 4.5,
-    reviews: 48,
+    reviews: 42,
     popular: false,
-    startPoint: "Berkum",
     description:
-      "Van de stad naar het buitengebied: bos, weilanden en de Agnietenberg op een steenworp afstand.",
-    stops: ["Berkum", "Agnietenberg", "Landgoed De Werkeren", "Berkumerenk"],
-    path: [
-      [22, 34],
-      [46, 50],
-      [60, 28],
-      [76, 46],
+      "De hele binnenstad op de fiets: over de singel langs de Grote Kerk, de Peperbus en de Thorbeckegracht.",
+    poiIds: [
+      "sassenpoort",
+      "grote-kerk",
+      "peperbus",
+      "thorbeckegracht",
+      "museum-de-fundatie",
     ],
   },
   {
@@ -193,163 +169,34 @@ export const ROUTES: Route[] = [
     area: "Binnenstad",
     theme: "Historisch",
     difficulty: "Gemiddeld",
-    distanceKm: 5.2,
-    durationMinutes: 75,
-    elevation: 12,
+    distanceKm: 1.6,
+    durationMinutes: 30,
+    elevation: 4,
     rating: 4.8,
     reviews: 123,
     popular: true,
-    startPoint: "Grote Markt",
     description:
-      "De klassieke ronde door de binnenstad en langs de singel, met de stadsmuur, de Peperbus en de Sassenpoort. De historische kaartlaag laat zien waar de oude grachten liepen.",
-    stops: [
-      "Grote Markt",
-      "Peperbus",
-      "Sassenpoort",
-      "Museum de Fundatie",
-      "Thorbeckegracht",
-    ],
-    path: [
-      [20, 28],
-      [34, 52],
-      [54, 38],
-      [70, 58],
-      [78, 42],
-    ],
-  },
-  {
-    id: "diezerpoort-katerveer",
-    title: "Diezerpoort & Katerveer",
-    area: "Diezerpoort",
-    theme: "Historisch",
-    difficulty: "Makkelijk",
-    distanceKm: 4.8,
-    durationMinutes: 65,
-    elevation: 9,
-    rating: 4.4,
-    reviews: 37,
-    popular: false,
-    startPoint: "Diezerpoort",
-    description:
-      "Van de oude stadspoort naar de IJsselkade, langs de plek waar de Hanzeschepen aanlegden.",
-    stops: ["Diezerpoort", "Katerveer", "IJsselkade", "Buiten de Dieze"],
-    path: [
-      [30, 22],
-      [52, 38],
-      [68, 28],
-      [78, 50],
-    ],
-  },
-  {
-    id: "wezenlanden-wandeling",
-    title: "Wezenlanden wandeling",
-    area: "Wezenlanden",
-    theme: "Natuur",
-    difficulty: "Makkelijk",
-    distanceKm: 3.6,
-    durationMinutes: 50,
-    elevation: 7,
-    rating: 4.6,
-    reviews: 88,
-    popular: true,
-    startPoint: "Park de Wezenlanden",
-    description:
-      "Een groen half uur door het stadspark, met de vijver en de oude bomen als middelpunt.",
-    stops: [
-      "Park de Wezenlanden",
-      "Vijver Wezenlanden",
-      "Weteringpark",
-      "Assendorperdijk",
-    ],
-    path: [
-      [20, 48],
-      [36, 34],
-      [52, 56],
-      [72, 44],
-    ],
-  },
-  {
-    id: "molenroute-langs-de-ijssel",
-    title: "Molenroute langs de IJssel",
-    area: "Westenholte",
-    theme: "Fiets",
-    difficulty: "Gemiddeld",
-    distanceKm: 7.1,
-    durationMinutes: 95,
-    elevation: 15,
-    rating: 4.5,
-    reviews: 42,
-    popular: false,
-    startPoint: "Molen De Passiebloem",
-    description:
-      "Langs de molens en de uiterwaarden van de IJssel, met een stop bij de Westenholter plas.",
-    stops: [
-      "Molen De Passiebloem",
-      "Westenholter plas",
-      "IJsseldijk",
-      "Voorst",
-    ],
-    path: [
-      [22, 58],
-      [40, 30],
-      [62, 46],
-      [78, 34],
-    ],
-  },
-  {
-    id: "katerveer-culinair",
-    title: "Katerveer Culinair",
-    area: "Katerveer",
-    theme: "Culinair",
-    difficulty: "Makkelijk",
-    distanceKm: 2.9,
-    durationMinutes: 60,
-    elevation: 4,
-    rating: 4.7,
-    reviews: 119,
-    popular: true,
-    startPoint: "Grote Markt",
-    description:
-      "Een korte route langs de keukens van Zwolle: van de Grote Markt naar de IJsselkade en terug.",
-    stops: ["Grote Markt", "Melkmarkt", "IJsselkade", "Thorbeckegracht"],
-    path: [
-      [28, 44],
-      [46, 60],
-      [62, 44],
-      [76, 56],
-    ],
-  },
-  {
-    id: "groene-singel-rond-zwolle",
-    title: "Groene singel rond Zwolle",
-    area: "Zwolle-Zuid",
-    theme: "Fiets",
-    difficulty: "Uitdagend",
-    distanceKm: 9.3,
-    durationMinutes: 155,
-    elevation: 24,
-    rating: 4.3,
-    reviews: 29,
-    popular: false,
-    startPoint: "Sassenpoort",
-    description:
-      "De hele singel rond: van de Sassenpoort tot Zwolle-Zuid en via de oostkant weer terug.",
-    stops: [
-      "Sassenpoort",
-      "Wezenlanden",
-      "Zwolle-Zuid",
-      "Oosterenk",
-      "Diezerpoort",
-    ],
-    path: [
-      [20, 38],
-      [32, 56],
-      [52, 32],
-      [70, 54],
-      [78, 40],
-    ],
+      "Langs de oude stadsmuur en de singel: de Grote Kerk, de Sassenpoort en de Thorbeckegracht. De historische kaartlaag laat zien waar de grachten liepen.",
+    poiIds: ["grote-kerk", "sassenpoort", "thorbeckegracht"],
   },
 ];
+
+/** the places a route visits, in order — an id that is not in the data is dropped rather than breaking the page it is drawn on */
+export function routePoints(route: Route): PointOfInterest[] {
+  return route.poiIds
+    .map((id) => getPointOfInterest(id))
+    .filter((point): point is PointOfInterest => point !== undefined);
+}
+
+/** the same places as real coordinates, which is what the interactive map and the routes api are given */
+export function routeCoordinates(route: Route): LatLng[] {
+  return routePoints(route).map((point) => point.coordinates);
+}
+
+/** where a route starts, printed by the cards and the detail page instead of a stored name */
+export function routeStart(route: Route): PointOfInterest | undefined {
+  return routePoints(route)[0];
+}
 
 /* the routes closest to route: same theme first, then the rest by rating; never route itself */
 export function getRelatedRoutes(route: Route, limit = 3): Route[] {
@@ -385,22 +232,28 @@ export function filterRoutes(filters: RouteFilterState): Route[] {
   const needle = filters.query.trim().toLowerCase();
 
   return ROUTES.filter((route) => {
-    if (
-      needle &&
-      !`${route.title} ${route.area} ${route.theme} ${route.startPoint}`
-        .toLowerCase()
-        .includes(needle)
-    ) {
-      return false;
+    if (needle) {
+      /* the places count as searchable text: "peperbus" should find every route that visits it */
+      const haystack = [
+        route.title,
+        route.area,
+        route.theme,
+        ...routePoints(route).map((point) => point.name),
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      if (!haystack.includes(needle)) return false;
     }
     if (filters.popularity === "popular" && !route.popular) return false;
-    if (filters.distance === "short" && route.distanceKm >= 4) return false;
+    /* the buckets follow the scope: everything here is a walk in the centre, so "short" is under 1.5 km and "long" over 2.5 */
+    if (filters.distance === "short" && route.distanceKm >= 1.5) return false;
     if (
       filters.distance === "medium" &&
-      (route.distanceKm < 4 || route.distanceKm > 7)
+      (route.distanceKm < 1.5 || route.distanceKm > 2.5)
     )
       return false;
-    if (filters.distance === "long" && route.distanceKm <= 7) return false;
+    if (filters.distance === "long" && route.distanceKm <= 2.5) return false;
     if (filters.theme !== "all" && route.theme !== filters.theme) return false;
     if (filters.difficulty !== "all" && route.difficulty !== filters.difficulty)
       return false;

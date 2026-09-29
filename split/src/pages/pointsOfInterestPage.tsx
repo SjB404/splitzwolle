@@ -2,19 +2,26 @@
 /* the selection is derived from the filtered list, so filtering a place away cannot leave a highlight pointing off screen */
 
 import { useMemo, useState } from "react";
-import MapPanel from "../shared/map/mapPanel.tsx";
+import AreaMap from "../shared/map/areaMap.tsx";
+import MapLegend from "../shared/map/mapLegend.tsx";
+import type { MapLegendItem } from "../shared/map/mapLegend.tsx";
 import PageHeader from "../shared/layout/pageHeader.tsx";
 import Container from "../shared/layout/container.tsx";
-import { PoiOverlay } from "../shared/map/mapArtwork.tsx";
 import PoiFilters from "../sections/pointsOfInterest/poiFilters.tsx";
 import PoiResults from "../sections/pointsOfInterest/poiResults.tsx";
-import { MAP_IMAGES } from "../data/maps.ts";
+import { AREA_NAME } from "../data/area.ts";
 import {
   INITIAL_POI_FILTERS,
   filterPointsOfInterest,
   hasActivePoiFilters,
 } from "../data/pointsOfInterest.ts";
 import type { PoiFilterState } from "../types.ts";
+
+/* what the two eras' dots mean, which is the only thing this map's reader has to know to read it */
+const POI_MAP_LEGEND: MapLegendItem[] = [
+  { shape: "historic", label: "Plek van toen" },
+  { shape: "current", label: "Plek van nu" },
+];
 
 export default function PointsOfInterestPage() {
   const [filters, setFilters] = useState(INITIAL_POI_FILTERS);
@@ -50,17 +57,20 @@ export default function PointsOfInterestPage() {
             onReset={hasActivePoiFilters(filters) ? resetFilters : undefined}
           />
 
-          {/* the map shows the current list, so its pins match the cards below; the label names the selected place, or the whole set */}
-          <MapPanel
+          {/* the map shows the current list, so its dots match the cards below; the label names the selected place, or the whole set */}
+          <AreaMap
             className="mt-10"
-            image={MAP_IMAGES.terrain}
-            alt={`Kaart van Zwolle met ${results.length} bezienswaardigheden`}
+            points={results}
+            highlightId={selectedId}
+            onClickPoint={setSelectedId}
+            clickHint="Klik om deze plek te kiezen"
             label={
               selectedPoint ? selectedPoint.name : "Alle bezienswaardigheden"
             }
-          >
-            <PoiOverlay points={results} selectedId={selectedId} />
-          </MapPanel>
+            description={`Kaart van ${AREA_NAME} met ${results.length} bezienswaardigheden; dezelfde plekken staan in de lijst eronder.`}
+          />
+
+          <MapLegend items={POI_MAP_LEGEND} />
         </Container>
       </section>
 

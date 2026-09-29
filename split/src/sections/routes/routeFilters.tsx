@@ -21,9 +21,9 @@ const POPULARITY_OPTIONS: SelectOption<RoutePopularityFilter>[] = [
 
 const DISTANCE_OPTIONS: SelectOption<RouteDistanceFilter>[] = [
   { value: "all", label: "Alle afstanden" },
-  { value: "short", label: "Tot 4 km" },
-  { value: "medium", label: "4 – 7 km" },
-  { value: "long", label: "Meer dan 7 km" },
+  { value: "short", label: "Tot 1,5 km" },
+  { value: "medium", label: "1,5 – 2,5 km" },
+  { value: "long", label: "Meer dan 2,5 km" },
 ];
 
 const THEME_OPTIONS: SelectOption<RouteThemeFilter>[] = [

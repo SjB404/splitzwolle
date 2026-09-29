@@ -3,9 +3,10 @@
 import { Link } from "react-router-dom";
 import { m } from "motion/react";
 import Icon from "../primitives/icon.tsx";
-import { MapImage, RouteOverlay } from "../map/mapArtwork.tsx";
+import MapSnapshot from "../map/mapSnapshot.tsx";
+import RouteShape from "../map/routeShape.tsx";
 import { MOTION_TRANSITION } from "../../motion.ts";
-import { MAP_IMAGES } from "../../data/maps.ts";
+import { routeCoordinates } from "../../data/routes.ts";
 import { ROUTES_PATH } from "../../data/navigation.ts";
 import { formatDistance, formatDuration, formatRating } from "../../format.ts";
 import type { Route } from "../../types.ts";
@@ -29,15 +30,15 @@ export default function RouteCard({
       transition={MOTION_TRANSITION}
       className="s12 m6 l4 xl:col-span-3 no-padding group relative flex flex-col overflow-hidden transition-transform motion-safe:hover:-translate-y-1"
     >
-      {/* the frame takes its height from the column and keeps a map's kind of ratio, so the artwork scales with the card instead of stepping at two widths */}
+      {/* the frame takes its height from the column and keeps a map's kind of ratio, so the preview scales with the card instead of stepping at two widths */}
       <div className="relative aspect-[16/10] overflow-hidden surface-container">
-        {/* decorative, because the card's own title, area and distance say everything; object-cover crops exactly like the overlay's slice, so the route lands on the map at every width */}
-        <MapImage
-          image={MAP_IMAGES.roads}
+        {/* the route's own shape, drawn from the places it visits; a real map picture takes its place when the static map service is switched on */}
+        <MapSnapshot
+          points={routeCoordinates(route)}
+          alt={`Kaart met de route ${route.title}`}
           className="h-full w-full object-cover"
-          decorative
+          fallback={<RouteShape points={routeCoordinates(route)} />}
         />
-        <RouteOverlay path={route.path} />
 
         {showPopular && route.popular && (
           <span className="chip primary absolute left-4 top-4 text-[11px] font-bold uppercase tracking-wide">
