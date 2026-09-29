@@ -1,0 +1,126 @@
+{
+  "routes": [
+    {
+      "id": "hanzekwartier-peperbus",
+      "title": "Hanzekwartier & Peperbus",
+      "meta": "Binnenstad · Historisch · Grote Markt"
+    },
+    {
+      "id": "rondje-stadsgracht",
+      "title": "Rondje Stadsgracht",
+      "meta": "Stadsgracht · Wandel · Sassenpoort"
+    },
+    {
+      "id": "assendorp-art-route",
+      "title": "Assendorp Art Route",
+      "meta": "Assendorp · Kunst · Museum de Fundatie"
+    },
+    {
+      "id": "ijssel-spoolderbos",
+      "title": "IJssel & Spoolderbos",
+      "meta": "Spoolderbos · Fiets · IJsselbrug"
+    },
+    {
+      "id": "binnenstad-highlights",
+      "title": "Binnenstad Highlights",
+      "meta": "Centrum · Historisch · Grote Markt"
+    },
+    {
+      "id": "berkum-buiten",
+      "title": "Berkum Buiten",
+      "meta": "Berkum · Natuur · Agnietenberg"
+    },
+    {
+      "id": "historische-singel-route",
+      "title": "Historische Singel-route",
+      "meta": "Binnenstad · Historisch · Stadsmuur · Singel"
+    },
+    {
+      "id": "diezerpoort-katerveer",
+      "title": "Diezerpoort & Katerveer",
+      "meta": "Diezerpoort · Historisch · IJsselkade"
+    },
+    {
+      "id": "wezenlanden-wandeling",
+      "title": "Wezenlanden wandeling",
+      "meta": "Wezenlanden · Natuur · Park de Wezenlanden"
+    },
+    {
+      "id": "molenroute-langs-de-ijssel",
+      "title": "Molenroute langs de IJssel",
+      "meta": "Westenholte · Fiets · Molen De Passiebloem"
+    },
+    {
+      "id": "katerveer-culinair",
+      "title": "Katerveer Culinair",
+      "meta": "Katerveer · Culinair · Melkmarkt · IJsselkade"
+    },
+    {
+      "id": "groene-singel-rond-zwolle",
+      "title": "Groene singel rond Zwolle",
+      "meta": "Zwolle-Zuid · Fiets · Oosterenk"
+    }
+  ],
+  "pointsOfInterest": [
+    {
+      "id": "peperbus",
+      "title": "Peperbus",
+      "meta": "Monumenten · Binnenstad · toren"
+    },
+    {
+      "id": "sassenpoort",
+      "title": "Sassenpoort",
+      "meta": "Monumenten · Binnenstad · stadspoort"
+    },
+    {
+      "id": "grote-of-sint-michaelskerk",
+      "title": "Grote of Sint-Michaëlskerk",
+      "meta": "Monumenten · Binnenstad · kerk · orgel"
+    },
+    {
+      "id": "museum-de-fundatie",
+      "title": "Museum de Fundatie",
+      "meta": "Musea · Binnenstad · kunst"
+    },
+    {
+      "id": "stedelijk-museum-zwolle",
+      "title": "Stedelijk Museum Zwolle",
+      "meta": "Musea · Binnenstad · geschiedenis"
+    },
+    {
+      "id": "bonami-spelcomputer-museum",
+      "title": "Bonami SpelComputer Museum",
+      "meta": "Musea · Assendorp · games"
+    },
+    {
+      "id": "het-engelse-werk",
+      "title": "Het Engelse Werk",
+      "meta": "Parken · Westenholte · park · wandelen"
+    },
+    {
+      "id": "park-de-wezenlanden",
+      "title": "Park de Wezenlanden",
+      "meta": "Parken · Wezenlanden · park · vijver"
+    },
+    {
+      "id": "rijsterborgherpark",
+      "title": "Rijsterborgherpark",
+      "meta": "Parken · Centrum · park"
+    },
+    {
+      "id": "restaurant-de-librije",
+      "title": "Restaurant De Librije",
+      "meta": "Culinair · Binnenstad · eten"
+    },
+    {
+      "id": "ijsselkade",
+      "title": "IJsselkade",
+      "meta": "Culinair · Binnenstad · eten · terras"
+    },
+    {
+      "id": "melkmarkt",
+      "title": "Melkmarkt",
+      "meta": "Culinair · Binnenstad · eten · terras"
+    }
+  ]
+}
