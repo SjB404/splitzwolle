@@ -12,31 +12,23 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
-<<<<<<< HEAD
     "bcryptjs": "^3.0.3",
+    "beercss": "^5.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
-=======
-    "beercss": "^5.0.3",
->>>>>>> main
     "express": "^5.2.1",
     "google-auth-library": "^11.1.0",
     "jsonwebtoken": "^9.0.3",
-<<<<<<< HEAD
     "lucide-react": "^1.47.0",
-=======
+    "material-dynamic-colors": "^1.1.4",
     "motion": "^13.2.0",
->>>>>>> main
     "mysql2": "^3.24.3",
     "otplib": "^13.5.0",
     "qrcode": "^1.5.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-<<<<<<< HEAD
-    "speakeasy": "^2.0.0",
-=======
     "react-router-dom": "^7.18.4",
->>>>>>> main
+    "speakeasy": "^2.0.0",
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
@@ -48,11 +40,14 @@
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@types/speakeasy": "^2.0.10",
+    "@types/supertest": "^7.2.1",
     "@vitejs/plugin-react": "^6.1.0",
     "oxlint": "^1.79.0",
+    "supertest": "^7.3.0",
     "ts-node-dev": "^2.0.0",
     "tsx": "^4.23.13",
     "typescript": "~6.0.2",
-    "vite": "^8.2.2"
+    "vite": "^8.2.2",
+    "vitest": "^3.2.7"
   }
 }
