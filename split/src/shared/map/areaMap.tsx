@@ -48,6 +48,8 @@ interface AreaMapProps {
   label: string;
   /* what the map shows, for readers who cannot use it */
   description: string;
+  /* how tall the map stands; the builder asks for a taller one, because there the map is the work surface */
+  heightClassName?: string;
   className?: string;
 }
 
@@ -60,6 +62,7 @@ export default function AreaMap({
   clickHint = "Klik om deze plek te kiezen",
   label,
   description,
+  heightClassName = "h-[clamp(20rem,50vh,34rem)]",
   className = "",
 }: AreaMapProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
@@ -311,12 +314,16 @@ export default function AreaMap({
     : null;
 
   if (failed)
-    return <MapUnavailable {...{ label, description, line, className }} />;
+    return (
+      <MapUnavailable
+        {...{ label, description, line, heightClassName, className }}
+      />
+    );
 
   return (
     <div className={`relative ${className}`}>
-      <div className="surface relative overflow-hidden rounded-xl border border-line">
-        <div ref={hostRef} className="h-[clamp(20rem,50vh,34rem)] w-full" />
+      <div className="surface relative overflow-hidden rounded-box border-2 border-line">
+        <div ref={hostRef} className={`${heightClassName} w-full`} />
 
         {mapGeneration === 0 && (
           <p className="absolute inset-0 grid place-items-center text-sm text-ink-muted">
@@ -354,7 +361,7 @@ function PreviewCard({
 }) {
   return (
     <div
-      className="surface-container-lowest pointer-events-none absolute z-20 w-56 -translate-x-1/2 -translate-y-[calc(100%+0.75rem)] overflow-hidden rounded-xl border border-line"
+      className="surface-container-lowest pointer-events-none absolute z-20 w-56 -translate-x-1/2 -translate-y-[calc(100%+0.75rem)] overflow-hidden rounded-xl border-2 border-line"
       style={{ left: x, top: y }}
     >
       {point.image ? (
@@ -398,17 +405,21 @@ function MapUnavailable({
   label,
   description,
   line,
+  heightClassName,
   className,
 }: {
   label: string;
   description: string;
   line: RouteGeometry | null;
+  heightClassName: string;
   className: string;
 }) {
   return (
     <div className={`relative ${className}`}>
-      <div className="surface relative overflow-hidden rounded-xl border border-line">
-        <div className="flex h-[clamp(20rem,50vh,34rem)] w-full flex-col items-center justify-center gap-4 p-6 text-center">
+      <div className="surface relative overflow-hidden rounded-box border-2 border-line">
+        <div
+          className={`flex ${heightClassName} w-full flex-col items-center justify-center gap-4 p-6 text-center`}
+        >
           {line && line.path.length > 1 ? (
             <RouteShape points={line.path} className="h-40 w-full max-w-md" />
           ) : (
@@ -426,7 +437,7 @@ function MapUnavailable({
   );
 }
 
-/* one place's whole appearance, in one function: today's places wear the brand orange, the ones van toen a white dot with a dark ring, and a place that is on the route carries its number */
+/* one place's whole appearance, in one function: today's places wear the brand orange, the ones van toen the brand blue — the same two colours the whole site is built from — and a place that is on the route carries its number */
 function paintDot(
   element: HTMLElement,
   {
@@ -443,7 +454,7 @@ function paintDot(
     "[translate:var(--dot-shift,0_0)]",
     current
       ? "border-white bg-orange-500 text-white"
-      : "border-blue-900 bg-white text-blue-900",
+      : "border-white bg-blue-500 text-white",
     order === null ? "h-4 w-4 text-[11px]" : "h-6 w-6 text-[13px]",
     order !== null || highlighted ? "scale-125" : "",
   ].join(" ");

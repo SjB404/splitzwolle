@@ -6,11 +6,14 @@
 */
 
 import { ROUTES } from "../../src/data/routes.ts";
+import { POINTS_OF_INTEREST } from "../../src/data/pointsOfInterest.ts";
+import { pointsInArea } from "../../src/data/area.ts";
 import {
   HOME_PATH,
-  PLANNING_PATH,
   POI_PATH,
   ROUTES_PATH,
+  builderPath,
+  publicRoutePath,
 } from "../../src/data/navigation.ts";
 
 export {
@@ -46,10 +49,15 @@ export {
   PLANNING_PATH,
   POI_PATH,
   LOGIN_PATH,
+  CUSTOM_ROUTE_PATH,
+  PUBLIC_ROUTE_PATH,
   NAV_LINKS,
   FOOTER_COLUMNS,
   CONTACT_DETAILS,
   isActiveLink,
+  builderPath,
+  publicRoutePath,
+  parsePlaceIds,
 } from "../../src/data/navigation.ts";
 
 export type {
@@ -82,11 +90,6 @@ export const STATIC_PAGES: Page[] = [
     heading: /Stel je route samen/,
   },
   {
-    path: PLANNING_PATH,
-    title: "Stel je route samen · Zwolle Routes",
-    heading: /Stel je route samen/,
-  },
-  {
     path: POI_PATH,
     title: "Bezienswaardigheden in Zwolle · Zwolle Routes",
     heading: /Bezienswaardigheden in Zwolle/,
@@ -98,14 +101,29 @@ export const STATIC_PAGES: Page[] = [
   },
 ];
 
-/* one page per route, derived from the content */
+/* one page per route, derived from the content: a ready-made route has a url of its own */
 export const ROUTE_PAGES: Page[] = ROUTES.map((route) => ({
-  path: `${ROUTES_PATH}/${route.id}`,
+  path: publicRoutePath(route.id),
   title: `${route.title} · Zwolle Routes`,
   heading: route.title,
 }));
 
-export const PAGES: Page[] = [...STATIC_PAGES, ...ROUTE_PAGES];
+/* a built route in the url: the densest the builder gets, and the state worth overflow-checking */
+export const BUILT_ROUTE_PATH = builderPath(
+  pointsInArea(POINTS_OF_INTEREST)
+    .slice(0, 2)
+    .map((point) => point.id),
+);
+
+export const PAGES: Page[] = [
+  ...STATIC_PAGES,
+  ...ROUTE_PAGES,
+  {
+    path: BUILT_ROUTE_PATH,
+    title: "Stel je route samen · Zwolle Routes",
+    heading: /Stel je route samen/,
+  },
+];
 
 /* every url the site serves: a new route or page is overflow-checked and audited without a test edit */
 export const ALL_PATHS = PAGES.map((page) => page.path);
@@ -114,6 +132,6 @@ export const ALL_PATHS = PAGES.map((page) => page.path);
 export const MAP_PATHS = [
   ROUTES_PATH,
   POI_PATH,
-  PLANNING_PATH,
-  `${ROUTES_PATH}/${ROUTES[0].id}`,
+  publicRoutePath(ROUTES[0].id),
+  BUILT_ROUTE_PATH,
 ];

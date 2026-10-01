@@ -1,15 +1,15 @@
 # Test plan — Zwolle Routes
 
-Everything here is machine-run: 573 tests in two suites.
+Everything here is machine-run: 563 tests in two suites.
 
 - **Unit + component tests** — Vitest + jsdom + React Testing Library. `split/split/tests/unit/`.
 - **End-to-end tests** — Playwright + Chromium against a real dev server. `split/split/tests/e2e/`.
 
 | Suite                 | Files | Tests                                                                 | Time   |
 | --------------------- | ----- | --------------------------------------------------------------------- | ------ |
-| Unit + component      | 28    | 454                                                                   | ~14 s  |
-| End-to-end            | 9     | 119                                                                   | ~3 min |
-| Coverage (unit suite) | —     | 97.4 % statements · 93.8 % branches · 96.8 % functions · 98.5 % lines | —      |
+| Unit + component      | 27    | 454                                                                   | ~14 s  |
+| End-to-end            | 8     | 109                                                                   | ~4 min |
+| Coverage (unit suite) | —     | 96.9 % statements · 94.1 % branches · 96.1 % functions · 97.9 % lines | —      |
 
 ## How the suite survives a change
 
@@ -28,8 +28,7 @@ This is the property that matters most, so it is a design rule rather than an ac
    components, so renaming a label fails a test on purpose. The few strings that are repeated across
    specs are the ones a rename will point at.
 4. **Tags let the suite be run in slices.** Every e2e group carries one:
-   `@smoke` · `@nav` · `@builder` · `@list` · `@poi` · `@route` · `@planner` · `@theme` ·
-   `@layout` · `@a11y`.
+   `@smoke` · `@nav` · `@builder` · `@list` · `@poi` · `@route` · `@theme` · `@layout` · `@a11y`.
 5. **Nothing is asserted that the environment cannot provide.** The maps key is off in both suites, a
    fake google api covers the API surface the map component uses, and the live tiles are the one thing
    left to the browser by hand.
@@ -163,28 +162,37 @@ account links, the mobile menu) and `Footer` (the landmark, the groups, the cont
 
 ### 3. Unit — sections
 
-`RouteFilters`, `RouteResults` (a page of results, "Toon meer", the empty state), `PoiFilters`,
-`PoiResults`, `PoiCard`, `PoiPicker`, `RoutePlanSummary` (the hint under two places, the stop list,
-the three status lines, the Google Maps link), `SavedRouteList`, `PlanSummary`, `RouteFacts`,
-`RouteStops`, `RouteStory`, `RouteSummary`, `RatingBreakdown`, `ReviewCard`, `ReviewForm` (the live
-figure, the step, and a submit that stores nothing), `RouteReviews` and `RelatedRoutes`.
+`RouteFilters` (the search box and four selects in **one row**, with the live count), `RouteResults`
+(a page of results, "Toon meer", the empty state), `RouteOverviewCard` (the wide card: title, two-line
+description, stars, and the two actions — the title loads the route into the builder, the arrow opens
+the dialog), `RouteDialog` (the platform's `<dialog>`: opens, closes, clears on escape, holds the route
+detail page's own sections), `RouteShareButton` (the placeholder), `PoiFilters`, `PoiResults`,
+`PoiCard`, `PoiPicker`, `RoutePlanSummary` (the hint under two places, the stop list, the three status
+lines, the Google Maps link), `RouteFacts`, `RouteStops`, `RouteStory`, `RouteSummary`,
+`RatingBreakdown`, `ReviewCard`, `ReviewForm` (the live figure, the step, and a submit that stores
+nothing), `RouteReviews` (content only, no band of its own) and `RouteReviewsPanel` (closed on the
+average and the count, opened by one button with `aria-expanded`).
 
 ### 4. Unit — pages and the app
 
 - `HomePage` — the hero, the slider's default position and its two words, three route cards and five
   place tiles, both search bars (including their empty states), the strip links.
-- `RoutesPage` — the place picker, the map chip, the ready-made list, a filter narrowing and
-  collapsing the list, the reset, picking places (the summary, the numbering, the estimate), the mode
-  switch, clearing, and `?plek=` from a url (including an id that does not exist).
+- `RoutesPage` — three urls, one page, rendered through the **real router** (the url is the state, so a
+  bare `MemoryRouter` would hand the page no parameters at all): the builder (the picker, the map chip,
+  the mode switch, the summary and the estimate, the share action waiting for a second place), the
+  ready-made list (a filter narrowing and collapsing it, the reset, a card's title loading that route's
+  places and writing them to the url, the bookmark saving and unsaving into `localStorage`, the
+  ownership filter narrowing to them), the built-route url (places seeded, an id that does not exist
+  ignored, the Google Maps link in visit order), and a route's own url (its title, trail, theme, area,
+  the builder seeded from it, a bicycle route opening on a bicycle, the reviews folded away until asked
+  for, and an unknown id landing on the 404).
 - `PointsOfInterestPage` — the list, a category chip, the search, the three sorts, the reset, the
   selection renaming the map chip, the highlight dropping when the place is filtered away.
-- `RouteDetailPage` — the header, the crumb, the facts, the story, the stops, the reviews and the
-  related strip for the first route; every route renders; an unknown id gets its own 404.
-- `PlanningPage` — the saved set, the totals, unticking, the empty planning, the links.
 - `NotFoundPage` — the default wording, its own wording, the tab title.
 - `App` — the **real** router: the pages the paths in `data/navigation.ts` point at, every route's own
-  page, the catch-all, the account path (which has no page — pinned), and `ScrollToTop` in both of its
-  modes (the top, and a hash target).
+  `/routes/public/<id>` page, a route's old `/routes/<id>` url redirected to it, the built-route url, the
+  catch-all, the account path (which has no page — pinned), `/planning` redirecting to the builder, and
+  `ScrollToTop` in both of its modes (the top, and a hash target).
 
 ### 5. End-to-end — the site in a browser
 
@@ -202,46 +210,48 @@ figure, the step, and a submit that stores nothing), `RouteReviews` and `Related
   repainting.
 - `routes.spec.ts` (`@builder`, `@list`) — every place in the area is offered as a chip with the right
   era grouping; two places build a route (numbered, summarised, estimated, cleared, shareable by url);
-  the mode switch; and the facet sweep, which walks **every option of every filter select** and
-  compares the cards on screen with what `filterRoutes` says, plus the live count.
+  the mode switch; the facet sweep, which walks **every option of every filter select** (ownership
+  included) and compares the cards on screen with what `filterRoutes` says, plus the live count; the
+  filters sitting beside the search box; **every card's title loading its places into the builder** and
+  its arrow opening the route's own page; the route's own page (title, trail, seeded builder, reviews
+  folded out and back, an unknown id on the 404); the share action **copying the route's url** through
+  the real clipboard, and staying disabled until there are two places.
 - `points-of-interest.spec.ts` (`@poi`) — the count, every category chip (compared with
   `filterPointsOfInterest`), the search on name/area/category, the three sorts compared with the
   module's order, the selection renaming the map chip, the highlight dropping, the reset, the hand-off
   into the builder.
-- `route-detail.spec.ts` (`@route`) — the first route's header, crumb, facts, story, stops, reviews,
-  breakdown and related strip, all computed from the data; the review slider by keyboard and a submit
-  that stays on the page.
-- `planning.spec.ts` (`@planner`) — the planner's saved set is **read off the page** and mapped back to
-  the data, then the totals are recomputed from `PACE_KM_PER_HOUR`; unticking, re-ticking, emptying,
-  the pace note, the links, and the account page that does not exist (pinned).
 - `responsive.spec.ts` (`@layout`) — no horizontal overflow on **every url the app serves** at 320 /
   390 / 768 / 1024 / 1440 / 1920, in the dark palette too; the footer below the content; no box shadow
-  anywhere.
+  anywhere; **one corner** on every card, chip, field, field control, action and menu of every page
+  (read as a computed style, not a baseline); a control beside a field sharing the field control's own
+  height, top and bottom; a full-width mobile menu row staying inside its column at 320px.
 - `a11y.spec.ts` (`@a11y`) — on **every url**: one `h1`, every image with alt text or hidden, every
   link/button with an accessible name, every field with a label, no duplicate id, heading levels that
-  do not skip (with the one pinned exception below), and the shell's landmarks.
+  do not skip (the allowance map is empty: the builder's band carries the `h2` the picker's `h3` groups
+  need), and the shell's landmarks.
 
 ## What is deliberately not covered
 
 | Not covered                                                    | Why, and what covers it instead                                                                                                                                                                                                                                              |
 | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | The live Google Maps tiles, the real Places/Routes/Static APIs | They need a key, a billing account and a quota; the automated suite runs without one. `googleMaps.ts`'s logic is covered against a fake api, the component's map-building path against a fake map, and the fallback in both suites. The live map is checked by hand at 5173. |
-| Pixel-level appearance                                         | No screenshot baselines: they are device- and font-dependent, and this repo's visual rules (no gradients, no shadows, the card ratios, both palettes) are asserted as computed style and DOM invariants instead.                                                             |
-| The Express backend                                            | `backend/index.mjs` is a collaborator's stub with no endpoints yet, and it needs MySQL.                                                                                                                                                                                      |
+| Pixel-level appearance                                         | No screenshot baselines: they are device- and font-dependent, and this repo's visual rules (no gradients, no shadows, the one corner, the card ratios, both palettes) are asserted as computed style and DOM invariants instead.                                                             |
+| The Express backend                                            | `backend/index.mjs` is a collaborator's stub with no endpoints yet, and it needs MySQL. `docs/BACKEND.md` is the full list of what is still front-of-house only.                                                                                                             |
 | Real reduced-motion behaviour                                  | Motion runs at its defaults; the OS preference is a `MotionConfig` feature of the app, not something a test can fake convincingly.                                                                                                                                           |
 
 ## Traps the suite encodes (learned while writing it)
 
-| Trap                                                                                               | What the tests do about it                                                                                                                         |
-| -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A card that leaves a motion grid stays in the DOM until its fade ends.                             | Counts after a list change are awaited: `waitFor` in vitest, `toHaveCount` (which retries) in Playwright.                                          |
-| BeerCSS paints a decorative `<span>` over its checkbox, so a click on the input is intercepted.    | The e2e helper clicks the `<label>` that wraps both, which the browser resolves to the control.                                                    |
-| Playwright's `getByText` is a _substring_ match.                                                   | Counts and labels are asserted with `{ exact: true }` or scoped to a `.chip` / a `dl` — the map's sr-only description repeats the visible strings. |
-| `toHaveURL` with a regex is matched against the whole url, anchors included.                       | Url patterns are relative strings or unanchored regexes.                                                                                           |
-| A fake class named `Map` shadows the global `Map` inside its own body.                             | The fake api's classes are named `StubMap` / `StubPolyline` / `StubBounds` / `StubMarker`.                                                         |
-| `m` (motion) components need `LazyMotion`; `Link` needs a router.                                  | `tests/unit/motionProvider.tsx` and the `renderWithMotion` / `renderWithRouter` helpers.                                                           |
-| jsdom has no `matchMedia`, no persistent `<body>` class, and neither scroll function.              | `tests/setup.ts` stubs all four.                                                                                                                   |
-| jest-dom's `toBeCloseTo(x, digits)` takes digits, not a tolerance; `(2.65).toFixed(1)` is `"2.6"`. | The geometry tests use bounds and digits, never a tolerance.                                                                                       |
+| Trap                                                                                                 | What the tests do about it                                                                                                                         |
+| ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A card that leaves a motion grid stays in the DOM until its fade ends.                               | Counts after a list change are awaited: `waitFor` in vitest, `toHaveCount` (which retries) in Playwright.                                          |
+| BeerCSS paints a decorative `<span>` over its checkbox, so a click on the input is intercepted.      | The e2e helper clicks the `<label>` that wraps both, which the browser resolves to the control.                                                    |
+| Playwright's `getByText` is a _substring_ match.                                                     | Counts and labels are asserted with `{ exact: true }` or scoped to a `.chip` / a `dl` — the map's sr-only description repeats the visible strings. |
+| An `evaluate`/`evaluateAll` callback runs **in the browser**, so it cannot see the spec's variables. | The value is handed over as an argument (`evaluateAll(fn, PREFIX)`); a bare closure throws `ReferenceError: … is not defined` at run time.         |
+| `toHaveURL` with a regex is matched against the whole url, anchors included.                         | Url patterns are relative strings or unanchored regexes.                                                                                           |
+| A fake class named `Map` shadows the global `Map` inside its own body.                               | The fake api's classes are named `StubMap` / `StubPolyline` / `StubBounds` / `StubMarker`.                                                         |
+| `m` (motion) components need `LazyMotion`; `Link` needs a router.                                    | `tests/unit/motionProvider.tsx` and the `renderWithMotion` / `renderWithRouter` helpers.                                                           |
+| jsdom has no `matchMedia`, no persistent `<body>` class, and neither scroll function.                | `tests/setup.ts` stubs all four.                                                                                                                   |
+| jest-dom's `toBeCloseTo(x, digits)` takes digits, not a tolerance; `(2.65).toFixed(1)` is `"2.6"`.   | The geometry tests use bounds and digits, never a tolerance.                                                                                       |
 
 ## Changing things — what happens when you do
 
@@ -259,11 +269,12 @@ figure, the step, and a submit that stores nothing), `RouteReviews` and `Related
 
 ## Findings (things the suite documents as current behaviour)
 
-| #   | Finding                                                                                                                                                      | Test that pins it                                        |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------- |
-| 1   | `/inloggen` has **no route** in `App.tsx`, so the navbar avatar, the footer's Account column and `PlanSummary`'s `"Route opslaan"` all land on the 404 page. | `app.test.tsx`, `navigation.spec.ts`, `planning.spec.ts` |
-| 2   | On the builder, the picker's `h3` sits directly under the page's `h1` with the section's `h2` below it — the one heading-level skip in the app.              | `a11y.spec.ts`                                           |
-| 3   | `RatingBreakdown` prints `"1 beoordelingen"` for a single review (no singular form).                                                                         | `ratingBreakdown.test.tsx`                               |
-| 4   | `ReviewForm` only prevents the default: a submitted review is not stored anywhere.                                                                           | `reviewForm.test.tsx`, `route-detail.spec.ts`            |
-| 5   | The strips and the results list show a slice (3 / 5 / 6) while the live count reports every match.                                                           | `homePage.test.tsx`, `routes.spec.ts`                    |
-| 6   | The results list collapses when a filter changes, so "Toon meer" cannot leave the reader on a list nobody asked for.                                         | `routesPage.test.tsx`, `routes.spec.ts`                  |
+| #   | Finding                                                                                                                                          | Test that pins it                              |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------- |
+| 1   | `/inloggen` has **no route** in `App.tsx`, so the navbar avatar and the footer's Account column both land on the 404 page.                       | `app.test.tsx`, `navigation.spec.ts`           |
+| 2   | The share button copies the route's url and nothing more: there is no stored route behind it, so the link stops working if the places change.    | `routeShareButton.test.tsx`, `routes.spec.ts`  |
+| 3   | `RatingBreakdown` prints `"1 beoordelingen"` for a single review (no singular form).                                                             | `ratingBreakdown.test.tsx`                     |
+| 4   | `ReviewForm` only prevents the default: a submitted review is not stored anywhere.                                                               | `reviewForm.test.tsx`, `routeReviews.test.tsx` |
+| 5   | The strips and the results list show a slice (3 / 5 / 6) while the live count reports every match.                                               | `homePage.test.tsx`, `routes.spec.ts`          |
+| 6   | The results list collapses when a filter changes, so "Toon meer" cannot leave the reader on a list nobody asked for.                             | `routesPage.test.tsx`, `routes.spec.ts`        |
+| 7   | A saved route lives only in this browser (`localStorage`), so it does not follow the reader anywhere. `docs/BACKEND.md` lists what is behind it. | `routes.test.tsx`, `routes.spec.ts`            |

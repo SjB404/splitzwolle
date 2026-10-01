@@ -2,6 +2,7 @@ import { screen } from "@testing-library/react";
 import RouteCard from "../../../src/shared/content/routeCard.tsx";
 import RouteGrid from "../../../src/shared/content/routeGrid.tsx";
 import { ROUTES } from "../../../src/data/routes.ts";
+import { publicRoutePath } from "../../../src/data/navigation.ts";
 import { renderWithRouter } from "../helpers.tsx";
 
 const POPULAR = ROUTES.find((route) => route.popular)!;
@@ -19,7 +20,7 @@ describe("RouteCard", () => {
 
     expect(screen.getByRole("link", { name: POPULAR.title })).toHaveAttribute(
       "href",
-      `/routes/${POPULAR.id}`,
+      publicRoutePath(POPULAR.id),
     );
     expect(
       screen.getByRole("heading", { level: 3, name: POPULAR.title }),

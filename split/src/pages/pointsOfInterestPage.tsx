@@ -42,11 +42,7 @@ export default function PointsOfInterestPage() {
 
   return (
     <>
-      <PageHeader
-        eyebrow="Points of Interest"
-        title="Bezienswaardigheden in Zwolle"
-        description="Van middeleeuwse poorten tot de beste lunchplekken van de stad. Filter op categorie en zet een plek op de kaart."
-      />
+      <PageHeader title="Bezienswaardigheden in Zwolle" />
 
       <section className="py-band">
         <Container>

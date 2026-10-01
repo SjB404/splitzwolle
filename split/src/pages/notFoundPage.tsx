@@ -2,6 +2,7 @@
 
 import { Link } from "react-router-dom";
 import PageHeader from "../shared/layout/pageHeader.tsx";
+import Container from "../shared/layout/container.tsx";
 import { HOME_PATH, ROUTES_PATH } from "../data/navigation.ts";
 
 /* both props are optional: the route page caller passes wording of its own */
@@ -19,14 +20,14 @@ export default function NotFoundPage({
       <PageHeader eyebrow="404" title={title} description={description} />
 
       <section className="py-band">
-        <div className="mx-auto flex max-w-[100rem] flex-wrap gap-3 px-gutter">
+        <Container className="flex flex-wrap gap-3">
           <Link to={HOME_PATH} className="button ripple">
             Terug naar home
           </Link>
           <Link to={ROUTES_PATH} className="button border text-ink ripple">
             Alle routes bekijken
           </Link>
-        </div>
+        </Container>
       </section>
     </>
   );

@@ -1,19 +1,26 @@
-/* the overview: build a route out of the places, or take a ready-made one — the page owns the filters, the picked places, the way of travelling and whether the list is expanded, because its sections share them */
+/* the overview: build a route out of the places, or take a ready-made one — the url *is* the state, so a built
+   route and a ready-made one are both shareable links and the back button always works */
 /* the filters are state and not url parameters: they are a view of one list, not a destination */
 
 import { useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import Breadcrumb from "../shared/layout/breadcrumb.tsx";
 import Container from "../shared/layout/container.tsx";
 import PageHeader from "../shared/layout/pageHeader.tsx";
 import SectionHeading from "../shared/layout/sectionHeading.tsx";
+import Icon from "../shared/primitives/icon.tsx";
+import StarRating from "../shared/primitives/starRating.tsx";
 import AreaMap from "../shared/map/areaMap.tsx";
 import MapLegend from "../shared/map/mapLegend.tsx";
 import type { MapLegendItem } from "../shared/map/mapLegend.tsx";
 import { usePlannedRoute } from "../shared/map/usePlannedRoute.ts";
+import NotFoundPage from "./notFoundPage.tsx";
 import PoiPicker from "../sections/routes/poiPicker.tsx";
 import RouteFilters from "../sections/routes/routeFilters.tsx";
 import RoutePlanSummary from "../sections/routes/routePlanSummary.tsx";
 import RouteResults from "../sections/routes/routeResults.tsx";
+import RouteReviewsPanel from "../sections/routes/routeReviewsPanel.tsx";
+import RouteShareButton from "../sections/routes/routeShareButton.tsx";
 import { AREA_NAME, pointsInArea } from "../data/area.ts";
 import {
   POINTS_OF_INTEREST,
@@ -21,11 +28,16 @@ import {
 } from "../data/pointsOfInterest.ts";
 import {
   INITIAL_ROUTE_FILTERS,
+  ROUTES,
   filterRoutes,
   hasActiveRouteFilters,
 } from "../data/routes.ts";
+import { ROUTES_PATH, builderPath, parsePlaceIds } from "../data/navigation.ts";
+import { useSavedRouteIds, toggleSavedRoute } from "../data/savedRoutes.ts";
+import { formatRating } from "../format.ts";
 import type {
   PointOfInterest,
+  Route,
   RouteFilterState,
   TravelMode,
 } from "../types.ts";
@@ -41,19 +53,40 @@ const AREA_MAP_LEGEND: MapLegendItem[] = [
 ];
 
 export default function RoutesPage() {
+  const navigate = useNavigate();
+  /* the two url shapes this page answers: /routes/custom/<ids> and /routes/public/<id> (see data/navigation.ts) */
+  const { placeIds, routeId } = useParams<{
+    placeIds?: string;
+    routeId?: string;
+  }>();
   const [filters, setFilters] = useState(INITIAL_ROUTE_FILTERS);
   const [showAll, setShowAll] = useState(false);
-  /* the ids are the state and the places are looked up, so a picked place can never go stale in the data */
-  const [searchParams] = useSearchParams();
-  /* places handed over from the places overview arrive in the url (?plek=peperbus), so the link can be shared and the back button works */
-  const [pickedIds, setPickedIds] = useState<string[]>(() =>
-    searchParams
-      .getAll("plek")
-      .filter((id) => getPointOfInterest(id) !== undefined),
-  );
-  const [mode, setMode] = useState<TravelMode>("walking");
+  /* the way of travelling is the reader's own choice; until they make one, a bicycle route opens in bicycle mode, so the numbers on arrival are the ones the route was made for */
+  const [chosenMode, setChosenMode] = useState<TravelMode | null>(null);
+  /* the reader's own saved routes live in the browser, so the page reads them as state and passes them on */
+  const savedIds = useSavedRouteIds();
 
-  const results = useMemo(() => filterRoutes(filters), [filters]);
+  /* a ready-made route is in the url by id, a built one by its places — both are read here, never stored */
+  const publicRoute = routeId
+    ? (ROUTES.find((route) => route.id === routeId) ?? null)
+    : null;
+  const pickedIds = useMemo(
+    () =>
+      publicRoute
+        ? publicRoute.poiIds
+        : parsePlaceIds(placeIds).filter(
+            (id) => getPointOfInterest(id) !== undefined,
+          ),
+    [publicRoute, placeIds],
+  );
+
+  const results = useMemo(
+    () => filterRoutes(filters, savedIds),
+    [filters, savedIds],
+  );
+
+  const mode =
+    chosenMode ?? (publicRoute?.theme === "Fiets" ? "bicycling" : "walking");
 
   const pickedPoints = useMemo(
     () =>
@@ -71,16 +104,23 @@ export default function RoutesPage() {
     [pickedIds],
   );
 
+  /* every change of the picked places is a url change, which is what makes the share button, a copied link and
+     the back button agree without anything being synced by hand */
+  function setPicked(next: string[]) {
+    navigate(next.length > 0 ? builderPath(next) : ROUTES_PATH);
+  }
+
   function togglePoint(id: string) {
-    setPickedIds((current) =>
-      current.includes(id)
-        ? current.filter((item) => item !== id)
-        : [...current, id],
+    setPicked(
+      pickedIds.includes(id)
+        ? pickedIds.filter((item) => item !== id)
+        : [...pickedIds, id],
     );
   }
 
-  function clearPicked() {
-    setPickedIds([]);
+  /* a ready-made route goes into the builder as a custom one: its places, in visit order */
+  function buildFromRoute(route: Route) {
+    setPicked(route.poiIds);
   }
 
   /* a filter change collapses the list, so "Toon meer" cannot leave the reader on a list nobody asked for */
@@ -94,45 +134,101 @@ export default function RoutesPage() {
     setShowAll(false);
   }
 
+  /* an id that is not in the data is a dead link, and says so */
+  if (routeId && !publicRoute) {
+    return (
+      <NotFoundPage
+        title="Route niet gevonden"
+        description="Deze route bestaat niet (meer). Bekijk alle routes om er een te kiezen."
+      />
+    );
+  }
+
   return (
     <>
-      <PageHeader
-        eyebrow="Routes"
-        title="Stel je route samen"
-        description={`Kies de plekken die je wilt zien en zie de route ontstaan, allemaal binnen ${AREA_NAME}. Liever iets kant-en-klaars? Kies dan hieronder een van de routes.`}
-      />
+      {publicRoute ? (
+        <PageHeader
+          breadcrumb={
+            <Breadcrumb
+              to={ROUTES_PATH}
+              label="Alle routes"
+              current={publicRoute.title}
+            />
+          }
+          eyebrow={publicRoute.theme}
+          title={publicRoute.title}
+          description={publicRoute.description}
+        >
+          <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
+            <span className="inline-flex items-center gap-2 text-sm text-ink-muted">
+              <Icon name="place" className="text-base" />
+              {publicRoute.area}
+            </span>
+            <span className="inline-flex items-center gap-2 text-sm text-ink-muted">
+              <StarRating value={publicRoute.rating} />
+              {formatRating(publicRoute.rating)} · {publicRoute.reviews}{" "}
+              beoordelingen
+            </span>
+          </div>
+        </PageHeader>
+      ) : (
+        <PageHeader title="Stel je route samen" />
+      )}
 
       <section className="py-band">
-        <Container className="grid gap-y-10 lg:gap-x-20">
-          <div className="s12 l5">
+        <Container className="grid gap-y-8 lg:gap-x-8">
+          {/* the picker's groups are h3, so the band owes them an h2: a page may not jump a heading level */}
+          <div className="s12">
+            <SectionHeading
+              title={publicRoute ? "Deze route op de kaart" : "Bouw je route"}
+              description={
+                publicRoute
+                  ? "De plekken van deze route staan al in de kaart. Haal er een weg of zet er een bij om je eigen versie te maken."
+                  : `Kies de plekken die je wilt zien, in de volgorde die jij wilt — alles binnen ${AREA_NAME}.`
+              }
+            />
+          </div>
+
+          <div className="s12 l4">
             <PoiPicker
               points={AREA_POINTS}
               pickedIds={pickedIds}
               mode={mode}
               onToggle={togglePoint}
-              onModeChange={setMode}
-              onReset={clearPicked}
+              onModeChange={setChosenMode}
+              onReset={() => setPicked([])}
             />
 
-            <RoutePlanSummary plan={plan} onReset={clearPicked} />
+            <RoutePlanSummary plan={plan} onReset={() => setPicked([])} />
           </div>
 
-          <div className="s12 l7">
-            <AreaMap
-              points={AREA_POINTS}
-              line={plan}
-              order={order}
-              onClickPoint={togglePoint}
-              clickHint="Klik om deze plek aan je route toe te voegen"
-              label={
-                pickedIds.length > 0
-                  ? `${pickedIds.length} van ${AREA_POINTS.length} plekken`
-                  : `${AREA_POINTS.length} plekken in de binnenstad`
-              }
-              description={`Kaart van ${AREA_NAME} met ${AREA_POINTS.length} plekken. De gekozen plekken en hun volgorde staan in de lijst naast de kaart.`}
-            />
+          <div className="s12 l8">
+            {/* relative, so the share action can sit in the map's own corner */}
+            <div className="relative">
+              <AreaMap
+                points={AREA_POINTS}
+                line={plan}
+                order={order}
+                onClickPoint={togglePoint}
+                clickHint="Klik om deze plek aan je route toe te voegen"
+                heightClassName="h-[clamp(24rem,56vh,40rem)]"
+                label={
+                  pickedIds.length > 0
+                    ? `${pickedIds.length} van ${AREA_POINTS.length} plekken`
+                    : `${AREA_POINTS.length} plekken in de binnenstad`
+                }
+                description={`Kaart van ${AREA_NAME} met ${AREA_POINTS.length} plekken. De gekozen plekken en hun volgorde staan in de lijst naast de kaart.`}
+              />
+
+              {/* the map's own street-view control lives in its bottom-right corner, so the share action takes the corner above the chip instead */}
+              <div className="absolute right-4 top-4 z-20">
+                <RouteShareButton placeIds={pickedIds} />
+              </div>
+            </div>
 
             <MapLegend items={AREA_MAP_LEGEND} />
+
+            {publicRoute && <RouteReviewsPanel route={publicRoute} />}
           </div>
         </Container>
       </section>
@@ -142,26 +238,28 @@ export default function RoutesPage() {
           <SectionHeading
             eyebrow="Kant-en-klaar"
             title="Routes door de binnenstad"
-            description="Rondjes die anderen al liepen of fietsten, met dezelfde plekken als hierboven."
+            description="Rondjes die anderen al liepen of fietsten, met dezelfde plekken als hierboven. Klik een titel om hem in de bouwer te zetten, of het pijltje voor de hele route."
           />
 
-          <div className="mt-10">
-            {/* onReset stays undefined while nothing is filtered, which is how "Filters wissen" stays away */}
-            <RouteFilters
-              filters={filters}
-              matchCount={results.length}
-              onFilterChange={updateFilter}
-              onReset={
-                hasActiveRouteFilters(filters) ? resetFilters : undefined
-              }
-            />
-          </div>
+          {/* the search box first, then the four filters beside it: one row, so the list below is what the eye lands on */}
+          <RouteFilters
+            filters={filters}
+            matchCount={results.length}
+            onFilterChange={updateFilter}
+            /* onReset stays undefined while nothing is filtered, which is how "Filters wissen" stays away */
+            onReset={hasActiveRouteFilters(filters) ? resetFilters : undefined}
+          />
 
           <RouteResults
             routes={results}
             showAll={showAll}
             onShowAll={() => setShowAll(true)}
             onReset={resetFilters}
+            onBuild={buildFromRoute}
+            savedIds={savedIds}
+            onToggleSave={(route) => {
+              toggleSavedRoute(route.id);
+            }}
           />
         </Container>
       </section>

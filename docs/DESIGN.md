@@ -7,7 +7,7 @@ The single source of truth for the visual language of this project.
 > holds the distilled Material 3 spec (component metrics, motion, accessibility). This file is
 > what the project _decided_; where the two differ, §16 says so and why.
 
-> Last updated: 2026-09-25
+> Last updated: 2026-10-01
 
 > **Keep this file current, automatically.** Any change that touches something written down here —
 > a token, a role, a recipe, a class, a path, a name, a rule, a number — updates this file in the
@@ -73,9 +73,14 @@ Three pieces, and the order between them matters:
 - `overrides` sits **first**, which for `!important` declarations means **last word** (the cascade
   inverts for important rules). It is the one place a framework rule is taken back, and every rule
   in it carries the flag — a normal declaration there would be the weakest in the file. Today it
-  holds four things: **one boundary for every outlined control** (a field, an outlined button and
-  an unselected filter chip — §7), the two things BeerCSS gets wrong in the **map slider**, and the
-  framework-wide **shadow switch-off**.
+  holds seven things: **the 2px boundary** (§5, §7) — every outlined control, every card and panel,
+  and the floating label's notch, all widened from BeerCSS's 1px _without moving the text_; **the one
+  corner** — `--radius-box` on every box, because beerCSS ships four radii (§5); the three
+  rules that make a **chosen filter's brand fill readable** (§7); the rule that keeps a long
+  **`<select>` value on one line** (BeerCSS's `all: unset` drops the browser's own `white-space`), plus
+  the trimmed trailing slot that makes room for it; the two things BeerCSS gets wrong in the **map
+  slider**; **a button is a border box** — beerCSS draws it `content-box`, so a full-width row used to
+  measure 100% of its column _plus_ its own padding (§6); and the framework-wide **shadow switch-off**.
 
 Practical consequences:
 
@@ -99,7 +104,7 @@ Tailwind utility of the same name:
 | --------------------------------------------- | --------------------------------------------------------- | ------------------- | ------------------------------------------------------------------------------------------- |
 | `grid`                                        | 12-column grid (`grid-template-columns: repeat(12, 1fr)`) | `display: grid`     | Use BeerCSS `.grid` + `.s12/.m6/.l4`. Never write a bare Tailwind `grid` with `grid-cols-*` |
 | `fixed`                                       | `position: sticky` app-bar behaviour                      | `position: fixed`   | Use `sticky top-0 z-50` on the header; never `fixed`                                        |
-| `border`                                      | outlined variant of a component                           | `border-width: 1px` | Fine together, but the component's own meaning wins                                         |
+| `border`                                      | outlined variant of a component                           | `border-width: 1px` | Fine together, but the component's own meaning wins; the project draws the line at 2px (§5) |
 | `shadow`                                      | bottom shadow helper                                      | box-shadow          | Prefer `.elevate` / `.medium-elevate` / `.large-elevate`                                    |
 | `transparent`, `fill`, `circle`, `max`, `row` | BeerCSS component states/helpers                          | –                   | BeerCSS only — safe                                                                         |
 
@@ -113,7 +118,7 @@ Tailwind utility of the same name:
   (a Tailwind utility, so it wins) takes it back.
 - `nav > :is(ol, ul) > li` also `all: unset`s the items, so a list that _is_ meant to be a nav
   menu never inherits anything by accident.
-- `* { border-radius: inherit }` is on **every element**, so a `border-t` divider inside a 12px
+- `* { border-radius: inherit }` is on **every element**, so a `border-t` divider inside a 2rem
   card is painted as the top edge of a rounded box and curves away from the card's straight edges.
   A divider is a line: give it `rounded-none` (§7).
 
@@ -239,7 +244,7 @@ Five rules make that work — each exists because ignoring it produced a colour 
 | `blue-900`                  | `#0b0d2b`             | Light-theme body text (18:1 on paper)                                                                                               |
 | `navy-600` … `navy-950`     | `#23283f` … `#050713` | The dark theme's canvases, cards, bands and bar — the deep blue with a third of its chroma removed                                  |
 | `sand-200`                  | `#ffede2`             | The light canvas — the warmer section between the white bands                                                                       |
-| `haze-300`                  | `#cfd2e2`             | Every hairline in the light theme                                                                                                   |
+| `haze-300`                  | `#cfd2e2`             | Every 2px hairline in the light theme                                                                                               |
 
 ### The balance: light is orange-filled, dark is orange-written
 
@@ -373,7 +378,7 @@ Two families, loaded from Google Fonts in `index.html`. Do not add a third.
 | Page `h1`          | `text-headline font-bold`                                       | Fluid: `clamp(1.875rem, 2.6vw + 0.9rem, 3.25rem)`                                                                          |
 | Section `h2`       | `text-title font-bold`                                          | Fluid: `clamp(1.625rem, 1.5vw + 1rem, 2.5rem)`                                                                             |
 | Card `h3`          | `text-xl font-bold`                                             |                                                                                                                            |
-| Body copy          | `text-[15px] leading-relaxed text-ink-muted`                    | Cap prose at `max-w-md`–`max-w-2xl`                                                                                        |
+| Body copy          | `text-[15px] leading-relaxed text-ink-muted`                    | Cap prose at `max-w-md`–`max-w-2xl`; **justified** (see below)                                                             |
 | Small body / meta  | `text-sm text-ink-muted`                                        |                                                                                                                            |
 | Micro / label      | `text-xs text-ink-muted`                                        |                                                                                                                            |
 | Accent link / icon | `text-accent`                                                   | Never `text-orange-500` — it is a fill tone                                                                                |
@@ -382,6 +387,11 @@ Two families, loaded from Google Fonts in `index.html`. Do not add a third.
 | Icon               | `text-base` / `text-xl`                                         | Material Symbols are sized by `font-size`                                                                                  |
 
 ### Type rules
+
+**Body copy is justified.** Every `p` is `text-align: justify` with `hyphens: auto` (`index.css`): the
+copy sits in wide columns, and the ragged right edge was the widest thing on the page. `lang="nl"`
+on `<html>` is what makes the hyphenation Dutch. Headings, labels and the words on controls keep
+their own edges, and a line that does not wrap is untouched by justification.
 
 1. **Montserrat for headings only.** Body copy, buttons, labels and chips are Inter.
 2. Headings inherit Montserrat from the base rule — you only need `font-display` to give a
@@ -398,23 +408,29 @@ Two families, loaded from Google Fonts in `index.html`. Do not add a third.
 
 **Spacing**
 
-| Purpose                 | Classes                                                                                                                                                                                                                 |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Page gutter             | `px-gutter` — `clamp(1.25rem, 2.4vw, 2.5rem)`                                                                                                                                                                           |
-| Content max width       | `max-w-[100rem]` (1600px) on the inner container                                                                                                                                                                        |
-| Section vertical rhythm | `py-band` — `clamp(3rem, 6.5vw, 5rem)` for every content section; the **hero band** trades it for `py-hero` (`clamp(0.75rem, 1.6vw, 1.5rem)`), because that band is one screen tall and the map is what the room is for |
-| Grid gutter             | `gap-6` on BeerCSS's `.grid` (see §6 — the gap is multiplied by 11)                                                                                                                                                     |
-| Card inner padding      | `p-5` (the `article` itself is `no-padding` so the artwork can bleed)                                                                                                                                                   |
-| Stacked element gap     | `gap-3` (buttons), `gap-6` (footer blocks)                                                                                                                                                                              |
+| Purpose                 | Classes                                                                                                                                                                                                               |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Page gutter             | `px-gutter` — `clamp(1rem, 2vw, 2rem)`                                                                                                                                                                                |
+| Content max width       | `max-w-[100rem]` (1600px) on the inner container                                                                                                                                                                      |
+| Section vertical rhythm | `py-band` — `clamp(2rem, 4vw, 3.25rem)` for every content section; the **hero band** trades it for `py-hero` (`clamp(0.5rem, 1.2vw, 1rem)`), because that band is one screen tall and the map is what the room is for |
+| Page header band        | `PageHeader` runs `pt-header pb-band` — `clamp(1.5rem, 2.6vw, 2.5rem)` above the title, so the `h1` sits close to the top bar the way the hero's headline does                                                        |
+| Grid gutter             | `gap-6` on BeerCSS's `.grid` (see §6 — the gap is multiplied by 11)                                                                                                                                                   |
+| Card inner padding      | `p-5` (the `article` itself is `no-padding` so the artwork can bleed)                                                                                                                                                 |
+| Stacked element gap     | `gap-3` (buttons), `gap-6` (footer blocks)                                                                                                                                                                            |
 
-**Shape** — Material 3 shape scale, so most of it comes from the components
+**Shape** — **one corner on every box.** BeerCSS ships four radii (a 2rem round field, a
+1.25rem button, a 0.75rem card, a 0.5rem chip), so a page carried four shape systems at once: a pill
+search bar directly above a rounded rectangle card. The corner is one token, `--radius-box` (2rem),
+applied once in `@layer overrides` (§2) the way the 2px boundary is — a hand-built panel reaches for
+`rounded-box` instead of a one-off utility. A radius wider than half a box is scaled down to half of
+it, which is why a short control still reads as a pill and `.circle` is still a circle:
 
 | Element                         | Source                                                                                                                           |
 | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Buttons, fields, chips, avatars | BeerCSS `.round` / `.circle` — pill and full round                                                                               |
-| Cards, map panels               | BeerCSS `article` (12px) — add `overflow-hidden` so artwork follows the radius; a hand-built panel uses `rounded-xl` (same 12px) |
+| Fields, buttons, chips, badges  | `--radius-box` (2rem) — a short box is a pill                                                                                    |
+| Cards, map panels               | `--radius-box` (2rem) — add `overflow-hidden` so artwork follows the radius; a hand-built panel uses `rounded-box` (2rem)        |
 | Icon buttons                    | BeerCSS `.circle` on a `<button>`                                                                                                |
-| Anything square                 | Never — every surface is rounded                                                                                                 |
+| Anything square                 | Never — nothing here is square                                                                                                   |
 
 **Elevation** — **there is none.** Nothing in the app casts a shadow: shadows are switched off
 framework-wide in `@layer overrides` (§2), because a blurred offset edge reads as a smudge, or as a
@@ -434,8 +450,29 @@ a flat page:
 | Hero artwork             | `large-elevate`                       |
 | Flat / on top of artwork | `no-elevate`, or a solid surface chip |
 
-Outlines are hairline borders in `--outline-variant` (Tailwind `border-haze-300`) or the
-component's own outlined variant (`.border`), never a colored ring.
+**Boundaries are 2px — nothing is thinner.** Material 3 draws a 1px boundary; this project draws the
+same line one step heavier, so a control reads at a glance, on a phone and beside a field. Every
+boundary is widened once, in `@layer overrides` (§2): an **outlined control** takes `--outline` (a
+field's inner control, an outlined button, an unselected filter chip), a **card or panel** takes
+`--outline-variant` — `border-2 border-line` in the markup, or the single `article` rule that gives
+every card the same edge. The field's floating label draws a second line for its notch, so it is
+widened too, and each field's resting padding is set to the value its own focus state already used,
+so the text does not move when the line grows or the field is focused. Never a colored ring, and never
+a line below 2px.
+
+### Native feel
+
+A handful of `@layer base` rules make the page behave like an app rather than a document
+(`index.css`). Each is a platform convention, not a decoration:
+
+| Rule                                             | Why                                                                                   |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| `scrollbar-gutter: stable`                       | the menu, the theme and a short→tall page never shift the layout sideways             |
+| `-webkit-tap-highlight-color: transparent`       | a tap paints no grey flash box — controls answer with their own ripple instead        |
+| `touch-action: manipulation` on controls         | one tap is one action: no double-tap zoom and no 300ms wait                           |
+| `::selection` in `--primary-container`           | a selected run of text wears the brand, not the browser's system blue                 |
+| `text-wrap: balance` on `h1`–`h6`                | a two line headline splits evenly instead of leaving one word on a line of its own    |
+| `-webkit-text-size-adjust: 100%`                 | a phone's landscape reflow cannot inflate the type                                    |
 
 ---
 
@@ -529,9 +566,19 @@ start on the same 20px (mobile) / 32px (desktop) gutter.
 ### Pages & routing
 
 The app is **client-routed** (`react-router-dom` — see §15 for why it was added). `src/App.tsx`
-maps paths to pages and wraps them in `AppLayout` (bar → `main` → footer); the account screen, once
-the collaborator's login lands, is deliberately **outside** that shell. The paths themselves live in
-`src/data/navigation.js`, so the router, the top bar and the footer cannot disagree about a URL.
+maps paths to pages and wraps **every page** in `AppLayout` (bar → `main` → footer); the account
+screen, once the collaborator's login lands, is deliberately **outside** that shell. The paths
+themselves live in `src/data/navigation.ts`, so the router, the top bar and the footer cannot
+disagree about a URL. `/planning` is a `<Navigate to="/routes" replace>` — the planner was folded
+into the builder, and the path only survives so an old link still lands somewhere.
+
+The routes page is the one screen with **three jobs, one per url**: the bare builder at `/routes`, a
+built route at `/routes/custom/<place-ids>` (the places in visit order, in one comma-separated
+segment) and a ready-made route at `/routes/public/<route-id>`. **The url is the state** — the picked
+places, and with them the map, the summary and whether the share action is ready, are read from the
+url and written back to it. That is what makes a built route shareable, what makes the back button
+work, and what lets the share action be a plain copy. An old `/routes/<route-id>` link redirects to
+the public url, and `/planning` to the builder. See §7.
 
 The shell is the only place `<main>` appears, and it carries `p-0`:
 
@@ -547,8 +594,11 @@ The shell is the only place `<main>` appears, and it carries `p-0`:
 </div>
 ```
 
-Every content page opens with `PageHeader` — the hero's band shape without the artwork: eyebrow,
-`h1`, lead paragraph, and whatever the page needs next (`children`). It sets the document title too,
+Every content page opens with `PageHeader` — the hero's band shape without the artwork: the `h1`, an
+optional eyebrow and lead paragraph, an optional breadcrumb, and whatever the page needs next
+(`children`). The builder and the places page keep the **title alone**: their lead was repeating what
+the section headings below already say, and the band reads shorter without it. It sets the document
+title too,
 so a page is named in the tab, in history and for a screen reader.
 
 A page owns its route, the state its sections share, and the order they appear in — not their
@@ -583,9 +633,9 @@ makes "Contact" (`/#contact`) work from any page.
 
 Prefer a BeerCSS component over hand-built styles. These are the canonical shapes, as they appear in
 `src/sections/home/hero.tsx` and the pages around it. The shapes that more than one page needs are already
-components — `MapPanel`, `FilterPanel`, `SearchField`, `SectionSearchBar`, `EmptyState`, `Breadcrumb`,
+components — `FilterPanel`, `SearchField`, `SectionSearchBar`, `EmptyState`, `Breadcrumb`,
 `MapLegend`, `SectionHeading`, `PageHeader`, `RouteGrid`, `MapChip`, `ClearFiltersButton`,
-`Container` — so look for one before writing the markup again (§13).
+`MapSnapshot`, `Container` — so look for one before writing the markup again (§13).
 
 ```jsx
 // The hero band — headline over the map panel, both as wide as the gutter allows. The band
@@ -614,14 +664,14 @@ components — `MapPanel`, `FilterPanel`, `SearchField`, `SectionSearchBar`, `Em
 // `--primary` text, which is only 2.5:1 on white, so it takes the ink colour instead.
 <button type="button" className="border text-ink ripple">Alle routes bekijken</button>
 
-// **One boundary for every outlined control.** A field, an outlined button and an
-// unselected filter chip all draw `1px solid var(--outline)` — Material 3's boundary for
-// each of them. BeerCSS disagrees with itself here (`@layer overrides`, §2): it excludes
-// `.field` from its own outlined rule, so the wrapper fell back to `currentColor` — the
-// ink, i.e. a heavy black ring — while an outlined button got `--outline-variant`, the
-// card hairline, which all but disappears beside it. The control *inside* the field owns
-// the line (`--outline` at rest, `--primary` at 2px on focus), which is also what makes
-// keyboard focus visible.
+// **One boundary for every outlined control — at 2px.** A field, an outlined button and an
+// unselected filter chip all draw the same `--outline` line, one step heavier than Material 3's
+// 1px so a control reads at a glance (§5). BeerCSS disagrees with itself here (`@layer overrides`,
+// §2): it excludes `.field` from its own outlined rule, so the wrapper fell back to `currentColor`
+// — the ink, i.e. a heavy black ring — while an outlined button got `--outline-variant`, the card
+// hairline, which all but disappears beside it. The control *inside* the field owns the line
+// (`--outline` at rest, `--primary` on focus); the 2px width is set once for all of them in the
+// override layer, and the field's resting padding takes its focus padding's value so nothing moves.
 
 // Theme switch — the only stateful control in the header.
 // See src/shared/layout/themeToggle.tsx for the <body> class + localStorage sync.
@@ -688,7 +738,7 @@ components — `MapPanel`, `FilterPanel`, `SearchField`, `SectionSearchBar`, `Em
 </article>
 
 // A divider inside a card needs `rounded-none`: BeerCSS gives *every* element
-// `border-radius: inherit`, so a `border-t` inside a 12px card is painted as the top edge
+// `border-radius: inherit`, so a `border-t` inside a 2rem card is painted as the top edge
 // of a rounded box and peels away from the card's straight edges.
 
 // Chips overlaying artwork
@@ -716,7 +766,7 @@ components — `MapPanel`, `FilterPanel`, `SearchField`, `SectionSearchBar`, `Em
 // whose `color: inherit !important` would take the muted ink away from the quiet word (§2).
 // The input takes the label's whole 40px as its hit area (`[block-size:100%]`): the track it
 // draws is only 16px thick, which is a fiddly thing to hit with a thumb.
-<div className="flex w-full items-center gap-3 border-t border-line px-gutter py-3 sm:w-16 sm:flex-none sm:flex-col sm:gap-1 sm:border-t-0 sm:border-l sm:px-2">
+<div className="flex w-full items-center gap-3 border-t-2 border-line px-gutter py-3 sm:w-16 sm:flex-none sm:flex-col sm:gap-1 sm:border-t-0 sm:border-l-2 sm:px-2">
   <button type="button" aria-pressed={layer === "current"} onClick={…}
           className="tap-target ripple order-3 flex h-10 flex-none items-center bg-transparent px-0 text-xs font-semibold text-ink sm:order-1 sm:h-9">Nu</button>
 
@@ -783,6 +833,86 @@ components — `MapPanel`, `FilterPanel`, `SearchField`, `SectionSearchBar`, `Em
 
 ---
 
+### The overview's route cards
+
+The list under the builder is **wide cards, two to a row** (`s12 m6`) with a `21/9` picture band:
+a 2-up card is ~760px at 1600, so the small card's `16/10` would be 475px tall and push everything
+below the fold. Each card carries the theme, the area, the `Populair` chip, the title, a two-line
+`line-clamp-2` description and the score.
+
+It has **three actions, and they are siblings, never nested**:
+
+- the **title** is a `<button>` with a stretched `after:absolute after:inset-0` pseudo-element, so the
+  whole card loads the route into the builder as a custom route (`/routes/custom/…`, in visit order)
+  — the same button-in-a-card trick the small `RouteCard` uses with a link;
+- the **bookmark** saves the route to this browser (§7), with `aria-pressed` as its state and its
+  label naming the route (`Bewaar …` / `Haal … uit je opgeslagen routes`);
+- the **arrow** is a `<Link>` to the route's own page (`/routes/public/<id>`), bottom-right,
+  `button circle transparent ripple tap-target text-ink`.
+
+All three are `relative z-10` (lifted above the stretched pseudo-element) and none may be a child of
+another control: a `<button>` inside a `<button>` is not HTML.
+
+### A route's own page
+
+`/routes/public/<route-id>` renders **the very same page** as the bare builder, with three
+differences:
+
+- the header band wears the route's own `title`, `theme`, area and score (`PageHeader` with a
+  `Breadcrumb` back to the list) instead of the generic builder copy, and the tab says the route's
+  name;
+- the builder is **seeded with the route's places**, so the map, the picker and the summary are filled
+  in on arrival — read from the url like any other pick, never stored;
+- the reviews sit under the map in **`RouteReviewsPanel`**: one button for the whole row, the score
+  and the count while it is closed, `aria-expanded` as its state, and `RouteReviews` (breakdown +
+  reviews, which own no band of their own) when it opens. Collapsed by default, because on this page
+  the route itself is the point; opening slides it in (§12), closing is instant.
+
+An id that is not a route answers with `NotFoundPage`'s own wording, and a bicycle route opens in
+bicycle mode so the numbers on arrival are the ones the route was made for.
+
+There is **no modal** on this page: a popup hid the map, could not be linked to, and printed the same
+route twice.
+
+### Saving a route
+
+There is no account yet, so `src/data/savedRoutes.ts` keeps the reader's routes in `localStorage`
+(`zwolle-routes:saved`), and one `window` event keeps every card, the filter and the count in step —
+no state library, and the module is the single place that changes when the account lands (§15,
+`docs/BACKEND.md`). A saved route wears the `Opgeslagen` chip beside `Populair` (the chips **stack**,
+because a popular route can be one the reader saved too) and a filled bookmark. The `Van wie` filter
+sets the reader's own list against the community's.
+
+### Sharing a route
+
+`RouteShareButton` sits in the map's **top-right** corner (a `relative` wrapper around `AreaMap`, the
+button at `absolute right-4 top-4 z-20`; the bottom-right corner belongs to Google's own street-view
+control). The route is already in the url, so sharing is copying it: the button copies
+`builderPath(placeIds)` to the clipboard, stays disabled until there are two places (one place is not
+a route), and answers in an `aria-live` paragraph — the confirmation, or the link as text for a
+browser that will not hand over the clipboard. What a real share (an account, a stored route) needs is
+in `docs/BACKEND.md`.
+
+### The route list's filters
+
+The search box and the five selects are **one row** (`role="search"`, `flex flex-wrap items-end`)
+with the live count pushed right (`sm:ml-auto`) and the reset beside it — the list below is what the
+eye should land on. Every control **grows**: the search field is `min-w-0 grow basis-64` and each
+select `min-w-0 grow basis-44`, so the row fills the width it is given and reflows - six across on a
+wide screen, three to a line on a laptop, one per line on a phone — instead of leaving a ragged tail
+of half-empty fields. The basis (not a fixed `w-52`) is what makes that wrapping predictable, and
+`min-w-0` is what lets a field shrink past its own label instead of pushing the row sideways.
+
+The option lists live in `routeFilters.tsx` and not in `data/routes.ts`, because they are labels
+rather than data; every list rests on "all", which is why an untouched row filters nothing out.
+
+A filter that has been **chosen** is filled with the brand colour — `primary fill`: orange with white
+in light mode, `blue-300` with `blue-950` in dark. The **filled** variant is what makes the label
+readable: beerCSS puts a filled field's label _inside_ the control, while an outlined field's label
+straddles its top edge, where it would sit half on the fill. Three rules in `@layer overrides` hand the
+fill back to the role (the variant paints its own surface tone over it) and colour the label and the
+control's own text for the fill (§16).
+
 ## 8. Maps
 
 **Two kinds of map live in this app.** The hero is **artwork** — the 1652 engraving over a satellite
@@ -811,10 +941,11 @@ therefore cannot drift from its stops, and editing a place moves every line that
 
 ### The interactive map
 
-`AreaMap` (`shared/map/areaMap.tsx`) is the one interactive map. Four pages use it: the routes
-overview (with the place picker beside it), the places overview, the planner, and a route's detail
-page. It takes the places to pin, the line to draw, the visit order and a click handler — the page
-decides what a click means there.
+`AreaMap` (`shared/map/areaMap.tsx`) is the one interactive map. Two pages use it: the routes page
+(one url for the builder, one per built route, one per ready-made route — §7) and the places
+overview. It takes the places to pin, the line to draw, the visit order, a click handler and the
+height it should stand at — the page decides what a click means there, and the builder asks for a
+taller map because there the map is the work surface.
 
 - **The instance lives outside react.** It is created once in an effect, into a host `<div>` react
   never touches again, and a `mapGeneration` counter (raised whenever an instance exists) is what
@@ -824,7 +955,9 @@ decides what a click means there.
   builds a second map in its place — the map keeps following both themes.
 - **Markers are reconciled by id**, never re-created: the marker's content is a DOM element the
   component paints itself (`paintDot`), because it carries the era's fill and, once the place has
-  joined the route, its visit number.
+  joined the route, its visit number. The two era fills are the brand's own two colours — today's
+  places in `orange-500`, the ones van toen in `blue-500`, both with a white ring — so the legend's
+  swatches (`mapLegend.tsx`) are the only place that repeats them.
 - **`DEMO_MAP_ID`** is the api's own development map id. Advanced markers need one, and a
   cloud-styled map id is not this app's to create. It is also a **demo tier with a daily cap**
   (measured 2026-09-28): a day of map loads ends in _"Maps Demo Key limit reached: Your daily quota
@@ -904,7 +1037,9 @@ right rooftop when a card frame crops the picture.
 - **The historic/current swap** is a cross-fade of two stacked pictures — the hero's are the 1652
   engraving over the satellite photo. The historic one carries `.historic-layer` and inherits
   `--historic-opacity` (`1 - position / 100`) from the panel, which `index.css` turns into an opacity
-  transition. Only CSS custom properties may be set inline.
+  transition. Only CSS custom properties may be set inline. The panel **opens at 0**, i.e. the
+  engraving at full strength with `Toen` pressed: the pairing is what the page is about, and the past
+  is the half a reader has not seen.
 - **A round place thumbnail** is an SVG whose `viewBox` _is_ the crop window (`PoiCrop`) — no CSS
   positioning maths, and the frame can stay a circle.
 - **Controls over a map** get a solid `surface` panel or a chip (never a gradient scrim) — and a
@@ -957,16 +1092,17 @@ below exist to keep that motion _coherent and cheap_, never to remove it.
 
 ### What animates
 
-| Interaction                      | Motion                                                                         | Where                                           |
-| -------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------- |
-| Press / click a control          | **BeerCSS ripple** — the `ripple` class (600ms expanding circle)               | `ripple` is on every button, toggle and nav row |
-| Hover / keyboard focus a control | State layer: `currentcolor` at 10%                                             | BeerCSS, same `ripple` class                    |
-| Hover a route card               | `motion-safe:hover:-translate-y-1`, 200ms transform                            | `RouteCard`                                     |
-| Toggle the theme                 | The sun/moon icon spins out and in (Motion, 150ms, `mode="wait"`) + the ripple | `ThemeToggle`                                   |
-| Drag the map slider              | The historic layer's opacity fades over `--speed2` (200ms)                     | `.historic-layer`                               |
-| Load the page                    | The hero's map panel rises 12px and fades in                                   | `animate-rise` (CSS)                            |
-| Open / close the mobile menu     | Height + opacity, 200ms, animates **out** as well as in                        | `m` + `AnimatePresence` (Motion)                |
-| Expand the route grid            | New cards fade in, removed ones fade out                                       | `m` + `AnimatePresence` (Motion)                |
+| Interaction                      | Motion                                                                                                                                     | Where                                           |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------- |
+| Press / click a control          | **BeerCSS ripple** — the `ripple` class (600ms expanding circle)                                                                           | `ripple` is on every button, toggle and nav row |
+| Hover / keyboard focus a control | State layer: `currentcolor` at 10%                                                                                                         | BeerCSS, same `ripple` class                    |
+| Hover a route card               | `motion-safe:hover:-translate-y-1`, 200ms transform                                                                                        | `RouteCard`                                     |
+| Toggle the theme                 | The sun/moon icon spins out and in (Motion, 150ms, `mode="wait"`) + the ripple                                                             | `ThemeToggle`                                   |
+| Drag the map slider              | The historic layer's opacity fades over `--speed2` (200ms)                                                                                 | `.historic-layer`                               |
+| Load the page                    | The hero's map panel rises 12px and fades in                                                                                               | `animate-rise` (CSS)                            |
+| Open / close the mobile menu     | Height + opacity, 200ms, animates **out** as well as in; the rows fade in 30ms apart, and the burger's own glyph turns as it swaps (150ms) | `m` + `AnimatePresence` (Motion)                |
+| Open the reviews panel           | Height + opacity, 200ms, on the way **in**; closing is instant, so the fold is always the reader's to undo                                  | `RouteReviewsPanel` (Motion)                    |
+| Expand the route grid            | New cards fade in, removed ones fade out                                                                                                   | `m` + `AnimatePresence` (Motion)                |
 
 ### What must not animate
 
@@ -1100,13 +1236,13 @@ there — they apply to every file under `split/src/`.
 A piece only ever moves one way: **up**. It starts in the page it was written for, and it is
 promoted the moment a second page needs it — never copied.
 
-| Home                     | Holds                                                                                                                                                                                     | Rule                                                                                                                                                        |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/pages/`             | one file per route, `<name>Page.tsx`, the default export `App.tsx` mounts                                                                                                                 | resolves the route, owns the state its sections share, and lists the sections in order. It owns a band only when that band holds more than one section.     |
-| `src/sections/<page>/`   | the pieces a page is assembled from: a band, a grid column, a card, a row — in the folder of the page that owns it (`home/`, `routes/`, `routeDetail/`, `pointsOfInterest/`, `planning/`) | **page-scoped**. One component per file, named after the component.                                                                                         |
-| `src/shared/<category>/` | what two or more pages share, in a category folder: `layout/` (the shell and the page scaffolding), `primitives/`, `content/`, `filters/`, `map/`                                         | **shared**. Promoted here from `sections/`; a section that turns out to be generic (`MapPanel`, `EmptyState`) belongs here.                                 |
-| `src/data/`              | the content and the pure helpers over it (`routes.ts`, `pointsOfInterest.ts`, `area.ts`, `maps.ts`, `routeGeometry.ts`, `directions.ts`, `navigation.ts`, `search.ts`)                    | **content and logic only** — no components. `searchIndex.json` is the one data file that is not TypeScript, because it stands in for an api response (§15). |
-| `src/types.ts`           | the shape of that content: `Route`, `PointOfInterest`, `MapPicture`, `RouteFilterState`                                                                                                   | **types only**, no runtime code. A component names the type it needs instead of repeating its fields.                                                       |
+| Home                     | Holds                                                                                                                                                                                    | Rule                                                                                                                                                                                                                                                                                |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/pages/`             | one file per route, `<name>Page.tsx`, the default export `App.tsx` mounts                                                                                                                | resolves the route, owns the state its sections share, and lists the sections in order. It owns a band only when that band holds more than one section.                                                                                                                             |
+| `src/sections/<page>/`   | the pieces a page is assembled from: a band, a grid column, a card, a row — in the folder of the page that owns it (`home/`, `routes/`, `pointsOfInterest/`)                             | **page-scoped**. One component per file, named after the component.                                                                                                                                                                                                                 |
+| `src/shared/<category>/` | what two or more pages share, in a category folder: `layout/` (the shell and the page scaffolding), `primitives/`, `content/`, `filters/`, `map/`                                        | **shared**. Promoted here from `sections/`; a section that turns out to be generic (`MapPanel`, `EmptyState`) belongs here.                                                                                                                                                         |
+| `src/data/`              | the content and the pure helpers over it (`routes.ts`, `pointsOfInterest.ts`, `area.ts`, `maps.ts`, `routeGeometry.ts`, `directions.ts`, `navigation.ts`, `search.ts`, `savedRoutes.ts`) | **content and logic only** — no components. `searchIndex.json` is the one data file that is not TypeScript, because it stands in for an api response (§15). `savedRoutes.ts` is the reader's own list in `localStorage`, which is why it also exports the one hook that watches it. |
+| `src/types.ts`           | the shape of that content: `Route`, `PointOfInterest`, `MapPicture`, `RouteFilterState`                                                                                                  | **types only**, no runtime code. A component names the type it needs instead of repeating its fields.                                                                                                                                                                               |
 
 The test is the name. If it needs its page in it ("the planner's map"), it is a section
 (`planMap.tsx`). If the name stands on its own (`MapPanel`, `EmptyState`), it is a component — and
@@ -1119,7 +1255,7 @@ file is more than about a hundred lines of markup, a section is still hiding ins
 
 | Thing                    | Convention                                                             | Example                                                        |
 | ------------------------ | ---------------------------------------------------------------------- | -------------------------------------------------------------- |
-| Page file                | **camelCase** + `Page`, in `src/pages/`                                | `homePage.tsx`, `routeDetailPage.tsx`                          |
+| Page file                | **camelCase** + `Page`, in `src/pages/`                                | `homePage.tsx`, `routesPage.tsx`, `pointsOfInterestPage.tsx`   |
 | Section / component file | **camelCase**, one component per file, named exactly for the component | `heroMap.tsx` → `HeroMap`, `mapPanel.tsx` → `MapPanel`         |
 | Domain type              | **PascalCase**, in `src/types.ts`                                      | `Route`, `StarBucket`, `MapPicture`, `PoiFilterState`          |
 | Content constants        | **SCREAMING_SNAKE_CASE**, declared above the component that uses them  | `NAV_LINKS`, `MAP_LAYERS`, `ROUTE_PREVIEW_COUNT`               |
@@ -1131,33 +1267,34 @@ file is more than about a hundred lines of markup, a section is still hiding ins
 
 The **suffix says what the thing is**, so a file name can be read without opening it:
 
-| Suffix                                      | Means                                                                                                             | Examples                                                 |
-| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| `…Page`                                     | a route's entry point, in `pages/`                                                                                | `homePage.tsx`, `planningPage.tsx`                       |
-| `…Preview`                                  | a home-page strip showing a slice of another page, with the link to it                                            | `PopularRoutesPreview`, `PointsOfInterestPreview`        |
-| `…Panel`                                    | a framed surface holding a control group or artwork                                                               | `MapPanel`, `FilterPanel`                                |
-| `…Card`                                     | one record on a bordered surface                                                                                  | `RouteCard`, `ReviewCard`, `PoiCard`                     |
-| `…Row`                                      | one record in a vertical list                                                                                     | `SavedRouteRow`                                          |
-| `…List`                                     | a heading plus the records under it                                                                               | `SavedRouteList`                                         |
-| `…Grid`                                     | the grid a repeating card is laid out in, fade included                                                           | `RouteGrid`                                              |
-| `…Button`                                   | one action, in the shape the design gives it                                                                      | `ClearFiltersButton`                                     |
-| `…Bar`                                      | a control strip that belongs to a section                                                                         | `SectionSearchBar`                                       |
-| `…Chip`                                     | a small labelled token that sits on a surface                                                                     | `MapChip`                                                |
-| `…Form`                                     | the inputs that submit something                                                                                  | `ReviewForm`                                             |
-| `…Filters`                                  | the controls that narrow a list                                                                                   | `RouteFilters`, `PoiFilters`                             |
-| `…Results`                                  | what a filter left behind, empty state included                                                                   | `RouteResults`, `PoiResults`                             |
-| `…Map`                                      | a map panel plus the key that explains it                                                                         | `PlanMap`                                                |
-| `…Facts` / `…Summary` / `…Story` / `…Stops` | the named column of one page                                                                                      | `RouteFacts`, `RouteSummary`, `RouteStory`, `RouteStops` |
-| `…Overlay` / `…Image` / `…Crop` / `…Shape`  | artwork: SVG drawn over a map picture, the picture, a cropped piece of it, a route drawn from its own coordinates | `RouteOverlay`, `MapImage`, `PoiCrop`, `RouteShape`      |
-| `…Snapshot`                                 | a picture of a map, drawn by an api rather than by us                                                             | `MapSnapshot`                                            |
+| Suffix                                     | Means                                                                                                             | Examples                                                |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `…Page`                                    | a route's entry point, in `pages/`                                                                                | `homePage.tsx`, `pointsOfInterestPage.tsx`              |
+| `…Preview`                                 | a home-page strip showing a slice of another page, with the link to it                                            | `PopularRoutesPreview`, `PointsOfInterestPreview`       |
+| `…Panel`                                   | a framed surface holding a control group or artwork                                                               | `FilterPanel`                                           |
+| `…Card`                                    | one record on a bordered surface                                                                                  | `RouteCard`, `RouteOverviewCard`, `ReviewCard`          |
+| `…Grid`                                    | the grid a repeating card is laid out in, fade included                                                           | `RouteGrid`                                             |
+| `…Button`                                  | one action, in the shape the design gives it                                                                      | `ClearFiltersButton`, `RouteShareButton`                |
+| `…Bar`                                     | a control strip that belongs to a section                                                                         | `SectionSearchBar`                                      |
+| `…Chip`                                    | a small labelled token that sits on a surface                                                                     | `MapChip`                                               |
+| `…Form`                                    | the inputs that submit something                                                                                  | `ReviewForm`                                            |
+| `…Filters`                                 | the controls that narrow a list                                                                                   | `RouteFilters`, `PoiFilters`                            |
+| `…Results`                                 | what a filter left behind, empty state included                                                                   | `RouteResults`, `PoiResults`                            |
+| `…Dialog`                                  | a modal the platform opens, holding another page's sections                                                       | none left — a route's full view is a url (§7)           |
+| `…Map`                                     | a map panel plus the key that explains it                                                                         | `AreaMap`, `HeroMap`                                    |
+| `…Picker`                                  | the controls that choose what a map or a route is made of                                                         | `PoiPicker`                                             |
+| `…Summary` / `…Reviews`                    | the named column of one page, and the reviews a route carries                                                     | `RoutePlanSummary`, `RouteReviews`, `RouteReviewsPanel` |
+| `…Overlay` / `…Image` / `…Crop` / `…Shape` | artwork: SVG drawn over a map picture, the picture, a cropped piece of it, a route drawn from its own coordinates | `MapImage`, `RouteShape`                                |
+| `…Snapshot`                                | a picture of a map, drawn by an api rather than by us                                                             | `MapSnapshot`                                           |
 
-- Default-export the one public piece of a file; use named exports for siblings (`mapArtwork.tsx`
-  exports `MapImage`, `RouteOverlay`, `PlanningOverlay`, `PoiOverlay` and `PoiCrop`, because they
-  are all the same kind of thing — artwork — and none of them owns the file). `container.tsx`
-  makes one exception on purpose: it exports `Container` _and_ the bare `CONTAINER` class string,
-  because the bar's `<nav>` is a container that has to be another element.
+- Default-export the one public piece of a file; use named exports for siblings. `mapArtwork.tsx`
+  is the exception that proves the rule: it is now a one-component file (`MapImage`) and keeps the
+  old name because the overlay layer it was named for is gone — rename it when something else
+  touches it. `container.tsx` makes the other exception on purpose: it exports `Container` _and_ the
+  bare `CONTAINER` class string, because the bar's `<nav>` is a container that has to be another
+  element.
 - A section that is not one of the shapes above is simply named after what it renders
-  (`HeroMap`, `SavedRouteList`), never after where it sits or who uses it.
+  (`HeroMap`, `PoiPicker`), never after where it sits or who uses it.
 - Data that the JSX maps over is a named constant, not an array literal buried in the markup.
 - Never invent a class name that Tailwind or BeerCSS already owns (see the collision table in §2).
 
@@ -1304,6 +1441,12 @@ interface RouteFiltersProps {
   50px tall and centres whatever is slotted into it, so a field and its in-field action need no
   repair. `items-stretch` + Tailwind `h-auto` is a last resort for two BeerCSS components whose
   fixed heights genuinely have to line up.
+- A **control standing beside a field** takes the field control's own height, not the 50px wrapper's:
+  the control inside a field is 48px, so the action takes `h-12` — the hero's search bar beside "Alle
+  routes bekijken", which then shares its top and its bottom too, and the filter row's "Filters
+  wissen", which lands on the count's line because that row wraps inside its 1600px column. `h-12`
+  means 48px and not 52px because `@layer overrides` makes a button a border box (§2) — beerCSS's
+  `content-box` would add the button's 2px boundary on top of it.
 
 ### Consistency
 
@@ -1428,7 +1571,7 @@ the app uses by hand, the same trade `beercss.d.ts` makes.
   panel that says it could not load, and the rest of the app is unaffected.
 - **Required: Maps JavaScript API.** Two further services are optional and **off by default**,
   because each is a separate switch on the same key: the **Routes API** (`requestDirections` — with
-  it the planner draws real street routes with real distances; it is on for the development key, and
+  it the builder draws real street routes with real distances; it is on for the development key, and
   `travelMode` must be the JS spelling, `"WALKING"` / `"BICYCLING"`) and the **Maps Static API**
   (`VITE_GOOGLE_MAPS_STATIC_MAPS=true` — with it the cards show real map pictures instead of
   `RouteShape`).
@@ -1485,36 +1628,39 @@ item it **deviates** from is listed here with the reason, so nobody "fixes" it b
 
 ### Following the spec
 
-| Spec item                                                                    | Where                                                                                    |
-| ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| Every colour role exists in both schemes (incl. `scrim`, `shadow`)           | `index.css` — both blocks                                                                |
-| Two static schemes selected by a `<body>` class, no wallpaper extraction     | `themeToggle.tsx`                                                                        |
-| Tonal steps + hairlines, no shadows at all                                   | §5 — BeerCSS elevation helpers are disabled in `@layer overrides`                        |
-| Top app bar: brand orange (`--bar`), full-width, 48px action targets         | `Navbar`, 65px tall, white text/icons at 6:1                                             |
-| Cards: `corner_medium` (12px), 3 columns at desktop                          | `article.s12.m6.l4`, hero panel `rounded-xl`                                             |
-| Cards per breakpoint: 1 (mobile) / 2 / 3 (desktop), 4 when there is room     | BeerCSS `s12 m6 l4` + `xl:col-span-3`                                                    |
-| Section rhythm 32–64px, 4px spacing grid                                     | `py-band` (48–80px) and `px-gutter` (20–40px), both `clamp()`ed, on Tailwind's 4px scale |
-| Motion: 200ms standard curve, exit curve available, reduced-motion respected | §10, `--ease-standard` / `--ease-exit`                                                   |
-| Focus ring: 2px `primary` + 2px offset                                       | `@layer base` + BeerCSS                                                                  |
-| Touch targets ≥ 48×48px                                                      | `.tap-target`, `min-h-12` on mobile nav rows                                             |
-| Body vs. label type roles (Inter) and headings (Montserrat)                  | §4                                                                                       |
-| Contrast: 4.5:1 body, 3:1 large text                                         | §3; 0 failures in both themes                                                            |
-| One filled action per section, clear button hierarchy                        | §7, §14                                                                                  |
+| Spec item                                                                    | Where                                                                                                                                                  |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Every colour role exists in both schemes (incl. `scrim`, `shadow`)           | `index.css` — both blocks                                                                                                                              |
+| Two static schemes selected by a `<body>` class, no wallpaper extraction     | `themeToggle.tsx`                                                                                                                                      |
+| Tonal steps + hairlines, no shadows at all                                   | §5 — BeerCSS elevation helpers are disabled in `@layer overrides`                                                                                      |
+| Top app bar: brand orange (`--bar`), full-width, 48px action targets         | `Navbar`, 65px tall, white text/icons at 6:1                                                                                                           |
+| Shape: one corner on every box                                               | `article`, hero panel `rounded-box`                                                                                                                   |
+| Cards per breakpoint: 1 (mobile) / 2 / 3 (desktop), 4 when there is room     | BeerCSS `s12 m6 l4` + `xl:col-span-3`                                                                                                                  |
+| Section rhythm 32–64px, 4px spacing grid                                     | `py-band` (32–52px) and `px-gutter` (16–32px), both `clamp()`ed, on Tailwind's 4px scale; the page header band is tighter still (`pt-header`, 24–40px) |
+| Motion: 200ms standard curve, exit curve available, reduced-motion respected | §10, `--ease-standard` / `--ease-exit`                                                                                                                 |
+| Focus ring: 2px `primary` + 2px offset                                       | `@layer base` + BeerCSS                                                                                                                                |
+| Touch targets ≥ 48×48px                                                      | `.tap-target`, `min-h-12` on mobile nav rows                                                                                                           |
+| Body vs. label type roles (Inter) and headings (Montserrat)                  | §4                                                                                                                                                     |
+| Contrast: 4.5:1 body, 3:1 large text                                         | §3; 0 failures in both themes                                                                                                                          |
+| One filled action per section, clear button hierarchy                        | §7, §14                                                                                                                                                |
 
 ### Deliberate deviations
 
-| Spec                                                                                  | This project                                                                       | Why                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Bottom nav < 600px, rail ≥ 600px                                                      | Top app bar at every width                                                         | Five in-page anchors, not an app shell with destinations; a rail would eat a third of a phone's map.                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| Text fields 56px tall                                                                 | BeerCSS `.field` = 50px                                                            | The field's floating-label geometry belongs to BeerCSS; overriding the height breaks it (§13).                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| Content capped at 960–1200px                                                          | `max-w-[100rem]` (1600px)                                                          | A map application wants width; 1280px left ~312px dead on each side of a 1920 screen.                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| Body text ~35ch                                                                       | 45–65ch (`max-w-md`–`max-w-2xl`)                                                   | The hero lead wraps to six lines at 35ch and reads as a paragraph, not a lead.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| Headings at weight 600                                                                | `font-bold` (700)                                                                  | Montserrat 700 holds its own next to the map artwork; 600 goes soft at display sizes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| Screen edge padding 16px mobile                                                       | `px-5` (20px)                                                                      | Optical: the card artwork's own inset needs the extra 4px to look flush.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| Dialogs, bottom sheets, snackbars, FABs                                               | Not implemented yet                                                                | The app has no transient layer; adopt the recipes from the reference (§7, §12) when one is needed rather than inventing a variant.                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| Top app bar is `surface`                                                              | The bar is the brand orange in light mode, the brand navy in dark                  | The bar is where the Deltion identity lives, and it carries no content — only a title, links and icon buttons. In light mode the true `#f68221` orange carries **white** text and icons, which is the brand's own pairing; blue on orange would measure 7.8:1 but reads as a different palette, so the accessible option was declined deliberately (white on `#f68221` is 2.6:1 — §3, §11). The alternative, a darker orange bar, is brown. In dark mode the bar is the desaturated brand navy, and the orange moves into the headings, the logo and the avatar. |
-| M3 expresses depth as tonal elevation **plus** a shadow, five levels deep             | No shadows at all                                                                  | A blurred offset edge reads as a smudge or a gradient, and the brief rules gradients out. Depth comes from surface steps and hairlines instead (§5).                                                                                                                                                                                                                                                                                                                                                                                                             |
-| State layers 8% hover / 12% press                                                     | BeerCSS's own values, `--active` retuned per theme                                 | BeerCSS owns the ripple and state layer; we only correct the _tint_ so it reads on dark.                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| Chips: outlined, transparent background                                               | Filled chips over artwork                                                          | A transparent badge on a busy map disappears; artwork badges are not M3 chips (§7).                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| A hero is a full-width image band under the app bar                                   | Full width, one screen tall, centre cropped, controls in a rail beside the picture | The band uses the page's whole width instead of a column, and the picture's height comes from the viewport — so it gives up its empty outer fields rather than pushing the map's own controls under the fold. The rail is what keeps that crop small: 19% at 1440x900 and none at all once the window is taller (§7).                                                                                                                                                                                                                                            |
-| Type and spacing are fixed steps (display 57, headline 32, title 22; 4/8/12… spacing) | `clamp()`ed display/headline/title type and gutter/band spacing                    | Fixed steps re-wrap a headline mid-phrase at one width and waste room at another; a floor, a slope and a ceiling keep the same proportions at every window size (§4, §5).                                                                                                                                                                                                                                                                                                                                                                                        |
+| Spec                                                                                  | This project                                                                                                                                                     | Why                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bottom nav < 600px, rail ≥ 600px                                                      | Top app bar at every width                                                                                                                                       | Five in-page anchors, not an app shell with destinations; a rail would eat a third of a phone's map.                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Text fields 56px tall                                                                 | BeerCSS `.field` = 50px                                                                                                                                          | The field's floating-label geometry belongs to BeerCSS; overriding the height breaks it (§13).                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Boundaries are 1px (`outline` / `outline_variant`)                                    | Every boundary is **2px**                                                                                                                                        | Material 3's hairline reads as almost nothing beside a filled control, and the brief asks for nothing thinner than 2px. The wider line is set once, with padding compensation so no text moves (§5).                                                                                                                                                                                                                                                                                                                                                               |
+
+| Content capped at 960–1200px                                                          | `max-w-[100rem]` (1600px)                                                                                                                                        | A map application wants width; 1280px left ~312px dead on each side of a 1920 screen.                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Body text ~35ch                                                                       | 45–65ch (`max-w-md`–`max-w-2xl`)                                                                                                                                 | The hero lead wraps to six lines at 35ch and reads as a paragraph, not a lead.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Headings at weight 600                                                                | `font-bold` (700)                                                                                                                                                | Montserrat 700 holds its own next to the map artwork; 600 goes soft at display sizes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| Screen edge padding 16px mobile                                                       | `px-5` (20px)                                                                                                                                                    | Optical: the card artwork's own inset needs the extra 4px to look flush.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Dialogs, bottom sheets, snackbars, FABs                                               | Not implemented yet                                                                                                                                              | The app has no transient layer; adopt the recipes from the reference (§7, §12) when one is needed rather than inventing a variant. There is deliberately **no modal anywhere**: a route's full view is a url (`/routes/public/<id>`), which can be linked to, shared and read by a screen reader.                                                                                                                                                                                                                                                                |
+| A selected control uses a container tone (`secondary-container`, 8% state layer)      | A **chosen filter** is filled with `primary` itself — orange with white text in light mode, `blue-300` with `blue-950` in dark — as is the active mobile nav row | The brief asks for the brand colours as fills, and a filter that has been set is the one control on the page worth spotting from across the room. In light mode this is the documented white-on-orange pairing (§3); in dark mode the fill is the pale blue, where the dark blue text measures well past 4.5:1.                                                                                                                                                                                                                                                  |
+| Top app bar is `surface`                                                              | The bar is the brand orange in light mode, the brand navy in dark                                                                                                | The bar is where the Deltion identity lives, and it carries no content — only a title, links and icon buttons. In light mode the true `#f68221` orange carries **white** text and icons, which is the brand's own pairing; blue on orange would measure 7.8:1 but reads as a different palette, so the accessible option was declined deliberately (white on `#f68221` is 2.6:1 — §3, §11). The alternative, a darker orange bar, is brown. In dark mode the bar is the desaturated brand navy, and the orange moves into the headings, the logo and the avatar. |
+| M3 expresses depth as tonal elevation **plus** a shadow, five levels deep             | No shadows at all                                                                                                                                                | A blurred offset edge reads as a smudge or a gradient, and the brief rules gradients out. Depth comes from surface steps and hairlines instead (§5).                                                                                                                                                                                                                                                                                                                                                                                                             |
+| State layers 8% hover / 12% press                                                     | BeerCSS's own values, `--active` retuned per theme                                                                                                               | BeerCSS owns the ripple and state layer; we only correct the _tint_ so it reads on dark.                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| Chips: outlined, transparent background                                               | Filled chips over artwork                                                                                                                                        | A transparent badge on a busy map disappears; artwork badges are not M3 chips (§7).                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| A hero is a full-width image band under the app bar                                   | Full width, one screen tall, centre cropped, controls in a rail beside the picture                                                                               | The band uses the page's whole width instead of a column, and the picture's height comes from the viewport — so it gives up its empty outer fields rather than pushing the map's own controls under the fold. The rail is what keeps that crop small: 19% at 1440x900 and none at all once the window is taller (§7).                                                                                                                                                                                                                                            |
+| Type and spacing are fixed steps (display 57, headline 32, title 22; 4/8/12… spacing) | `clamp()`ed display/headline/title type and gutter/band spacing                                                                                                  | Fixed steps re-wrap a headline mid-phrase at one width and waste room at another; a floor, a slope and a ceiling keep the same proportions at every window size (§4, §5).                                                                                                                                                                                                                                                                                                                                                                                        |

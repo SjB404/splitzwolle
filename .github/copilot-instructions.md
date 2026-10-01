@@ -51,11 +51,13 @@ Express is a declared dependency for the (currently minimal) `split/backend/` fo
 - `src/App.tsx` — the router: paths → pages, plus the root `LazyMotion` / `MotionConfig`
 - `src/pages/*.tsx` — one page per route, camelCase file name ending in `Page`, default export.
   A page is a table of contents: it resolves the route, owns the state its sections share, and
-  lists them in order (`homePage`, `routesPage`, `routeDetailPage`, `planningPage`,
-  `pointsOfInterestPage`, `notFoundPage`).
+  lists them in order (`homePage`, `routesPage`, `pointsOfInterestPage`, `notFoundPage`).
+  `routesPage` is the one page serving three urls — `/routes`, `/routes/custom/<place-ids>` and
+  `/routes/public/<route-id>` — where **the url is the state**: it is read for the picked places and
+  written back on every pick, so a built route is shareable. See `docs/DESIGN.md` §7.
 - `src/sections/<page>/` — the pieces a page is assembled from (a band, a grid column, a card, a
   row), one component per file, **page-scoped**, grouped by the page that owns them: `home/`,
-  `routes/`, `routeDetail/`, `pointsOfInterest/`, `planning/`. Promoted to `src/shared/`
+  `routes/`, `pointsOfInterest/`. Promoted to `src/shared/`
   the moment a second page needs one.
 - `src/shared/<category>/` — what two or more pages share, grouped by category:
   - `layout/` — the shell and the page scaffolding: `appLayout`, `navbar`, `footer`, `container`,
@@ -68,9 +70,14 @@ Express is a declared dependency for the (currently minimal) `split/backend/` fo
     `googleMaps` (the loader, the options, the colours, the Places/Routes calls), `usePlannedRoute`
     (the route between the picked places), `mapArtwork` (the hero's pictures), `mapChip`, `mapLegend`,
     `mapSnapshot` (a static map picture), `routeShape` (a route drawn from its own coordinates)
+- `src/data/navigation.ts` holds **every path** and the two url builders: `builderPath(placeIds)` →
+  `/routes/custom/<ids>` (empty → `/routes`) and `publicRoutePath(routeId)` → `/routes/public/<id>`,
+  with `parsePlaceIds` reading the first back. A route's old `/routes/<id>` url redirects to its public
+  url, and `/planning` redirects to the builder.
 - `src/data/` — the content the pages share (`routes.ts`, `pointsOfInterest.ts`, `area.ts`,
-  `maps.ts`, `routeGeometry.ts`, `directions.ts`, `navigation.ts`); `src/format.ts` formats the Dutch
-  `nl-NL` values
+  `maps.ts`, `routeGeometry.ts`, `directions.ts`, `navigation.ts`, `savedRoutes.ts`); `src/format.ts`
+  formats the Dutch `nl-NL` values. `savedRoutes.ts` is the reader's own list in `localStorage`,
+  which is why it also exports the one hook that watches it.
 - `src/googleMaps.d.ts` — the slice of the Google Maps API the app uses, declared by hand (like
   `beercss.d.ts`), because the api arrives as a script and no types package was added
 - `src/data/searchIndex.json` + `src/data/search.ts` — the search the home previews run on: the
@@ -109,6 +116,13 @@ the suite follows a content change. The e2e groups are tagged (`@smoke`, `@nav`,
 
 ## Conventions
 
+- **Look it up before writing it down.** The answers are in this repo first — `docs/DESIGN.md` for
+  anything visual, `docs/TESTPLAN.md` for how a change is verified, `docs/BACKEND.md` for what is
+  still a placeholder — and then in the library's own docs. For a library, framework, SDK, CLI or API
+  question, check current documentation (Context7, or the official site) instead of writing from
+  memory: version-specific syntax matters here (Vite 8, React 19, Tailwind 4, BeerCSS 5, Vitest 5,
+  Playwright 1.63 — several of them newer than most training data). When a doc and this file
+  disagree, the doc wins for the topic it owns.
 - **The site covers the binnenstad and the Noorder Eiland**, declared once in `src/data/area.ts`:
   every place is inside that box, every route is built from those places, and the map is given the box
   as its `restriction` so it cannot be panned out of the area.

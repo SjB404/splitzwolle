@@ -1,5 +1,5 @@
 import { expect, test } from "./fixtures";
-import { ALL_PATHS, ROUTES_PATH } from "./app";
+import { ALL_PATHS } from "./app";
 
 /*
   What a lint rule cannot see, read off the real accessibility tree of a real browser: every picture has
@@ -7,11 +7,9 @@ import { ALL_PATHS, ROUTES_PATH } from "./app";
   The checks run on every url the app serves, so a new route or page is audited without a test edit.
 */
 
-/* pinned: on the builder the picker's h3 ("Plekken van toen") sits directly under the page's h1, with the
-   section's h2 further down; every other page runs h1 → h2 → h3. A new skip anywhere else fails. */
-const KNOWN_HEADING_JUMPS: Record<string, number> = {
-  [ROUTES_PATH]: 1,
-};
+/* no page skips a heading level; the builder used to be the one exception, until its band got the h2 the
+   picker's groups needed. A new skip anywhere fails every url it appears on. */
+const KNOWN_HEADING_JUMPS: Record<string, number> = {};
 
 const CHECKS = () => {
   const issues: string[] = [];

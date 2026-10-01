@@ -2,22 +2,22 @@ import { expect, test } from "./fixtures";
 import type { Page } from "@playwright/test";
 import {
   CATEGORIES,
+  CUSTOM_ROUTE_PATH,
   INITIAL_POI_FILTERS,
   POINTS_OF_INTEREST,
   filterPointsOfInterest,
 } from "./app";
 
-const placeLinks = (page: Page) => page.locator('a[href^="/routes?plek="]');
+const placeLinks = (page: Page) =>
+  page.locator(`a[href^="${CUSTOM_ROUTE_PATH}/"]`);
 /* the map's corner chip is the only chip that carries one place's own name */
 const chipWith = (page: Page, text: string | RegExp) =>
   page.locator(".chip").filter({ hasText: text });
 /* one card, found by the heading it carries rather than by any word in its body */
 const cardOf = (page: Page, name: string) =>
-  page
-    .locator("article")
-    .filter({
-      has: page.getByRole("heading", { level: 3, name, exact: true }),
-    });
+  page.locator("article").filter({
+    has: page.getByRole("heading", { level: 3, name, exact: true }),
+  });
 
 const countLabel = (count: number) =>
   new RegExp(`^${count} bezienswaardig(heid|heden)$`);
@@ -183,7 +183,9 @@ test.describe("the places overview", { tag: "@poi" }, () => {
       .getByRole("link", { name: "In een route" })
       .click();
 
-    await expect(page).toHaveURL(new RegExp(`/routes\\?plek=${place.id}`));
+    await expect(page).toHaveURL(
+      new RegExp(`${CUSTOM_ROUTE_PATH}/${place.id}`),
+    );
     await expect(
       page.getByRole("button", { name: `1. ${place.name}` }),
     ).toBeVisible();

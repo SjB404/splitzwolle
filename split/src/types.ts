@@ -164,12 +164,16 @@ export type RouteDistanceFilter = "all" | "short" | "medium" | "long";
 export type RouteThemeFilter = "all" | RouteTheme;
 export type RouteDifficultyFilter = "all" | RouteDifficulty;
 
+/* whose route it is: one the reader saved in this browser, or one the community made */
+export type RouteOwnershipFilter = "all" | "saved" | "community";
+
 export interface RouteFilterState {
   query: string;
   popularity: RoutePopularityFilter;
   distance: RouteDistanceFilter;
   theme: RouteThemeFilter;
   difficulty: RouteDifficultyFilter;
+  ownership: RouteOwnershipFilter;
 }
 
 export type PoiCategoryFilter = "all" | PoiCategoryName;

@@ -113,8 +113,8 @@ describe("AreaMap", () => {
     const marked = (place: PointOfInterest) =>
       built.markers.find((marker) => marker.title === place.name)!.element;
 
-    expect(marked(CURRENT).className).toContain("bg-orange-500");
-    expect(marked(HISTORIC).className).toContain("bg-white");
+    expect(marked(CURRENT).className).toContain("border-white bg-orange-500");
+    expect(marked(HISTORIC).className).toContain("border-white bg-blue-500");
     expect(marked(CURRENT).textContent).toBe("");
   });
 

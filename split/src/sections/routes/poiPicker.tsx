@@ -69,7 +69,7 @@ export default function PoiPicker({
         if (groupPoints.length === 0) return null;
 
         return (
-          <div key={group.era} className="mt-6">
+          <div key={group.era} className="mt-5">
             <h3 className="text-sm font-bold">
               Plekken van {group.era.toLowerCase()}{" "}
               <span className="font-normal text-ink-muted">— {group.note}</span>

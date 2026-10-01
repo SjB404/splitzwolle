@@ -50,7 +50,8 @@ export default function PointsOfInterestPreview() {
             matches.length === 1 ? "bezienswaardigheid" : "bezienswaardigheden"
           }`}
           action={
-            <Link to={POI_PATH} className="button border text-ink ripple">
+            /* h-12 is the field's own 48px, so the action sits in the row at the field's height (§7) */
+            <Link to={POI_PATH} className="button border text-ink ripple h-12">
               Alle bezienswaardigheden bekijken
             </Link>
           }
@@ -72,7 +73,7 @@ export default function PointsOfInterestPreview() {
                 className="flex basis-[calc(50%-0.75rem)] flex-col items-center gap-2 text-center sm:basis-[calc(33.333%-1rem)] lg:basis-[calc(20%-1.2rem)]"
               >
                 {/* a picture of the place once there is one, and its category glyph until then: the hand-placed artwork crop went with the rest of the artwork layer */}
-                <span className="surface-container flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border border-line">
+                <span className="surface-container flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-line">
                   {point.image ? (
                     <img
                       src={point.image}

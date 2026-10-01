@@ -66,6 +66,13 @@
   /* the app's two motion curves, static so var(--ease-standard) always resolves in hand-written css; durations stay with beerCSS's --speed1/2/3 (100/200/300ms) */
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* the one corner every box in the app shares: a field, a button, a chip, a card, a panel. it lives with
+     the tokens and not in a component because a page has to read as one system — beerCSS ships four radii
+     (a 2rem round field, a 1.25rem button, a 0.75rem card, a 0.5rem chip), which put a pill search bar
+     directly above a rounded rectangle card. the override layer applies it once, and a hand-built panel
+     (the hero's map frame, the reviews panel) wears it as `rounded-box` */
+  --radius-box: 2rem;
 }
 
 /* the default for every tailwind transition-* utility: 200ms, set once so no component has to name a duration or a curve */
@@ -81,10 +88,11 @@
   --text-title: clamp(1.625rem, 1.5vw + 1rem, 2.5rem);
   --text-title--line-height: 1.15;
 
-  /* fluid spacing, same idea: the page gutter, the section rhythm, and the little the hero band keeps — a fixed step looked tight on a phone and wasteful on a 2560 screen */
-  --spacing-gutter: clamp(1.25rem, 2.4vw, 2.5rem);
-  --spacing-band: clamp(3rem, 6.5vw, 5rem);
-  --spacing-hero: clamp(0.75rem, 1.6vw, 1.5rem);
+  /* fluid spacing, same idea: the page gutter, the section rhythm, the little the hero band keeps, and the page header's own tighter band; every number is deliberately on the compact side, because the content is what the room is for */
+  --spacing-gutter: clamp(1rem, 2vw, 2rem);
+  --spacing-band: clamp(2rem, 4vw, 3.25rem);
+  --spacing-hero: clamp(0.5rem, 1.2vw, 1rem);
+  --spacing-header: clamp(1.5rem, 2.6vw, 2.5rem);
 
   /* the app's one entrance: the hero's map panel rises into place once on load; declared as a theme animation so motion-safe:animate-rise is a utility, and gated at the call site */
   --animate-rise: rise 0.45s var(--ease-standard) both;
@@ -256,15 +264,33 @@ body.dark {
 @layer base {
   html {
     scroll-behavior: smooth;
+    /* the scrollbar's room is always reserved, so opening the mobile menu, changing the theme or moving between a short and a tall page never shifts the layout sideways */
+    scrollbar-gutter: stable;
+    /* a tap paints no grey flash box: every control answers with its own ripple and state layer instead */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
-  /* headings are montserrat, everything else is inter */
+  /* headings are montserrat and wrap in balance: a two line headline splits evenly instead of leaving one word on a line of its own */
   :is(h1, h2, h3, h4, h5, h6) {
     font-family: var(--font-display);
+    text-wrap: balance;
   }
 
   body {
     @apply font-sans antialiased;
+  }
+
+  /* a selected run of text wears the brand's own container, never the browser's system blue */
+  ::selection {
+    background-color: var(--primary-container);
+    color: var(--on-primary-container);
+  }
+
+  /* a tap on a control is one immediate action: no double tap zoom and no 300ms wait before the response */
+  :is(a, button, .button, .chip, label, summary) {
+    touch-action: manipulation;
   }
 
   /* material 3 focus ring; beerCSS already draws the 2px primary outline, so this only adds the offset */
@@ -278,6 +304,17 @@ body.dark {
   /* headings wear the accent colour; beerCSS paints h1 to h6 with --on-surface from a later layer than base, so this cannot be done from base */
   :is(h1, h2, h3, h4, h5, h6) {
     color: var(--heading);
+  }
+
+  /* body copy is justified, so a paragraph fills the column instead of leaving a ragged right edge; hyphens carry it (the document is lang="nl"), and a line that does not wrap is untouched, which is why only the paragraph is asked — headings, labels and the words on controls keep their own edges */
+  p {
+    text-align: justify;
+    hyphens: auto;
+  }
+
+  /* a paragraph in a centred box follows that box: the empty states, the home tiles and the map's fallback panel are centred, and a justified two line note there reads as a mistake */
+  :is(.text-center, .text-right) p {
+    text-align: inherit;
   }
 }
 
@@ -298,9 +335,99 @@ body.dark {
     border-color: var(--outline) !important;
   }
 
+  /* a chosen filter is a filled field wearing the brand colour. beerCSS's fill keeps its own surface tone for the control and then colours the label for that tone, so the tone is handed back to the role and the label is given the colour that belongs on the fill — the floating label sits inside a filled field, which is the only place a roled label can be read */
+  .field.fill.primary {
+    background: var(--primary) !important;
+  }
+
+  .field.fill.primary > :is(select, input) {
+    background: transparent !important;
+    /* the control's own text too: beerCSS leaves it --on-surface, which is nearly white in dark mode, on a fill that is pale there */
+    color: var(--on-primary) !important;
+  }
+
+  .field.fill.primary > label {
+    color: var(--on-primary) !important;
+  }
+
   /* an unselected filter chip — a <button>, unlike the badge <span>s that sit over artwork — takes the same --outline boundary as a field or an outlined button: beerCSS leaves it --outline-variant, which all but disappears beside them. The selected chip keeps its border-transparent, which is what stops it moving when it is picked */
   button.chip:not(.border-transparent) {
     border-color: var(--outline) !important;
+  }
+
+  /* --- every boundary is 2px ---
+     material 3 draws a 1px boundary, but this project draws its lines one step heavier so a control reads
+     at a glance, on a phone and next to a field. each outlined control is widened here, once, instead of
+     in component after component. */
+  .border:not(table, .field, .list, menu, article),
+  :is(.button, button).border,
+  .chip {
+    border-width: 2px !important;
+  }
+
+  /* every card and panel wears the same boundary wherever it sits on the page, so a surface reads as a
+     surface everywhere: the lighter --outline-variant, the tone a container's edge takes rather than a
+     control's. */
+  article {
+    border: 2px solid var(--outline-variant) !important;
+  }
+
+  /* a field paints its boundary on the control inside it, so that, and not the wrapper, is what widens */
+  .field.border > :is(input, textarea, select) {
+    border-width: 2px !important;
+  }
+
+  /* the field's floating label draws the notch in its own outline, a second line: it has to match the
+     control's boundary or the outline reads as broken */
+  .field.label.border:not(.fill) > label::after {
+    border-block-start-width: 2px !important;
+  }
+
+  /* --- every box shares one corner ---
+     material 3 gives each family its own radius and beerCSS ships four of them, so a page carried four
+     systems at once: the home search bar was a pill, the card under it a rounded rectangle, the outlined
+     button beside it a third thing. the corner is set here, once, the way the 2px boundary is, and
+     --radius-box is what a hand-built panel reaches for (`rounded-box`) instead of a one-off utility. a
+     radius wider than half a box is scaled down to it, so the .circle icon buttons stay circles. */
+  :is(.field, .button, button, article, .chip, .badge, menu),
+  .field > :is(input, textarea, select) {
+    border-radius: var(--radius-box) !important;
+  }
+
+  /* beerCSS draws a button as `box-sizing: content-box`, so a full width row came out at 100% of its
+     column *plus* the button's own 2rem of padding: the mobile menu's links measured 365px inside a 333px
+     column, 16px of that past the right edge of a 380px phone. no button in this app leans on padding
+     sitting outside a fixed size, so a button is a border box like every other element on the page. */
+  :is(.button, button) {
+    box-sizing: border-box !important;
+  }
+
+  /* a boundary a pixel wider would push the text inward, so the control keeps the room its 1px line left
+     (each resting padding takes the focus padding's value), and nothing moves when the reader focuses it.
+     one corner means one inset too: every field is a pill now, so the round field's inset is *the* field's
+     inset, and the review form's textarea starts its text where the search bar does. */
+  .field.border > :is(input, textarea, select) {
+    padding-inline: 1.375rem !important;
+  }
+
+  .field.border.prefix > :is(input, textarea, select) {
+    padding-inline-start: 2.875rem !important;
+  }
+
+  /* a field's trailing slot (the select's chevron) reserves a little less than beerCSS's 2.9375rem:
+     the icon is inset 1rem with a 1.5rem glyph, so 2.625rem already clears it, and the 5px it gives
+     back is what keeps "Iedereens routes" — the longest filter value — on one line */
+  .field.border.suffix > :is(input, textarea, select) {
+    padding-inline-end: 2.625rem !important;
+  }
+
+  /* a select's value never wraps: beerCSS's `all: unset` takes the browser's own `white-space: pre`
+     off a <select>, so a long option name ("Alle afstanden") broke onto a second line and made a one
+     line field twice as tall as its neighbours */
+  .field > select {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
 
   /* the map slider: beerCSS lands --_end on the handle's own centre and then insets the filled track 0.5rem further, which leaves a slot of bare track between the fill and the handle — it reads as a broken track rather than as a slider */

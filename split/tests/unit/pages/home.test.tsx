@@ -23,14 +23,14 @@ describe("HomePage", () => {
     expect(document.title).toBe("Ontdek Zwolle toen en nu · Zwolle Routes");
   });
 
-  it("starts on the historic half of the map", () => {
+  it("opens on the historic map, at the Toen end of the track", () => {
     renderWithRouter(<HomePage />);
 
     const slider = screen.getByRole("slider", {
       name: /Schakel tussen de historische kaart van 1652/,
     });
 
-    expect((slider as HTMLInputElement).value).toBe("35");
+    expect((slider as HTMLInputElement).value).toBe("0");
     expect(screen.getByRole("button", { name: "Toen" })).toHaveAttribute(
       "aria-pressed",
       "true",

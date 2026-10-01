@@ -14,10 +14,10 @@ const LEGEND_SWATCHES: Record<LegendShape, ReactNode> = {
   route: (
     <span className="h-1 w-6 rounded-full bg-orange-500" aria-hidden="true" />
   ),
-  /* the two dot styles the interactive maps draw: today's places in the brand orange, the ones van toen as a white dot with a dark ring */
+  /* the two dot styles the interactive maps draw: today's places in the brand orange, the ones van toen in the brand blue, both with a white ring */
   historic: (
     <span
-      className="h-4 w-4 rounded-full border-2 border-blue-900 bg-white"
+      className="h-4 w-4 rounded-full border-2 border-white bg-blue-500"
       aria-hidden="true"
     />
   ),
@@ -36,7 +36,7 @@ interface MapLegendProps {
 
 export default function MapLegend({ items }: MapLegendProps) {
   return (
-    <ul className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-ink-muted">
+    <ul className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-ink-muted">
       {items.map((item) => (
         <li key={item.shape} className="inline-flex items-center gap-2">
           {LEGEND_SWATCHES[item.shape]}

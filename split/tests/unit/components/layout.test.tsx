@@ -9,7 +9,11 @@ import Container from "../../../src/shared/layout/container.tsx";
 import SectionHeading from "../../../src/shared/layout/sectionHeading.tsx";
 import Navbar from "../../../src/shared/layout/navbar.tsx";
 import Footer from "../../../src/shared/layout/footer.tsx";
-import { CONTACT_DETAILS, NAV_LINKS } from "../../../src/data/navigation.ts";
+import {
+  CONTACT_DETAILS,
+  FOOTER_COLUMNS,
+  NAV_LINKS,
+} from "../../../src/data/navigation.ts";
 import { renderWithMotion, renderWithRouter } from "../helpers.tsx";
 
 describe("ThemeToggle", () => {
@@ -171,14 +175,14 @@ describe("Navbar", () => {
   });
 
   it("marks the page you are on, and only that one", () => {
-    renderNavbar("/planning");
+    renderNavbar("/points-of-interest");
 
     const current = screen
       .getAllByRole("link")
       .filter((link) => link.getAttribute("aria-current") === "page");
 
     expect(current).toHaveLength(1);
-    expect(current[0]).toHaveAccessibleName("Planning");
+    expect(current[0]).toHaveAccessibleName("Points of Interest");
   });
 
   it("keeps the parent link active on a route's own page", () => {
@@ -222,10 +226,10 @@ describe("Navbar", () => {
   it("closes the mobile menu after a link is followed", () => {
     renderNavbar();
     const menu = screen.getByRole("button", { name: "Menu" });
+    const target = NAV_LINKS.filter((link) => !link.to.includes("#")).at(-1)!;
 
     fireEvent.click(menu);
-    const links = screen.getAllByRole("link", { name: "Planning" });
-    fireEvent.click(links[1]);
+    fireEvent.click(screen.getAllByRole("link", { name: target.label })[1]);
 
     expect(menu).toHaveAttribute("aria-expanded", "false");
   });
@@ -252,14 +256,10 @@ describe("Footer", () => {
     const account = screen.getByRole("navigation", { name: "Account" });
 
     expect(
-      within(account).getByRole("link", { name: "Inloggen" }),
-    ).toHaveAttribute("href", "/inloggen");
-    expect(
-      within(account).getByRole("link", { name: "Registreren" }),
-    ).toHaveAttribute("href", "/inloggen#registreren");
-    expect(
-      within(account).getByRole("link", { name: "Mijn planning" }),
-    ).toHaveAttribute("href", "/planning");
+      within(account)
+        .getAllByRole("link")
+        .map((link) => link.getAttribute("href")),
+    ).toEqual(FOOTER_COLUMNS[1].links.map((link) => link.to));
   });
 
   it("prints reachable contact details", () => {

@@ -4,6 +4,7 @@ import type { ContactDetails, FooterColumn, NavLink } from "../types.ts";
 
 export const HOME_PATH = "/";
 export const ROUTES_PATH = "/routes";
+/* the planner was folded into the builder: this path only exists so an old link still lands somewhere */
 export const PLANNING_PATH = "/planning";
 export const POI_PATH = "/points-of-interest";
 export const LOGIN_PATH = "/inloggen";
@@ -14,7 +15,6 @@ export const REGISTER_PATH = "/inloggen#registreren";
 export const NAV_LINKS: NavLink[] = [
   { label: "Home", to: HOME_PATH },
   { label: "Routes", to: ROUTES_PATH },
-  { label: "Planning", to: PLANNING_PATH },
   { label: "Points of Interest", to: POI_PATH },
   { label: "Contact", to: `${HOME_PATH}#contact` },
 ];
@@ -27,6 +27,31 @@ export function isActiveLink(pathname: string, to: string): boolean {
   return pathname === path || pathname.startsWith(`${path}/`);
 }
 
+/* the two urls the routes page answers: a built route is its places in visit order, a ready-made one is its id */
+export const CUSTOM_ROUTE_PATH = `${ROUTES_PATH}/custom`;
+export const PUBLIC_ROUTE_PATH = `${ROUTES_PATH}/public`;
+
+/* the builder, pre-loaded with these places: /routes/custom/peperbus,melkmarkt — the shortest thing that can be shared */
+export function builderPath(placeIds: string[]): string {
+  if (placeIds.length === 0) return ROUTES_PATH;
+
+  return `${CUSTOM_ROUTE_PATH}/${placeIds.map((id) => encodeURIComponent(id)).join(",")}`;
+}
+
+/* a ready-made route's own page: /routes/public/binnenstad-highlights */
+export function publicRoutePath(routeId: string): string {
+  return `${PUBLIC_ROUTE_PATH}/${encodeURIComponent(routeId)}`;
+}
+
+/* the places out of a custom segment; whether they exist is the page's business, not the url's */
+export function parsePlaceIds(segment: string | undefined): string[] {
+  if (!segment) return [];
+
+  return segment
+    .split(",")
+    .map((id) => decodeURIComponent(id.trim()))
+    .filter((id) => id.length > 0);
+}
 /* the footer's link groups; contact details are placeholders until the collaborator's api is wired up (DESIGN.md §15) */
 export const FOOTER_COLUMNS: FooterColumn[] = [
   {
@@ -34,7 +59,6 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
     links: [
       { label: "Home", to: HOME_PATH },
       { label: "Routes", to: ROUTES_PATH },
-      { label: "Planning", to: PLANNING_PATH },
       { label: "Points of Interest", to: POI_PATH },
     ],
   },
@@ -43,7 +67,6 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
     links: [
       { label: "Inloggen", to: LOGIN_PATH },
       { label: "Registreren", to: REGISTER_PATH },
-      { label: "Mijn planning", to: PLANNING_PATH },
     ],
   },
 ];

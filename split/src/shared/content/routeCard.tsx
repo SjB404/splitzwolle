@@ -7,7 +7,7 @@ import MapSnapshot from "../map/mapSnapshot.tsx";
 import RouteShape from "../map/routeShape.tsx";
 import { MOTION_TRANSITION } from "../../motion.ts";
 import { routeCoordinates } from "../../data/routes.ts";
-import { ROUTES_PATH } from "../../data/navigation.ts";
+import { publicRoutePath } from "../../data/navigation.ts";
 import { formatDistance, formatDuration, formatRating } from "../../format.ts";
 import type { Route } from "../../types.ts";
 
@@ -59,7 +59,7 @@ export default function RouteCard({
         {/* one stretched link makes the whole card clickable without nesting interactive elements; content-[''] matters because BeerCSS's reset clears both pseudo-elements */}
         <h3 className="text-xl font-bold">
           <Link
-            to={`${ROUTES_PATH}/${route.id}`}
+            to={publicRoutePath(route.id)}
             className="after:absolute after:inset-0 after:content-['']"
           >
             {route.title}
@@ -72,7 +72,7 @@ export default function RouteCard({
           {formatDuration(route.durationMinutes)}
         </p>
 
-        <div className="mt-4 flex items-center gap-2 border-t border-line rounded-none pt-4">
+        <div className="mt-4 flex items-center gap-2 border-t-2 border-line rounded-none pt-4">
           <span className="inline-flex items-center gap-1 text-sm font-semibold text-ink">
             <Icon name="star" className="fill text-base text-accent" />
             {formatRating(route.rating)}

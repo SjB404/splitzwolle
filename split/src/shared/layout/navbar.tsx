@@ -6,7 +6,7 @@ import { AnimatePresence, m } from "motion/react";
 import Icon from "../primitives/icon.tsx";
 import ThemeToggle from "./themeToggle.tsx";
 import Container, { CONTAINER } from "./container.tsx";
-import { MOTION_TRANSITION } from "../../motion.ts";
+import { MOTION_SWAP, MOTION_TRANSITION } from "../../motion.ts";
 import {
   LOGIN_PATH,
   NAV_LINKS,
@@ -72,6 +72,7 @@ export default function Navbar() {
         </Link>
 
         {/* -me-2 pulls the trailing button back by the 8px the glyph is inset in its 40px circle, so the icon lines up with the gutter */}
+        {/* the glyph turns as it swaps, so the button answers the press itself: without it the icon just blinks from one name to the other */}
         <button
           type="button"
           className="circle transparent ripple tap-target -me-2 text-on-bar lg:hidden"
@@ -79,7 +80,18 @@ export default function Navbar() {
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen((open) => !open)}
         >
-          <Icon name={menuOpen ? "close" : "menu"} />
+          <AnimatePresence initial={false} mode="wait">
+            <m.span
+              key={menuOpen ? "close" : "menu"}
+              initial={{ opacity: 0, rotate: -90, scale: 0.6 }}
+              animate={{ opacity: 1, rotate: 0, scale: 1 }}
+              exit={{ opacity: 0, rotate: 90, scale: 0.6 }}
+              transition={MOTION_SWAP}
+              className="inline-flex"
+            >
+              <Icon name={menuOpen ? "close" : "menu"} />
+            </m.span>
+          </AnimatePresence>
         </button>
       </nav>
 
@@ -96,23 +108,30 @@ export default function Navbar() {
             <Container className="w-full pb-4">
               {/* the active row is a see through layer over the bar, not an inverted pill: the bar's text is white in light mode, so an inversion would be orange on white */}
               <div className="flex flex-col gap-1">
-                {NAV_LINKS.map((link) => {
+                {NAV_LINKS.map((link, index) => {
                   const active = isActiveLink(pathname, link.to);
 
                   return (
-                    <Link
+                    /* the rows arrive one after another: opacity only, so the cascade still reads when the reader has asked for less motion and the panel's own height is skipped */
+                    <m.div
                       key={link.label}
-                      to={link.to}
-                      onClick={() => setMenuOpen(false)}
-                      aria-current={active ? "page" : undefined}
-                      className={`button left-align min-h-12 ripple ${
-                        active
-                          ? "bg-on-bar/20 text-on-bar"
-                          : "transparent text-on-bar"
-                      }`}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ ...MOTION_SWAP, delay: index * 0.03 }}
                     >
-                      {link.label}
-                    </Link>
+                      <Link
+                        to={link.to}
+                        onClick={() => setMenuOpen(false)}
+                        aria-current={active ? "page" : undefined}
+                        className={`button left-align min-h-12 w-full ripple ${
+                          active
+                            ? "bg-on-bar/20 text-on-bar"
+                            : "transparent text-on-bar"
+                        }`}
+                      >
+                        {link.label}
+                      </Link>
+                    </m.div>
                   );
                 })}
               </div>

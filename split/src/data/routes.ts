@@ -216,6 +216,7 @@ export const INITIAL_ROUTE_FILTERS: RouteFilterState = {
   distance: "all",
   theme: "all",
   difficulty: "all",
+  ownership: "all",
 };
 
 /* true when a filter has left its resting value, which is what shows "Filters wissen"; the resting values are read from INITIAL_ROUTE_FILTERS, so a new filter cannot be left behind */
@@ -227,8 +228,11 @@ export function hasActiveRouteFilters(filters: RouteFilterState): boolean {
   return restingKeys.some((key) => filters[key] !== INITIAL_ROUTE_FILTERS[key]);
 }
 
-/** the overview's filter logic, kept next to the data it filters instead of in the page */
-export function filterRoutes(filters: RouteFilterState): Route[] {
+/** the overview's filter logic, kept next to the data it filters instead of in the page; the saved ids come from the reader's own browser, which is why they are handed in */
+export function filterRoutes(
+  filters: RouteFilterState,
+  savedIds: string[] = [],
+): Route[] {
   const needle = filters.query.trim().toLowerCase();
 
   return ROUTES.filter((route) => {
@@ -246,6 +250,11 @@ export function filterRoutes(filters: RouteFilterState): Route[] {
       if (!haystack.includes(needle)) return false;
     }
     if (filters.popularity === "popular" && !route.popular) return false;
+    /* owned by the reader or by the community — neither is a property of the route, so the ids are handed in */
+    if (filters.ownership === "saved" && !savedIds.includes(route.id))
+      return false;
+    if (filters.ownership === "community" && savedIds.includes(route.id))
+      return false;
     /* the buckets follow the scope: everything here is a walk in the centre, so "short" is under 1.5 km and "long" over 2.5 */
     if (filters.distance === "short" && route.distanceKm >= 1.5) return false;
     if (

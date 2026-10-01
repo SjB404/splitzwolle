@@ -40,8 +40,8 @@ export default function PopularRoutesPreview() {
             matches.length === 1 ? "route" : "routes"
           }`}
           action={
-            /* a link dressed as a button needs .button (a bare <a> has no button box), and border defaults to primary text — 2.5:1 on white — so the ink comes from the theme */
-            <Link to={ROUTES_PATH} className="button border text-ink ripple">
+            /* a link dressed as a button needs .button (a bare <a> has no button box), and border defaults to primary text — 2.5:1 on white — so the ink comes from the theme; h-12 is the field's own 48px, so the action sits in the row at the field's height instead of 8px short of it (§7) */
+            <Link to={ROUTES_PATH} className="button border text-ink ripple h-12">
               Alle routes bekijken
             </Link>
           }

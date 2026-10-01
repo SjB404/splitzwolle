@@ -22,8 +22,8 @@ const MAP_LAYER_LABELS: Record<MapLayer, string> = {
 /* top to bottom: the past sits at the bottom of the track and the present at the top, the way a timeline is read */
 const RAIL_ENDS: MapLayer[] = ["current", "historical"];
 
-/* where the slider starts: 35% means mostly historic */
-const INITIAL_MAP_POSITION = 35;
+/* where the slider starts: 0 is the historic map at full strength, which is the half of the pairing the page leads with */
+const INITIAL_MAP_POSITION = 0;
 
 interface HeroMapProps {
   /** placement, not appearance — the panel's own look is settled here */
@@ -55,7 +55,7 @@ export default function HeroMap({ className = "" }: HeroMapProps) {
   return (
     <div
       /* contain keeps a resize of the map inside the panel instead of invalidating the page around it, and the two stacked pictures are the heaviest thing on the page to re-raster while a window is dragged */
-      className={`surface [contain:layout_paint] flex flex-col overflow-hidden rounded-xl border border-line sm:flex-row ${className}`}
+      className={`surface [contain:layout_paint] flex flex-col overflow-hidden rounded-box border-2 border-line sm:flex-row ${className}`}
       style={fadeStyle}
     >
       {/* the current map sets the frame and the historic one is stacked on top of it; the frame is as tall as the band can afford, so the picture keeps the height the rail no longer costs it */}
@@ -72,7 +72,7 @@ export default function HeroMap({ className = "" }: HeroMapProps) {
       </div>
 
       {/* the rail: the words are the track's two ends, so picking a side and dragging to it are the same action */}
-      <div className="flex w-full items-center gap-3 border-t border-line px-gutter py-3 sm:w-16 sm:flex-none sm:flex-col sm:gap-1 sm:border-t-0 sm:border-l sm:px-2">
+      <div className="flex w-full items-center gap-3 border-t-2 border-line px-gutter py-3 sm:w-16 sm:flex-none sm:flex-col sm:gap-1 sm:border-t-0 sm:border-l-2 sm:px-2">
         {RAIL_ENDS.map((id, index) => (
           <button
             key={id}

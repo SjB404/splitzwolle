@@ -1,6 +1,7 @@
 import { fireEvent, screen, within } from "@testing-library/react";
 import PointsOfInterestPage from "../../../src/pages/pointsOfInterestPage.tsx";
 import { POINTS_OF_INTEREST } from "../../../src/data/pointsOfInterest.ts";
+import { builderPath } from "../../../src/data/navigation.ts";
 import { renderWithRouter } from "../helpers.tsx";
 
 const placeLinks = () => screen.getAllByRole("link", { name: "In een route" });
@@ -153,6 +154,6 @@ describe("PointsOfInterestPage", () => {
 
     expect(
       within(card).getByRole("link", { name: "In een route" }),
-    ).toHaveAttribute("href", "/routes?plek=peperbus");
+    ).toHaveAttribute("href", builderPath(["peperbus"]));
   });
 });

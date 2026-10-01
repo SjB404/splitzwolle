@@ -8,6 +8,7 @@ import {
   PLANNING_PATH,
   POI_PATH,
   ROUTES_PATH,
+  publicRoutePath,
 } from "../../src/data/navigation.ts";
 import { ROUTES } from "../../src/data/routes.ts";
 
@@ -31,7 +32,6 @@ describe("the router", () => {
 
   it.each([
     [ROUTES_PATH, /Stel je route samen/],
-    [PLANNING_PATH, /Stel je route samen/],
     [POI_PATH, /Bezienswaardigheden in Zwolle/],
   ])("serves %s", async (path, heading) => {
     renderAt(path);
@@ -41,10 +41,21 @@ describe("the router", () => {
     ).toBeInTheDocument();
   });
 
+  it("sends the old planning url to the builder", async () => {
+    renderAt(PLANNING_PATH);
+
+    await screen.findByRole("heading", {
+      level: 1,
+      name: /Stel je route samen/,
+    });
+
+    expect(window.location.pathname).toBe(ROUTES_PATH);
+  });
+
   it.each(ROUTES.map((route) => [route.id, route.title] as const))(
     "serves the page of %s",
     async (id, title) => {
-      renderAt(`${ROUTES_PATH}/${id}`);
+      renderAt(publicRoutePath(id));
 
       await waitFor(() =>
         expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
@@ -53,6 +64,18 @@ describe("the router", () => {
       );
     },
   );
+
+  it("sends a route's old url to its own page, so an old link still lands", async () => {
+    const route = ROUTES[0];
+    renderAt(`${ROUTES_PATH}/${route.id}`);
+
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
+        route.title,
+      ),
+    );
+    expect(window.location.pathname).toBe(publicRoutePath(route.id));
+  });
 
   it("answers an unknown path with the catch-all page", async () => {
     renderAt("/dit-bestaat-niet");

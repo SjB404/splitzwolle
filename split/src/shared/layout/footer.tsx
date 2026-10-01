@@ -79,7 +79,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 border-t border-line pt-6 text-xs text-ink-muted sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2 border-t-2 border-line pt-6 text-xs text-ink-muted sm:flex-row sm:items-center sm:justify-between">
           <p>
             © {new Date().getFullYear()} Zwolle Routes — Alle rechten
             voorbehouden.

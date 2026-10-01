@@ -5,6 +5,7 @@ import PoiFilters from "../../../src/sections/pointsOfInterest/poiFilters.tsx";
 import PoiResults from "../../../src/sections/pointsOfInterest/poiResults.tsx";
 import PoiCard from "../../../src/sections/pointsOfInterest/poiCard.tsx";
 import { INITIAL_ROUTE_FILTERS, ROUTES } from "../../../src/data/routes.ts";
+import { builderPath } from "../../../src/data/navigation.ts";
 import {
   INITIAL_POI_FILTERS,
   POINTS_OF_INTEREST,
@@ -138,6 +139,7 @@ describe("RouteResults", () => {
     showAll = false,
     onShowAll = () => {},
     onReset = () => {},
+    savedIds: string[] = [],
   ) =>
     renderWithRouter(
       <RouteResults
@@ -145,6 +147,9 @@ describe("RouteResults", () => {
         showAll={showAll}
         onShowAll={onShowAll}
         onReset={onReset}
+        onBuild={() => {}}
+        savedIds={savedIds}
+        onToggleSave={() => {}}
       />,
     );
 
@@ -417,7 +422,7 @@ describe("PoiCard", () => {
 
     expect(screen.getByRole("link", { name: "In een route" })).toHaveAttribute(
       "href",
-      `/routes?plek=${point.id}`,
+      builderPath([point.id]),
     );
   });
 

@@ -36,14 +36,6 @@ export const test = base.extend<{ errors: string[] }>({
 
 export { expect };
 
-/** the four pages that draw the shared map, which falls back to its own panel without an api key */
-export const MAP_PAGES = [
-  "/routes",
-  "/points-of-interest",
-  "/planning",
-  "/routes/binnenstad-highlights",
-];
-
 /** the app must never scroll sideways: the document's own width is the check */
 export async function horizontalOverflow(page: Page) {
   return page.evaluate(

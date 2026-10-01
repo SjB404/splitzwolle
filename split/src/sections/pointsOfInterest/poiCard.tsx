@@ -3,7 +3,7 @@
 import { Link } from "react-router-dom";
 import Icon from "../../shared/primitives/icon.tsx";
 import { formatDistance, formatRating } from "../../format.ts";
-import { ROUTES_PATH } from "../../data/navigation.ts";
+import { builderPath } from "../../data/navigation.ts";
 import { poiCategoryIcon } from "../../data/pointsOfInterest.ts";
 import type { PointOfInterest } from "../../types.ts";
 
@@ -46,7 +46,7 @@ export default function PoiCard({ point, selected, onSelect }: PoiCardProps) {
           {point.description}
         </p>
 
-        <div className="mt-auto flex flex-wrap items-center gap-3 border-t border-line rounded-none pt-4">
+        <div className="mt-auto flex flex-wrap items-center gap-3 border-t-2 border-line rounded-none pt-4">
           <p className="inline-flex items-center gap-1 text-xs text-ink-muted">
             <Icon name="place" className="text-base" />
             {point.area} · {formatDistance(point.distanceKm)} vanaf de Grote
@@ -64,7 +64,7 @@ export default function PoiCard({ point, selected, onSelect }: PoiCardProps) {
             </button>
 
             <Link
-              to={`${ROUTES_PATH}?plek=${point.id}`}
+              to={builderPath([point.id])}
               className="button border text-ink ripple tap-target"
             >
               <Icon name="route" className="mr-1 text-base" />

@@ -17,7 +17,7 @@ export default function RoutePlanSummary({
 }: RoutePlanSummaryProps) {
   if (plan.points.length < 2) {
     return (
-      <p className="surface-container-low mt-6 flex items-start gap-2 rounded-xl border border-line p-4 text-sm text-ink-muted">
+      <p className="surface-container-low mt-6 flex items-start gap-2 rounded-box border-2 border-line p-4 text-sm text-ink-muted">
         <Icon name="route" className="text-base" />
         {plan.points.length === 0
           ? "Kies twee of meer plekken om een route te maken."
@@ -48,7 +48,7 @@ export default function RoutePlanSummary({
         ))}
       </ol>
 
-      <dl className="mt-4 flex flex-wrap items-center gap-x-8 gap-y-2 border-t border-line rounded-none pt-4">
+      <dl className="mt-4 flex flex-wrap items-center gap-x-8 gap-y-2 border-t-2 border-line rounded-none pt-4">
         <div>
           <dt className="text-xs uppercase tracking-[0.14em] text-ink-muted">
             Afstand

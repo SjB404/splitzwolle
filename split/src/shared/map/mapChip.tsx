@@ -9,7 +9,7 @@ interface MapChipProps {
 export default function MapChip({ label, className = "" }: MapChipProps) {
   return (
     <span
-      className={`chip surface-container-lowest border border-line text-xs font-semibold ${className}`}
+      className={`chip surface-container-lowest text-xs font-semibold ${className}`}
     >
       <span
         className="mr-1.5 inline-block h-2 w-2 rounded-full bg-orange-500"

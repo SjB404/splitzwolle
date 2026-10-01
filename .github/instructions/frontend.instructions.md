@@ -40,13 +40,15 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   `slate-*`**, and never dim text with opacity (`text-ink-muted/70` measures 3.4:1) — use size for
   restraint. Never write `text-orange-*` either: it is a **fill** tone (2.6:1 on white). Accent text
   uses `text-accent` — Deltion blue in light mode, the true brand orange in dark mode.
-- **One boundary for every outlined control**: a field, an outlined button and an unselected filter
-  chip all draw `1px solid var(--outline)`. BeerCSS disagrees with itself ([`@layer overrides`] §7),
-  and the control _inside_ a field owns its line (`--outline`, `--primary` at 2px on focus). Never
-  add a second ring to a `.field`, and never reach for BeerCSS's `.transparent` on a control whose
-  ink has to change — it is `color: inherit !important`; use the `bg-transparent` _utility_.
+- **One boundary for every outlined control — at 2px**: a field, an outlined button and an unselected
+  filter chip all draw `var(--outline)`, and every card or panel draws `var(--outline-variant)`
+  (`border-2 border-line`) — **nothing is thinner than 2px**. The width is set once in
+  [`@layer overrides`] §7, and the control _inside_ a field owns its line (`--outline` at rest,
+  `--primary` on focus). Never add a second ring to a `.field`, and never reach for BeerCSS's
+  `.transparent` on a control whose ink has to change — it is `color: inherit !important`; use the
+  `bg-transparent` _utility_.
 - **A `border-t` divider needs `rounded-none`.** BeerCSS gives every element
-  `border-radius: inherit`, so a divider inside a 12px card is painted as the top edge of a rounded
+  `border-radius: inherit`, so a divider inside a 2rem card is painted as the top edge of a rounded
   box and curves away from the card's edges.
 - **Both themes are supported.** The palette is chosen by the `light`/`dark` class on `<body>`
   (see `src/shared/layout/themeToggle.tsx`); components never branch on the theme, they just read
@@ -63,7 +65,8 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   in `@theme`, so reach for the token instead of a breakpoint pair (DESIGN.md §4, §5).
 - **Elevation:** **there is none**, by design — no `elevate`/`medium-elevate`/`large-elevate`, no
   Tailwind `shadow-*` (shadows are switched off framework-wide in `@layer overrides`). Separate
-  surfaces with a step in the `--surface-container-*` ramp and a `border-line` hairline instead.
+  surfaces with a step in the `--surface-container-*` ramp and the shared 2px `border-line` boundary
+  instead.
 - **The top bar leads with the brand and flips with the theme** (`bg-bar text-on-bar`): brand orange
   with **white** text in light mode, desaturated brand navy with light text in dark. The avatar always
   wears the _opposite_ brand colour (`bg-avatar text-on-avatar`) — blue on the orange bar, orange on
@@ -85,9 +88,10 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   that as a dropdown menu and absolutely positions the list over the heading (DESIGN.md §2).
 - **`!important` lives in `@layer overrides` only** (`src/index.css`, declared first so important
   rules there win). It is for properties BeerCSS declares with the flag itself, and for the few
-  places it disagrees with itself — today the framework-wide shadow switch-off, the boundary of
-  every outlined control, and the two things wrong with the map slider (its filled track stops
-  short of the handle, and the handle narrows to a hairline while focused) (DESIGN.md §2, §7).
+  places it disagrees with itself — today the framework-wide shadow switch-off, the 2px boundary on
+  every outlined control and every card/panel, and the two things wrong with the map slider (its
+  filled track stops short of the handle, and the handle narrows to a hairline while focused)
+  (DESIGN.md §2, §5, §7).
   Anywhere else, a needed `!important` means the framework is being fought instead of used.
 - **Light mode must separate, not just contrast.** A white page hides white cards: the bands are
   white, the canvas is warm paper (`sand-200`) and cards are white again, so the sections read as
@@ -105,11 +109,15 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   that duplicates BeerCSS — see `docs/DESIGN.md` §13 and §15.
 - **Flexbox for rows, the BeerCSS 12-col grid for page layout**, `gap-*` between siblings, `min-w-0`
   on text inside a flex row. Check every change from **320px to 2560px** and in **both themes**;
-  `document.body.scrollWidth === clientWidth` must hold at every width.
+  `document.body.scrollWidth === clientWidth` must hold at every width. A `w-full` BeerCSS button is
+  the classic offender: it is `content-box`, so 100% used to mean 100% _plus_ its own padding.
 - **Material 3 metrics to keep:** the app bar is `surface`, flat at rest, 64px (ours is 65px);
-  cards are 12px (`article`, or `rounded-xl`); controls carry a **48×48px hit area** — add
-  `tap-target` to anything smaller than 48px (BeerCSS icon buttons are 40px) instead of
-  enlarging the visual; section rhythm 32–64px on the 4px grid.
+  **every box shares one corner** — `--radius-box` (2rem / 32px), set once in `@layer overrides`, so
+  `article`, a field, a chip and an action are the same shape (a hand-built panel wears `rounded-box`,
+  never a one-off radius); controls carry a **48×48px hit area** — add `tap-target` to anything
+  smaller than 48px (BeerCSS icon buttons are 40px) instead of enlarging the visual, and give a
+  control standing beside a field `h-12` — the field's own control is the 48px it has to agree with;
+  section rhythm 32–64px on the 4px grid.
 - **Motion is wanted here — but restrained.** Every interactive control carries BeerCSS's built-in
   `ripple` (Material 3 press feedback + 10% hover/focus state layer). Tailwind transitions are
   already 200ms on the M3 standard curve (`--ease-standard`, set as the default in `index.css`) —
