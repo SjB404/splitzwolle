@@ -22,7 +22,6 @@ async function apiPost(body: unknown) {
     });
 
     let json: any = null;
-
     try {
       json = await res.json();
     } catch {
@@ -79,7 +78,6 @@ interface FAQItem {
   answer: string;
 }
 
-// from db later
 const FAQ_ITEMS: FAQItem[] = [
   {
     question: "Hoe kan ik zelf een route toevoegen?",
@@ -153,7 +151,6 @@ function SubjectSelect({
       style={{ margin: 0, cursor: "pointer" }}
     >
       <i>{selected.icon}</i>
-
       <input
         id="onderwerp"
         name="onderwerp"
@@ -192,7 +189,6 @@ function SubjectSelect({
       >
         arrow_drop_down
       </i>
-
       <menu
         className={`min${open ? " active" : ""}`}
         role="listbox"
@@ -248,7 +244,6 @@ function ContactForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     setError(null);
     setSuccess(false);
 
@@ -359,7 +354,6 @@ function ContactForm() {
             value={bericht}
             onChange={(e) => setBericht(e.target.value)}
           />
-
           <label htmlFor="bericht">Bericht</label>
         </div>
 
@@ -367,7 +361,6 @@ function ContactForm() {
           <article className="error-container round no-elevate">
             <div className="row">
               <i>error</i>
-
               <div className="max">{error}</div>
             </div>
           </article>
@@ -377,7 +370,6 @@ function ContactForm() {
           <article className="tertiary-container round no-elevate">
             <div className="row">
               <i>check_circle</i>
-
               <div className="max">
                 Bedankt! Je bericht is verstuurd, we reageren binnen 24 uur.
               </div>
@@ -393,13 +385,11 @@ function ContactForm() {
           {loading ? (
             <>
               <progress className="circle small" />
-
               <span>Bezig met verzenden…</span>
             </>
           ) : (
             <>
               <i>send</i>
-
               <span>Verstuur bericht</span>
             </>
           )}

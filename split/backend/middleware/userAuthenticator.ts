@@ -47,9 +47,5 @@ export function requireRole(...roles: string[]) {
     });
   };
 }
-// import requireAuth, { requireRole } from "./auth.ts";
-// usage
-// router.get("/profile", requireAuth, handler);            // any logged-in user
-// router.delete("/reviews/:id", requireRole("admin"), handler);  // admin only
-// router.post("/x", requireRole("admin", "moderator"), handler); // several roles
+
 export default requireAuth;
