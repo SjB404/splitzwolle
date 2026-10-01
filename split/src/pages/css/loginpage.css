@@ -124,6 +124,16 @@
   box-shadow: 0 0 0 4px rgba(249,115,22,.22);
 }
 
+:is(.dark, [data-theme="dark"], [data-bs-theme="dark"]) .auth-card button.cta {
+  box-shadow: 0 4px 10px -4px rgba(0,0,0,.5);
+}
+:is(.dark, [data-theme="dark"], [data-bs-theme="dark"]) .auth-card button.cta:hover:not(:disabled) {
+  box-shadow: 0 6px 14px -6px rgba(0,0,0,.6);
+}
+:is(.dark, [data-theme="dark"], [data-bs-theme="dark"]) .auth-badge {
+  box-shadow: 0 4px 10px -4px rgba(0,0,0,.5);
+}
+
 :is(.dark, [data-theme="dark"], [data-bs-theme="dark"]) .auth-card button.google {
   background: #2a2320;
   color: #f3ece8;
@@ -132,4 +142,5 @@
 :is(.dark, [data-theme="dark"], [data-bs-theme="dark"]) .auth-card button.google:hover {
   background: #322a26;
   border-color: rgba(249,115,22,.6);
+  box-shadow: 0 4px 10px -6px rgba(0,0,0,.5);
 }
