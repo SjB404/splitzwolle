@@ -1,12 +1,24 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import type { InputHTMLAttributes, ReactNode } from "react";
+import "./css/loginPage.css";
+import {
+  API_BASE,
+  ALERT_STYLES,
+  ROUTE_POINTS,
+  GOOGLE_ICON_PATHS,
+  TEXT,
+} from "../data/loginData.ts";
 
-const API_BASE = "http://localhost:3000/api";
+const POST_LOGIN_PATH = "/routes";
 
+const SESSION_CHECK_PATH = "/auth/me";
+const LOGOUT_PATH = "/auth/logout";
 
 type Mode = "login" | "register";
-type AlertTone = "error" | "success" | "info";
+type AlertTone = keyof typeof ALERT_STYLES;
 type GoogleStatus = "success" | "error" | null;
+type Session = "checking" | "authed" | "anon";
 
 interface ApiError {
   error?: string;
@@ -32,6 +44,12 @@ interface RegisterResponse extends ApiError {
 interface ApiResult<T> {
   status: number;
   body: T | null;
+}
+interface ToggleProps {
+  checked: boolean;
+  onChange: (value: boolean) => void;
+  id: string;
+  label: string;
 }
 
 async function apiPost<T extends ApiError>(
@@ -66,53 +84,72 @@ async function apiPost<T extends ApiError>(
   }
 }
 
-/* ---------- Small components ---------- */
+async function apiGet<T extends ApiError>(
+  path: string
+): Promise<ApiResult<T>> {
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  try {
+    const res = await fetch(`${API_BASE}${cleanPath}`, {
+      method: "GET",
+      credentials: "include",
+    });
 
-interface ToggleProps {
-  checked: boolean;
-  onChange: (value: boolean) => void;
-  id: string;
-  label: string;
+    let json: T | null = null;
+    try {
+      json = (await res.json()) as T;
+    } catch {
+      json = null;
+    }
+
+    return { status: res.status, body: json };
+  } catch (err) {
+    return {
+      status: 0,
+      body: {
+        error:
+          err instanceof Error ? err.message : "cannot connect to server",
+      } as T,
+    };
+  }
 }
+
 
 function Toggle({ checked, onChange, id, label }: ToggleProps) {
   return (
-    <button
-      type="button"
-      id={id}
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
-      onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 ${
-        checked ? "bg-orange-600" : "bg-gray-300"
-      }`}
-    >
-      <span
-        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-          checked ? "translate-x-6" : "translate-x-1"
-        }`}
+    <label className="switch">
+      <input
+        type="checkbox"
+        role="switch"
+        id={id}
+        aria-label={label}
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
       />
-    </button>
+      <span />
+    </label>
   );
 }
+
 
 interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {
   id: string;
   label: string;
 }
 
-function Field({ id, label, className = "", ...props }: FieldProps) {
+function Field({
+  id,
+  label,
+  className = "",
+  placeholder,
+  ...props
+}: FieldProps) {
   return (
     <div className={className}>
-      <label htmlFor={id} className="block text-sm font-medium text-gray-700">
-        {label}
-      </label>
-      <input
-        id={id}
-        className="mt-1.5 w-full rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm text-gray-900 placeholder-gray-400 shadow-sm transition focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
-        {...props}
-      />
+      <div className="field label border round">
+        <input id={id} className="active" placeholder=" " {...props} />
+        <label htmlFor={id} className="active">{label}</label>
+        {placeholder && <span className="helper">{placeholder}</span>}
+      </div>
     </div>
   );
 }
@@ -121,16 +158,16 @@ interface AlertProps {
   tone?: AlertTone;
   children: ReactNode;
 }
-
 function Alert({ tone = "error", children }: AlertProps) {
-  const styles: Record<AlertTone, string> = {
-    error: "bg-red-50 border-red-200 text-red-700",
-    success: "bg-green-50 border-green-200 text-green-700",
-    info: "bg-orange-50 border-orange-200 text-orange-700",
-  };
+  const { color, icon } = ALERT_STYLES[tone];
+
   return (
-    <div className={`rounded-lg border px-3.5 py-2.5 text-sm ${styles[tone]}`}>
-      {children}
+    <div
+      role={tone === "error" ? "alert" : "status"}
+      className={`row round small-padding middle-align ${color}`}
+    >
+      <i>{icon}</i>
+      <div className="max small-text">{children}</div>
     </div>
   );
 }
@@ -138,65 +175,87 @@ function Alert({ tone = "error", children }: AlertProps) {
 function GoogleIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-      <path
-        fill="#4285F4"
-        d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.91c1.7-1.57 2.69-3.88 2.69-6.62Z"
-      />
-      <path
-        fill="#34A853"
-        d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.91-2.26c-.81.54-1.84.86-3.05.86-2.34 0-4.33-1.58-5.04-3.71H.96v2.33A9 9 0 0 0 9 18Z"
-      />
-      <path
-        fill="#FBBC05"
-        d="M3.96 10.71a5.4 5.4 0 0 1 0-3.42V4.96H.96a9 9 0 0 0 0 8.08l3-2.33Z"
-      />
-      <path
-        fill="#EA4335"
-        d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58A8.99 8.99 0 0 0 9 0 9 9 0 0 0 .96 4.96l3 2.33C4.67 5.16 6.66 3.58 9 3.58Z"
-      />
+      {GOOGLE_ICON_PATHS.map((p) => (
+        <path key={p.fill} fill={p.fill} d={p.d} />
+      ))}
     </svg>
   );
 }
 
 function RouteMap() {
-  const points: [number, number][] = [
-    [60, 150],
-    [150, 60],
-    [230, 110],
-    [260, 230],
-    [110, 255],
-  ];
+  const points = ROUTE_POINTS;
   const path = points.map((p) => p.join(",")).join(" ");
 
   return (
-    <div className="relative rounded-2xl border border-orange-900/20 bg-amber-50 p-6">
+    <div className="relative round border surface-container-high p-6">
       <svg viewBox="0 0 320 300" className="h-64 w-full">
         <polyline
           points={path}
           fill="none"
-          stroke="#ea580c"
+          style={{ stroke: "var(--primary)" }}
           strokeWidth="2.5"
           strokeDasharray="7 6"
           strokeLinecap="round"
         />
         {points.map(([cx, cy], i) => (
-          <circle key={i} cx={cx} cy={cy} r={6} fill="#ea580c" />
+          <circle
+            key={i}
+            cx={cx}
+            cy={cy}
+            r={6}
+            style={{ fill: "var(--primary)" }}
+          />
         ))}
       </svg>
-      <div className="absolute right-5 top-5 flex h-12 w-12 items-center justify-center rounded-full border-2 border-orange-500 bg-white text-sm font-semibold text-gray-800">
+      <div className="absolute right-5 top-5 flex h-12 w-12 items-center justify-center rounded-full border surface text-sm font-semibold">
         N
       </div>
     </div>
   );
 }
 
-/* ---------- Page ---------- */
+interface SubmitButtonProps {
+  onClick: () => void;
+  disabled?: boolean;
+  loading?: boolean;
+  children: ReactNode;
+}
+
+function SubmitButton({
+  onClick,
+  disabled,
+  loading,
+  children,
+}: SubmitButtonProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="cta responsive large round"
+    >
+      {loading && <progress className="circle small" />}
+      <span>{children}</span>
+    </button>
+  );
+}
+
+function OrDivider() {
+  return (
+    <div className="row middle-align">
+      <hr className="max" />
+      <span className="small-text">{TEXT.common.or}</span>
+      <hr className="max" />
+    </div>
+  );
+}
+
 
 export default function LoginPage() {
+  const navigate = useNavigate();
   const [mode, setMode] = useState<Mode>("login");
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Login state
   const [loginEmail, setLoginEmail] = useState<string>("");
   const [loginPassword, setLoginPassword] = useState<string>("");
   const [loginToken, setLoginToken] = useState<string>("");
@@ -206,7 +265,6 @@ export default function LoginPage() {
   const [loginUser, setLoginUser] = useState<User | null>(null);
   const [forgotNotice, setForgotNotice] = useState<boolean>(false);
 
-  // Register state
   const [regName, setRegName] = useState<string>("");
   const [regEmail, setRegEmail] = useState<string>("");
   const [regPassword, setRegPassword] = useState<string>("");
@@ -216,17 +274,39 @@ export default function LoginPage() {
 
   const [googleStatus, setGoogleStatus] = useState<GoogleStatus>(null);
 
+  const [session, setSession] = useState<Session>("checking");
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [logoutError, setLogoutError] = useState<string | null>(null);
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("oauth") === "success") {
-      setGoogleStatus("success");
+      navigate(POST_LOGIN_PATH, { replace: true });
+      return;
     } else if (params.get("error") === "google_oauth_failed") {
       setGoogleStatus("error");
     } else {
       return;
     }
-    // Clean the query string so a refresh doesn't re-trigger the notice
     window.history.replaceState({}, "", window.location.pathname);
+  }, [navigate]);
+
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { status, body } = await apiGet<LoginResponse>(SESSION_CHECK_PATH);
+      if (cancelled) return;
+      if (status >= 200 && status < 300) {
+        setCurrentUser(body?.user ?? null);
+        setSession("authed");
+      } else {
+        setSession("anon");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const switchMode = (next: Mode) => {
@@ -262,14 +342,13 @@ export default function LoginPage() {
 
     if (body?.twoFactorRequired) {
       setTokenRequired(true);
-      setLoginNotice(
-        "Dit account heeft 2FA ingeschakeld. Voer je verificatiecode in om door te gaan."
-      );
+      setLoginNotice(TEXT.login.twoFactorNotice);
       return;
     }
 
     if (status >= 200 && status < 300) {
       setLoginUser(body?.user ?? null);
+      navigate(POST_LOGIN_PATH, { replace: true });
       return;
     }
 
@@ -277,8 +356,31 @@ export default function LoginPage() {
       body?.error ||
         body?.detail ||
         body?.message ||
-        "Inloggen mislukt. Controleer je gegevens."
+        TEXT.login.failed
     );
+  };
+
+  const handleLogout = async () => {
+    setLoading(true);
+    setLogoutError(null);
+
+    const { status, body } = await apiPost<ApiError>(LOGOUT_PATH, {});
+    setLoading(false);
+
+    if (status >= 200 && status < 300) {
+      setSession("anon");
+      setCurrentUser(null);
+      setLoginUser(null);
+      setLoginPassword("");
+      setLoginToken("");
+      setTokenRequired(false);
+      setGoogleStatus(null);
+      setMode("login");
+    } else {
+      setLogoutError(
+        body?.error || body?.detail || body?.message || "Could not log out."
+      );
+    }
   };
 
   const handleRegister = async () => {
@@ -309,69 +411,91 @@ export default function LoginPage() {
         body?.error ||
           body?.detail ||
           body?.message ||
-          "Registreren is niet gelukt. Probeer het opnieuw."
+          TEXT.register.failed
       );
     }
   };
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-gray-50 font-sans md:flex-row">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap');
-        .font-sans { font-family: 'Inter', system-ui, sans-serif; }
-        .font-heading { font-family: 'Montserrat', system-ui, sans-serif; }
-      `}</style>
+    <div className="flex min-h-screen w-full flex-col font-sans md:flex-row">
 
-      {/* Left / brand panel */}
-      <div className="flex w-full flex-col justify-between bg-[#131a2e] px-8 py-12 text-white md:w-1/2 md:px-16 md:py-16">
+      <div className="inverse-surface flex w-full flex-col justify-between px-8 py-12 md:w-1/2 md:px-16 md:py-16">
         <div>
-          <p className="text-xs font-semibold tracking-widest text-orange-400">
-            Swolla — Zwolle
+          <p className="inverse-primary-text text-xs font-semibold tracking-widest">
+            {TEXT.hero.eyebrow}
           </p>
           <h1 className="font-heading mt-3 text-3xl font-bold sm:text-4xl">
-            Zwolle Routes
+            {TEXT.hero.title}
           </h1>
 
           <div className="mt-8 max-w-md">
             <RouteMap />
-            <p className="mt-3 text-sm text-slate-400">
-              Historische kaart &amp; huidige route-laag
+            <p className="mt-3 text-sm opacity-70">
+              {TEXT.hero.mapCaption}
             </p>
           </div>
 
-          <p className="mt-8 max-w-sm leading-relaxed text-slate-300">
-            Ontdek routes langs de mooiste plekken van Zwolle — van de historische Swolla tot de moderne stad. Maak, deel en beleef routes samen met andere gebruikers.
+          <p className="mt-8 max-w-sm leading-relaxed opacity-80">
+            {TEXT.hero.description}
           </p>
         </div>
 
-        <p className="mt-12 text-xs text-slate-500">
-          © 2026 Zwolle Routes · Studentproject Deltion College
+        <p className="mt-12 text-xs opacity-60">
+          {TEXT.hero.footer}
         </p>
       </div>
 
-      {/* Right / form panel */}
-      <div className="flex w-full flex-1 items-center justify-center px-6 py-12 md:w-1/2">
-        <div className="w-full max-w-sm">
-          {mode === "login" ? (
+
+      <div className="right-panel flex w-full flex-1 items-center justify-center px-6 py-12 md:w-1/2">
+        <div className="auth-card w-full max-w-md">
+          {session === "checking" ? (
+            <div className="center-align" aria-busy="true">
+              <progress className="circle" />
+            </div>
+          ) : session === "authed" ? (
             <>
-              <h2 className="font-heading text-3xl font-bold text-gray-900">Inloggen</h2>
-              <p className="mt-2 text-sm text-gray-500">
-                Welkom terug! Log in om je opgeslagen routes te bekijken.
+              <div className="auth-badge"><i>logout</i></div>
+              <h2 className="font-heading text-3xl font-bold">
+                You're already logged in
+              </h2>
+              <p className="mt-2 text-sm opacity-70">
+                {currentUser?.name || currentUser?.email
+                  ? `Signed in as ${currentUser.name || currentUser.email}.`
+                  : "You have an active session."}
+              </p>
+
+              <div className="mt-8 space-y-4">
+                {logoutError && <Alert tone="error">{logoutError}</Alert>}
+
+                <SubmitButton
+                  onClick={handleLogout}
+                  disabled={loading}
+                  loading={loading}
+                >
+                  {loading ? "Logging out..." : "Log out"}
+                </SubmitButton>
+              </div>
+            </>
+          ) : mode === "login" ? (
+            <>
+              <div className="auth-badge"><i>route</i></div>
+              <h2 className="font-heading text-3xl font-bold">{TEXT.login.title}</h2>
+              <p className="mt-2 text-sm opacity-70">
+                {TEXT.login.subtitle}
               </p>
 
               <div className="mt-8 space-y-4">
                 {googleStatus === "success" && (
-                  <Alert tone="success">Succesvol ingelogd met Google.</Alert>
+                  <Alert tone="success">{TEXT.google.success}</Alert>
                 )}
                 {googleStatus === "error" && (
-                  <Alert tone="error">Inloggen met Google is mislukt. Probeer het opnieuw.</Alert>
+                  <Alert tone="error">{TEXT.google.error}</Alert>
                 )}
 
                 <Field
                   id="login-email"
-                  label="E-mailadres"
+                  label={TEXT.login.emailLabel}
                   type="email"
-                  placeholder="jij@voorbeeld.nl"
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
                   autoComplete="email"
@@ -380,24 +504,24 @@ export default function LoginPage() {
                 <div>
                   <Field
                     id="login-password"
-                    label="Wachtwoord"
+                    label={TEXT.login.passwordLabel}
                     type="password"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     autoComplete="current-password"
                   />
-                  <div className="mt-2 text-right">
+                  <div className="text-right">
                     <button
                       type="button"
                       onClick={() => setForgotNotice(true)}
-                      className="text-sm font-medium text-orange-600 hover:text-orange-700 hover:underline"
+                      className="transparent small"
                     >
-                      Wachtwoord vergeten?
+                      {TEXT.login.forgotPassword}
                     </button>
                   </div>
                   {forgotNotice && (
-                    <p className="mt-1 text-xs text-gray-500">
-                      Neem contact op met je docent om je wachtwoord te laten resetten.
+                    <p className="mt-1 text-xs opacity-70">
+                      {TEXT.login.forgotNotice}
                     </p>
                   )}
                 </div>
@@ -405,10 +529,9 @@ export default function LoginPage() {
                 {tokenRequired && (
                   <Field
                     id="login-token"
-                    label="Verificatiecode"
+                    label={TEXT.login.tokenLabel}
                     inputMode="numeric"
                     maxLength={6}
-                    placeholder="123456"
                     value={loginToken}
                     onChange={(e) => setLoginToken(e.target.value)}
                     autoFocus
@@ -419,68 +542,64 @@ export default function LoginPage() {
                 {loginError && <Alert tone="error">{loginError}</Alert>}
                 {loginUser && (
                   <Alert tone="success">
-                    Ingelogd! Welkom terug, {loginUser.name || loginUser.email}.
+                    {TEXT.login.success} {loginUser.name || loginUser.email}.
                   </Alert>
                 )}
 
-                <button
-                  type="button"
+                <SubmitButton
                   onClick={handleLogin}
                   disabled={loading || !loginEmail || !loginPassword}
-                  className="w-full rounded-lg bg-orange-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  loading={loading}
                 >
-                  {loading ? "Bezig met inloggen…" : "Inloggen"}
-                </button>
+                  {loading ? TEXT.login.submitLoading : TEXT.login.submit}
+                </SubmitButton>
 
-                <div className="flex items-center gap-3 py-1">
-                  <div className="h-px flex-1 bg-gray-200" />
-                  <span className="text-xs text-gray-400">of</span>
-                  <div className="h-px flex-1 bg-gray-200" />
-                </div>
+                <OrDivider />
 
                 <button
                   type="button"
                   onClick={handleGoogleAuth}
-                  className="flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50"
+                  className="google responsive large round border"
                 >
                   <GoogleIcon />
-                  Inloggen met Google
+                  <span>{TEXT.login.google}</span>
                 </button>
               </div>
 
-              <p className="mt-8 text-center text-sm text-gray-500">
-                Nog geen account?{" "}
+              <div className="row center-align middle-align mt-8">
+                <span className="small-text opacity-70">{TEXT.login.noAccount}</span>
                 <button
                   type="button"
                   onClick={() => switchMode("register")}
-                  className="font-medium text-orange-600 hover:text-orange-700 hover:underline"
+                  className="transparent small"
                 >
-                  Registreren
+                  {TEXT.login.switchToRegister}
                 </button>
-              </p>
+              </div>
             </>
           ) : (
             <>
-              <h2 className="font-heading text-3xl font-bold text-gray-900">Account aanmaken</h2>
-              <p className="mt-2 text-sm text-gray-500">
-                Maak een account om je eigen routes op te slaan en te delen.
+              <div className="auth-badge"><i>person_add</i></div>
+              <h2 className="font-heading text-3xl font-bold">{TEXT.register.title}</h2>
+              <p className="mt-2 text-sm opacity-70">
+                {TEXT.register.subtitle}
               </p>
 
               {regResult ? (
                 <div className="mt-8 space-y-4">
                   <Alert tone="success">
-                    Account aangemaakt. Je kunt nu inloggen.
+                    {TEXT.register.success}
                   </Alert>
 
                   {regResult.qrCode && (
-                    <div className="flex flex-col items-center gap-3 rounded-xl border border-orange-200 bg-amber-50 p-4 text-center">
+                    <div className="flex flex-col items-center gap-3 round border surface-container p-4 text-center">
                       <img
                         src={regResult.qrCode}
-                        alt="QR-code voor 2FA"
-                        className="h-40 w-40 rounded-lg border border-orange-200 bg-white p-2"
+                        alt={TEXT.register.qrAlt}
+                        className="h-40 w-40 rounded-lg bg-white p-2"
                       />
-                      <p className="text-xs text-gray-500">
-                        Scan deze QR-code met je authenticator-app om 2FA in te stellen.
+                      <p className="text-xs opacity-70">
+                        {TEXT.register.qrHint}
                       </p>
                     </div>
                   )}
@@ -488,32 +607,31 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => switchMode("login")}
-                    className="w-full rounded-lg bg-orange-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-700"
+                    className="responsive large round"
                   >
-                    Doorgaan naar inloggen
+                    {TEXT.register.continueToLogin}
                   </button>
                 </div>
               ) : (
                 <div className="mt-8 space-y-4">
                   <Field
                     id="reg-name"
-                    label="Naam"
+                    label={TEXT.register.nameLabel}
                     value={regName}
                     onChange={(e) => setRegName(e.target.value)}
                     autoComplete="name"
                   />
                   <Field
                     id="reg-email"
-                    label="E-mailadres"
+                    label={TEXT.register.emailLabel}
                     type="email"
-                    placeholder="jij@voorbeeld.nl"
                     value={regEmail}
                     onChange={(e) => setRegEmail(e.target.value)}
                     autoComplete="email"
                   />
                   <Field
                     id="reg-password"
-                    label="Wachtwoord"
+                    label={TEXT.register.passwordLabel}
                     type="password"
                     value={regPassword}
                     onChange={(e) => setRegPassword(e.target.value)}
@@ -522,64 +640,59 @@ export default function LoginPage() {
 
                   {regError && <Alert tone="error">{regError}</Alert>}
 
-                  <div className="rounded-xl border border-orange-200 bg-orange-50 p-4">
+                  <div className="round primary-container p-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-600 text-xs font-bold text-white">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full primary text-xs font-bold">
                         2FA
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-semibold text-gray-900">
-                          Tweestapsverificatie (2FA)
+                        <p className="text-sm font-semibold">
+                          {TEXT.register.twofaTitle}
                         </p>
-                        <p className="text-xs text-gray-500">
-                          Extra beveiliging voor je account inschakelen
+                        <p className="text-xs opacity-70">
+                          {TEXT.register.twofaDescription}
                         </p>
                       </div>
                       <Toggle
                         id="reg-2fa"
-                        label="2FA inschakelen bij registratie"
+                        label={TEXT.register.twofaToggleLabel}
                         checked={regTwofa}
                         onChange={setRegTwofa}
                       />
                     </div>
                   </div>
 
-                  <button
-                    type="button"
+                  <SubmitButton
                     onClick={handleRegister}
                     disabled={loading || !regName || !regEmail || !regPassword}
-                    className="w-full rounded-lg bg-orange-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    loading={loading}
                   >
-                    {loading ? "Bezig…" : "Account aanmaken"}
-                  </button>
+                    {loading ? TEXT.register.submitLoading : TEXT.register.submit}
+                  </SubmitButton>
 
-                  <div className="flex items-center gap-3 py-1">
-                    <div className="h-px flex-1 bg-gray-200" />
-                    <span className="text-xs text-gray-400">of</span>
-                    <div className="h-px flex-1 bg-gray-200" />
-                  </div>
+                  <OrDivider />
 
                   <button
                     type="button"
                     onClick={handleGoogleAuth}
-                    className="flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50"
+                    className="google responsive large round border"
                   >
                     <GoogleIcon />
-                    Registreren met Google
+                    <span>{TEXT.register.google}</span>
                   </button>
                 </div>
               )}
 
-              <p className="mt-8 text-center text-sm text-gray-500">
-                Heb je al een account?{" "}
+              <div className="row center-align middle-align mt-8">
+                <span className="small-text opacity-70">{TEXT.register.haveAccount}</span>
                 <button
                   type="button"
                   onClick={() => switchMode("login")}
-                  className="font-medium text-orange-600 hover:text-orange-700 hover:underline"
+                  className="transparent small"
                 >
-                  Inloggen
+                  {TEXT.register.switchToLogin}
                 </button>
-              </p>
+              </div>
             </>
           )}
         </div>
