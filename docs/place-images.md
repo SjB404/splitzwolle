@@ -7,13 +7,14 @@ map) and the home strip show it straight away. Until then both draw the category
 ```ts
 import peperbus from "../assets/places/de-peperbus.jpg";
 
-export const RESOLVED_PLACES = [
+const RESOLVED_PLACES = [
   { id: "peperbus", …, image: peperbus },
 ];
 ```
 
-Use a picture that is at least 600px wide and roughly 4:3 (the preview card crops to 16:10, the home
-strip crops to a circle). The `alt` is empty on purpose: the place's name is already beside it.
+Use a picture that is at least 600px wide and roughly 4:3 (the preview card crops to a wide 2:1
+band, the home strip crops to a circle). The `alt` is empty on purpose: the place's name is already
+beside it.
 
 ## The list
 
