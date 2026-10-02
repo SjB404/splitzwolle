@@ -1,4 +1,4 @@
-/* our whole use of the google maps javascript api: the one script tag, the key, the colours and the options — the routes themselves are drawn by sections/routes/routeMap.tsx */
+/* our whole use of the google maps javascript api: the one script tag, the key, the colours and the options — the routes themselves are drawn by shared/map/areaMap.tsx */
 /* the key comes from VITE_GOOGLE_MAPS_API_KEY (split/split/.env.local, gitignored by the `*.local` rule); a key written into a source file is a key someone else spends (docs/DESIGN.md §15) */
 
 import type { LatLng, RouteGeometry, TravelMode } from "../../types.ts";

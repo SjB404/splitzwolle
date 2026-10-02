@@ -26,7 +26,7 @@ code** — do not re-derive styles by scanning the project.
   Material 3 spec.
 - Upstream spec digest: `docs/reference/material-3-reference.md` (component metrics, type scale,
   motion curves, accessibility) — consult it for spec numbers, DESIGN.md for decisions.
-  Auto-applied rules for `split/src/**/*.{ts,tsx,css}`:
+  Auto-applied rules for `split/split/src/**/*.{ts,tsx,css}`:
   `.github/instructions/frontend.instructions.md`
 - **Keep `docs/DESIGN.md` current, automatically.** If a change touches anything written down there —
   a token, a role, a recipe, a class, a path, a file that moved, a name, a rule, a spec deviation —
@@ -40,12 +40,12 @@ Vite 8 + React 19 + TypeScript, Tailwind CSS v4 via `@tailwindcss/vite`, **BeerC
 **Google Maps** (the JavaScript API, loaded as a script by `src/shared/map/googleMaps.ts`) draws every
 map except the hero's — see `docs/DESIGN.md` §8. The key is `VITE_GOOGLE_MAPS_API_KEY` in
 `split/split/.env.local`; without it every map falls back to the map artwork.
-Express is a declared dependency for the (currently minimal) `split/backend/` folder.
+Express is a declared dependency for the (currently minimal) `split/split/backend/` folder.
 
 ## Project Layout
 
-- **The Vite project root is `split/split/`**, not the repo root. All app paths below are
-  relative to `split/`.
+- **The Vite project root is `split/split/`**, not the repo root. The short `src/…` paths below
+  are relative to **`split/split/`**; a path written out in full starts at the repo root.
 - `src/index.css` — Tailwind import + all `@theme` design tokens
 - `src/main.tsx` — entry, mounts `<App />`
 - `src/App.tsx` — the router: paths → pages, plus the root `LazyMotion` / `MotionConfig`
@@ -141,10 +141,10 @@ the suite follows a content change. The e2e groups are tagged (`@smoke`, `@nav`,
   are exercised through their fallback panel; the real maps are checked by hand at 5173. Test files
   use vitest's globals and never `import { … } from "vitest"` (see `docs/TESTPLAN.md`).
 - UI copy is Dutch (`nl-NL`); code, comments, and commits are English.
-- Everything under `split/src/` is TypeScript — `.tsx` for anything with markup, `.ts` for data,
-  types and pure helpers — and `split/tsconfig.app.json` has `strict: true`. `allowJs` is off: a
+- Everything under `split/split/src/` is TypeScript — `.tsx` for anything with markup, `.ts` for data,
+  types and pure helpers — and `split/split/tsconfig.app.json` has `strict: true`. `allowJs` is off: a
   stray `.js` file in `src/` is a file that will not be compiled.
 - BeerCSS and Material Symbols are the only UI dependencies; don't add more (no icon
   libraries, no animation libraries, no component kits). Everything else is Tailwind
-  utilities, the Material 3 CSS variables in `split/src/index.css`, the map imagery in
-  `split/src/assets/maps/`, and Google Maps drawn by `src/shared/map/`.
+  utilities, the Material 3 CSS variables in `split/split/src/index.css`, the map imagery in
+  `split/split/src/assets/maps/`, and Google Maps drawn by `src/shared/map/`.

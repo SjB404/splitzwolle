@@ -51,7 +51,7 @@ export default function ReviewForm() {
       </div>
 
       <div>
-        <button type="submit" className="ripple">
+        <button type="submit" className="ripple tap-target">
           Review plaatsen
         </button>
       </div>

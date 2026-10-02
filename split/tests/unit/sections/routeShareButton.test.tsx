@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { useState } from "react";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import RouteShareButton from "../../../src/sections/routes/routeShareButton.tsx";
 import { builderPath } from "../../../src/data/navigation.ts";
@@ -34,19 +35,85 @@ describe("RouteShareButton", () => {
     expect(container.querySelector("i")?.textContent).toBe("share");
   });
 
-  it("waits for a second place, because one place is not a route", () => {
-    renderWithRouter(<RouteShareButton placeIds={["peperbus"]} />);
+  it("stays clickable without a route, so the popup can explain the wait", () => {
+    renderWithRouter(<RouteShareButton placeIds={[]} />);
 
     expect(
       screen.getByRole("button", { name: "Deel deze route" }),
-    ).toBeDisabled();
+    ).toBeEnabled();
   });
 
   it("says nothing until it is asked", () => {
     renderWithRouter(<RouteShareButton placeIds={PLACES} />);
 
+    expect(screen.queryByRole("alert")).toBeNull();
     expect(screen.queryByText(/Link gekopieerd/)).toBeNull();
     expect(screen.queryByText(/Kopieer de link/)).toBeNull();
+  });
+
+  it("opens a popup instead of copying when there is no route yet", () => {
+    renderWithRouter(<RouteShareButton placeIds={["peperbus"]} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Deel deze route" }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Kies eerst twee plekken op de kaart.",
+    );
+  });
+
+  it("closes the popup with its own action", () => {
+    renderWithRouter(<RouteShareButton placeIds={["peperbus"]} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Deel deze route" }));
+    fireEvent.click(screen.getByRole("button", { name: "Sluiten" }));
+
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("closes the popup on escape", () => {
+    renderWithRouter(<RouteShareButton placeIds={["peperbus"]} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Deel deze route" }));
+    fireEvent.keyDown(document, { key: "Escape" });
+
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("closes the popup when the click lands outside it", () => {
+    renderWithRouter(<RouteShareButton placeIds={["peperbus"]} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Deel deze route" }));
+    fireEvent.mouseDown(document.body);
+
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  /* the popup is only about the missing route, so a second place makes it moot */
+  it("closes the popup once a second place makes a route", async () => {
+    function Harness() {
+      const [ids, setIds] = useState<string[]>(["peperbus"]);
+
+      return (
+        <>
+          <RouteShareButton placeIds={ids} />
+          <button
+            type="button"
+            onClick={() => setIds(["peperbus", "melkmarkt"])}
+          >
+            plek erbij
+          </button>
+        </>
+      );
+    }
+
+    renderWithRouter(<Harness />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Deel deze route" }));
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "plek erbij" }));
+
+    await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
   });
 
   /* the route is already in the url, so sharing it is copying that url — places and order and all */

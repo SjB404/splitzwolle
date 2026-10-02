@@ -12,10 +12,11 @@ export const LOGIN_PATH = "/inloggen";
 export const REGISTER_PATH = "/inloggen#registreren";
 
 /* Contact is not a page: it points at the footer band, the contact block on every page (shared/layout/footer.tsx) */
+/* the label is Dutch like every other word in the ui (docs/DESIGN.md §12); only the /points-of-interest url keeps the English name, because it is a stable link others may have written down */
 export const NAV_LINKS: NavLink[] = [
   { label: "Home", to: HOME_PATH },
   { label: "Routes", to: ROUTES_PATH },
-  { label: "Points of Interest", to: POI_PATH },
+  { label: "Bezienswaardigheden", to: POI_PATH },
   { label: "Contact", to: `${HOME_PATH}#contact` },
 ];
 
@@ -59,7 +60,7 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
     links: [
       { label: "Home", to: HOME_PATH },
       { label: "Routes", to: ROUTES_PATH },
-      { label: "Points of Interest", to: POI_PATH },
+      { label: "Bezienswaardigheden", to: POI_PATH },
     ],
   },
   {

@@ -62,7 +62,11 @@ export default function RouteResults({
       {hasMore && (
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
           {!showAll && (
-            <button type="button" onClick={onShowAll} className="ripple">
+            <button
+              type="button"
+              onClick={onShowAll}
+              className="ripple tap-target"
+            >
               Toon meer routes
             </button>
           )}

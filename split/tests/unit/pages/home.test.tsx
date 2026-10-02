@@ -75,7 +75,7 @@ describe("HomePage", () => {
     expect(
       screen.getByRole("heading", {
         level: 2,
-        name: "Points of Interest in Zwolle",
+        name: "Bezienswaardigheden in Zwolle",
       }),
     ).toBeInTheDocument();
     expect(screen.getAllByRole("listitem")).toHaveLength(POI_PREVIEW_COUNT);

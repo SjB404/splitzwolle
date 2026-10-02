@@ -59,7 +59,7 @@ test.describe("the theme switch", () => {
 
     await page
       .getByRole("banner")
-      .getByRole("link", { name: "Points of Interest", exact: true })
+      .getByRole("link", { name: "Bezienswaardigheden", exact: true })
       .click();
 
     await expect(page).toHaveURL("/points-of-interest");

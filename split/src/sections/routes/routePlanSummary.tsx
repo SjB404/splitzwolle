@@ -84,7 +84,7 @@ export default function RoutePlanSummary({
           )}
           target="_blank"
           rel="noreferrer"
-          className="button ripple"
+          className="button ripple tap-target"
         >
           <Icon name="open_in_new" className="mr-1" />
           Open in Google Maps
@@ -93,7 +93,7 @@ export default function RoutePlanSummary({
         <button
           type="button"
           onClick={onReset}
-          className="button border text-ink ripple"
+          className="button border text-ink ripple tap-target"
         >
           Selectie wissen
         </button>

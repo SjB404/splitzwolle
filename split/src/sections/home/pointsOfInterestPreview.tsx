@@ -36,7 +36,7 @@ export default function PointsOfInterestPreview() {
     <section className="py-band [contain-intrinsic-size:auto_32rem] [content-visibility:auto]">
       <Container>
         <SectionHeading
-          title="Points of Interest in Zwolle"
+          title="Bezienswaardigheden in Zwolle"
           description="Van de Peperbus tot het Engelse Werk: de plekken die je onderweg tegenkomt."
         />
 

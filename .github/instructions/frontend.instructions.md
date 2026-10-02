@@ -1,9 +1,9 @@
 ---
 description: "Use when building or editing UI in this project — React components, pages, JSX/TSX, styling, BeerCSS or Tailwind classes, colors, typography, or design tokens. Covers the Zwolle Routes Material 3 design system (BeerCSS + Deltion colors), component recipes, and React best practices. Read docs/DESIGN.md for the full reference."
 applyTo:
-  - "split/src/**/*.ts"
-  - "split/src/**/*.tsx"
-  - "split/src/**/*.css"
+  - "split/split/src/**/*.ts"
+  - "split/split/src/**/*.tsx"
+  - "split/split/src/**/*.css"
 ---
 
 # Frontend Guidelines — Zwolle Routes
@@ -23,7 +23,7 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   `.slider`, `.grid` + `.s12/.m6/.l4`, `<i>` for Material Symbols. Copy the canonical markup from
   the "Components" section of `docs/DESIGN.md` rather than inventing styles.
 - **Never hardcode colors.** Two layers own color:
-  - `@theme static` in `split/src/index.css` → the palette, derived from **two seeds**:
+  - `@theme static` in `split/split/src/index.css` → the palette, derived from **two seeds**:
     `--seed-orange: #f68221` and `--seed-blue: #282c6d` generate `orange-50…500`, `blue-50…950`,
     the desaturated `navy-*` ramp for the dark theme's surfaces, and the neutrals (`sand-*` = orange
     over white, `haze-*` = blue over white). Change a seed and every shade, role and theme step
@@ -111,13 +111,21 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   on text inside a flex row. Check every change from **320px to 2560px** and in **both themes**;
   `document.body.scrollWidth === clientWidth` must hold at every width. A `w-full` BeerCSS button is
   the classic offender: it is `content-box`, so 100% used to mean 100% _plus_ its own padding.
-- **Material 3 metrics to keep:** the app bar is `surface`, flat at rest, 64px (ours is 65px);
+- **Material 3 metrics to keep:** the app bar is the brand orange (`bg-bar text-on-bar`), flat at
+  rest, **64px** — Material 3's own top-app-bar height, with no bottom hairline (DESIGN.md §6);
   **every box shares one corner** — `--radius-box` (2rem / 32px), set once in `@layer overrides`, so
   `article`, a field, a chip and an action are the same shape (a hand-built panel wears `rounded-box`,
-  never a one-off radius); controls carry a **48×48px hit area** — add `tap-target` to anything
-  smaller than 48px (BeerCSS icon buttons are 40px) instead of enlarging the visual, and give a
-  control standing beside a field `h-12` — the field's own control is the 48px it has to agree with;
-  section rhythm 32–64px on the 4px grid.
+  never a one-off radius). A radius is clamped to half a box, so one token renders as **two** corners:
+  a 48px control is a pill (24px), a surface is the full 32px — that is the system, not drift.
+  **Every control resolves to one of two heights**: a **field is 48px** (its inner control; the
+  wrapper carries no border — the 1px Tailwind leaves on `.field` is taken to 0 in the override
+  layer) and so is **an action standing beside a field** (`h-12`), which is what makes a row of
+  five fields and a button read as one line; everything else keeps BeerCSS's **40px** button and
+  icon-button size. Controls carry a **48×48px hit area**: add `tap-target` to anything smaller
+  than 48px **instead of enlarging the visual** — but note it only adds 4px a side, so it reaches
+  48px only on a control that is **at least 40px tall**. A 32px chip that is a `<button>` therefore
+  needs `chip medium` (40px) *and* `tap-target`; a 32px chip that is only a `<span>` label needs
+  neither. Section rhythm 32–64px on the 4px grid. Full metrics table: DESIGN.md §5.
 - **Motion is wanted here — but restrained.** Every interactive control carries BeerCSS's built-in
   `ripple` (Material 3 press feedback + 10% hover/focus state layer). Tailwind transitions are
   already 200ms on the M3 standard curve (`--ease-standard`, set as the default in `index.css`) —
@@ -133,7 +141,7 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   load-bearing half** — the trap, the measured number, the deliberate deviation — never a
   paragraph. `docs/DESIGN.md` §13 has the full craft rules.
 - **Icons are Material Symbols** via `<Icon name="…" />`. Adding an icon means adding its name to
-  the subset URL in `split/index.html` first.
+  the subset URL in `split/split/index.html` first.
 - **Maps: the hero is a picture, everything else is Google Maps.** The hero's historic/current
   cross-fade stays artwork (two exports in `src/assets/maps/`, WebP, imported through `src/data/maps.ts`
   because imported assets are fingerprinted by Vite — `public/` is only for files whose _path_ is
@@ -191,8 +199,9 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   be: `ThemeToggle` (the `<body>` class + localStorage), `ScrollToTop` (the scroll position after a
   route change) and `PageTitle` (`document.title`). Never add one to compute render values.
 - **File naming:** camelCase files, one component each, named exactly for the component —
-  `src/pages/homePage.tsx` → `HomePage`, `src/sections/routeDetail/routeStops.tsx` → `RouteStops`,
-  `src/shared/map/mapPanel.tsx` → `MapPanel`. A page owns its route, the state its sections share and
+  `src/pages/homePage.tsx` → `HomePage`, `src/sections/routes/routePlanSummary.tsx` →
+  `RoutePlanSummary`, `src/shared/map/areaMap.tsx` → `AreaMap`, `src/sections/pointsOfInterest/poiCard.tsx`
+  → `PoiCard`. A page owns its route, the state its sections share and
   the order they appear in; the markup lives in its sections. `App.tsx` only maps paths to pages.
 - **Routing:** paths live in `src/data/navigation.ts` and are used with `<Link to={…}>`. A link that
   has to look like a button carries BeerCSS's `.button` (`className="button border text-ink ripple"`)
@@ -205,29 +214,32 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
 - Icon-only buttons need `aria-label`; toggles use `aria-pressed`; the hamburger also exposes `aria-expanded`.
 - Inputs always have a `<label>` — use `sr-only` when the design shows no label.
 - Decorative SVG gets `aria-hidden="true"`; a meaningful graphic gets `role="img"` + `aria-label`.
-- Tappable targets are at least `h-10 w-10`. Never remove focus styling without a
+- Tappable targets are at least **48×48px**: give a control smaller than that a `tap-target` (which
+  adds 4px a side, so it only reaches 48px from a **40px** control — grow a smaller one to `chip
+  medium` / `h-10` first). Never remove focus styling without a
   `focus-visible:ring-*` replacement.
 
 ## Gotchas
 
-- The Vite project root is **`split/split/`**, not the repo root — `src/` paths in this file are
-  relative to `split/`.
-- `split/src/index.css` owns the Tailwind import, the BeerCSS layer imports and the tokens.
-  `split/src/App.css` must **not** `@import "tailwindcss"` (it duplicates the entire base CSS).
+- The Vite project root is **`split/split/`**, not the repo root — the short `src/` paths in this file
+  are relative to **`split/split/`**. The `applyTo` globs at the top of this file are repo-root
+  relative, which is why they start with `split/split/` and not `split/`.
+- `split/split/src/index.css` owns the Tailwind import, the BeerCSS layer imports and the tokens.
+  `split/split/src/App.css` must **not** `@import "tailwindcss"` (it duplicates the entire base CSS).
 - BeerCSS is imported **piecewise** and wrapped in `layer(beercss)`. Keep the layer statement
   (`@layer theme, base, beercss, components, utilities;`) and the `layer(beercss)` on every
   BeerCSS `@import` — drop either and Tailwind's preflight or its utilities start fighting the
   Material 3 components. `settings/font.css` and `settings/dark.css` are intentionally not
   imported (see `docs/DESIGN.md` §2).
-- `<body class="light">` in `split/index.html` is the default theme **and** the signal that stops
+- `<body class="light">` in `split/split/index.html` is the default theme **and** the signal that stops
   BeerCSS from following the OS preference into its own purple palette. The inline script there
   re-applies a stored `dark` choice before the first paint — keep its storage key in sync with
   `src/shared/layout/themeToggle.tsx`.
 - BeerCSS's `<i>` icon ligatures only render if the name is in the Google Fonts subset URL in
-  `split/index.html`. That includes the glyphs BeerCSS components draw themselves —
+  `split/split/index.html`. That includes the glyphs BeerCSS components draw themselves —
   `check_box`, `check_box_outline_blank` (checkbox) and `check` (switch). A filled Material Symbol
   (the rating stars) is BeerCSS's `i.fill`, which flips the `FILL` axis.
-- `split/src/index.css` imports `elements/selection.css` **in addition to** `elements/all.css`:
+- `split/split/src/index.css` imports `elements/selection.css` **in addition to** `elements/all.css`:
   BeerCSS 5's `all.css` does not pull it in, and without it checkboxes, radios and switches fall
   back to the browser's own controls. Keep it inside `layer(beercss)`.
 - Validate with `npm --prefix split/split run build` and `npm --prefix split/split run lint`,

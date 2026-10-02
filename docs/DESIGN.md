@@ -431,6 +431,27 @@ it, which is why a short control still reads as a pill and `.circle` is still a 
 | Cards, map panels               | `--radius-box` (2rem) — add `overflow-hidden` so artwork follows the radius; a hand-built panel uses `rounded-box` (2rem)        |
 | Icon buttons                    | BeerCSS `.circle` on a `<button>`                                                                                                |
 | Anything square                 | Never — nothing here is square                                                                                                   |
+Because the radius is *clamped to half a box*, one token still renders as two corners: a 48px control draws a **24px** corner — a true pill — while a surface draws the full **32px**. That is deliberate, not drift: the pill is the control family's shape and the 32px corner the surface family's, and it is what lets a search bar sit directly above a card without either reading as wrong.
+
+**Control metrics** — every single-line control resolves to the same handful of numbers, which is what makes a row of them read as one line instead of five boxes at four heights:
+
+| Control                         | Height                   | Corner             | Hit area                     |
+| ------------------------------- | ------------------------ | ------------------ | ---------------------------- |
+| Field (`.field`, its control)   | **48px**                 | 32px → 24px (pill) | the control itself           |
+| Action standing beside a field  | **48px** (`h-12`)        | 32px → 24px (pill) | the control itself           |
+| Filled / outlined action, alone | 40px (BeerCSS `--_size`) | 32px → 24px (pill) | `tap-target` → 48px          |
+| Icon button (`.button.circle`)  | 40px                     | circle             | `tap-target` → 48px          |
+| Chip, decorative (`<span>`)     | 32px                     | 32px → 16px        | none — it is not interactive |
+| Chip, interactive (`<button>`)  | 40px (`chip medium`)     | 32px → 20px        | `tap-target` → 48px          |
+
+Two rules fall out of that table and both are load-bearing:
+
+- **`tap-target` only reaches 48px on a control that is at least 40px tall** — it adds 4px a side. So an interactive chip is **`chip medium tap-target`** and never a bare `chip`, and a chip that is only ever a label (`<span>`) stays at BeerCSS's 32px. A 32px *button* has no compliant recipe at all; grow it to `medium` first.
+- **An action beside a field takes `h-12`.** BeerCSS's button is 40px, a field is 48px, so without it the two boxes disagree by 8px and the row's right-hand action floats above the fields' baseline. At `h-12` both are 48px and share a top and a bottom (`responsive.spec.ts` pins it).
+
+**The `.field` wrapper carries no border.** BeerCSS paints a field's boundary on the *control inside it* (`--outline` at rest, `--primary` at 2px on focus), so `@layer overrides` takes the 1px hairline Tailwind's `border` utility leaves on the wrapper down to **0**. A transparent border is still a border: it made every `.field` 50px tall around its own 48px control, which is the kind of 2px that makes an otherwise aligned row look subtly wrong.
+
+
 
 **Elevation** — **there is none.** Nothing in the app casts a shadow: shadows are switched off
 framework-wide in `@layer overrides` (§2), because a blurred offset edge reads as a smudge, or as a
@@ -694,9 +715,14 @@ components — `FilterPanel`, `SearchField`, `SectionSearchBar`, `EmptyState`, `
 <a href="#routes" className="button left-align min-h-12 ripple fill">Routes</a>
 
 // Search bar — nothing custom. BeerCSS already positions an <a> / <i> / <img> / <svg>
-// inside a field (its "clickable icons" pattern): `prefix suffix` reserves the room at
-// both ends and the trailing action is the anchor. A <button> is not a positioned slot,
-// so an in-field action is a link — which is what "search" does here: jump to the list.
+// inside a field (its "clickable icons" pattern): `prefix` reserves the room at the start
+// and the leading icon must be the field's **first child**; `suffix` reserves the room at
+// the end and is added **only when there is a trailing slot**, because an empty suffix is
+// 18px of padding a short field cannot spare (§5). A <button> is not a positioned slot, so
+// an in-field action is a link — which is what "search" does here: jump to the list.
+// The field is 48px, its inner control's height (§5), and the wrapper carries no border.
+// `text-sm` on the field is the one place a control's type size is set by the caller: the
+// same shape is a page's search bar in one section and a grid column's field in another.
 <form onSubmit={(event) => event.preventDefault()} className="max-w-lg">
   <div className="field round border prefix suffix text-sm">
     <Icon name="search" />                       {/* the leading icon must be the first child */}
@@ -713,6 +739,8 @@ components — `FilterPanel`, `SearchField`, `SectionSearchBar`, `EmptyState`, `
 // carries `aria-live` because the section filters as you type. The
 // section owns the query, and the matches come from the search index (§13), not from the
 // data module — which is what makes swapping in the api a one-file change.
+// The action carries `h-12`: the field is 48px (§5) and BeerCSS's button is 40px, so
+// without it the one action in the row sits 8px short of the field it belongs to.
 <SectionSearchBar
   id="home-route-search"
   label="Zoek in de populaire routes"
@@ -720,15 +748,14 @@ components — `FilterPanel`, `SearchField`, `SectionSearchBar`, `EmptyState`, `
   value={query}
   onChange={setQuery}
   resultLabel={`${matches.length} routes`}
-  action={<Link to={ROUTES_PATH} className="button border text-ink ripple">Alle routes bekijken</Link>}
+  action={<Link to={ROUTES_PATH} className="button border text-ink ripple h-12">Alle routes bekijken</Link>}
 />
 
 // Card — article is the Material 3 card; no-padding lets the artwork bleed.
-// Corner: 12px (`corner_medium`) from BeerCSS, or `rounded-xl` on a hand-built panel.
-// The lift is `motion-safe:` so it never fights a visitor who asked for less motion.
-// Card — article is the Material 3 card; no-padding lets the artwork bleed.
-// Corner: 12px (`corner_medium`) from BeerCSS, or `rounded-xl` on a hand-built panel.
-// The lift is `motion-safe:` so it never fights a visitor who asked for less motion.
+// Corner: `--radius-box` (2rem), like every other box (§5) — the `article` rule in the override
+// layer gives it, so a card never names a radius of its own, and a hand-built panel reaches for
+// the same token as `rounded-box`. The lift is `motion-safe:` so it never fights a visitor who
+// asked for less motion.
 // `xl:col-span-3` takes the grid from 3 to 4 cards per row once there is room for
 // them: 3 columns at 1600px produces ~500px cards, past Material 3's 400px ceiling
 // for multi-column cards, while 4 columns lands at ~380px.
@@ -765,10 +792,12 @@ components — `FilterPanel`, `SearchField`, `SectionSearchBar`, `EmptyState`, `
 // than the rail, and `bg-transparent` is a Tailwind utility and not BeerCSS's `.transparent`,
 // whose `color: inherit !important` would take the muted ink away from the quiet word (§2).
 // The input takes the label's whole 40px as its hit area (`[block-size:100%]`): the track it
-// draws is only 16px thick, which is a fiddly thing to hit with a thumb.
+// draws is only 16px thick, which is a fiddly thing to hit with a thumb. The words are `h-10`
+// at **every** width, never `sm:h-9`: `tap-target` adds 4px a side, so a 36px word above `sm`
+// would leave a 44px hit area — under Material 3's 48px (§5, §11).
 <div className="flex w-full items-center gap-3 border-t-2 border-line px-gutter py-3 sm:w-16 sm:flex-none sm:flex-col sm:gap-1 sm:border-t-0 sm:border-l-2 sm:px-2">
   <button type="button" aria-pressed={layer === "current"} onClick={…}
-          className="tap-target ripple order-3 flex h-10 flex-none items-center bg-transparent px-0 text-xs font-semibold text-ink sm:order-1 sm:h-9">Nu</button>
+          className="tap-target ripple order-3 flex h-10 flex-none items-center bg-transparent px-0 text-xs font-semibold text-ink sm:order-1">Nu</button>
 
   <div className="relative order-2 h-10 min-w-0 flex-1 [container-type:size] sm:h-auto sm:w-full">
     <label className="slider mx-0 w-full sm:absolute sm:left-1/2 sm:top-1/2 sm:w-[100cqh] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:-rotate-90">
@@ -780,7 +809,7 @@ components — `FilterPanel`, `SearchField`, `SectionSearchBar`, `EmptyState`, `
   </div>
 
   <button type="button" aria-pressed={layer === "historical"} onClick={…}
-          className="tap-target ripple order-1 flex h-10 flex-none items-center bg-transparent px-0 text-xs font-medium text-ink-muted hover:text-ink sm:order-3 sm:h-9">Toen</button>
+          className="tap-target ripple order-1 flex h-10 flex-none items-center bg-transparent px-0 text-xs font-medium text-ink-muted hover:text-ink sm:order-3">Toen</button>
 </div>
 
 // Band (hero, footer) — `inverse-surface` is the inverted canvas tone, so it is paper in
@@ -872,7 +901,8 @@ An id that is not a route answers with `NotFoundPage`'s own wording, and a bicyc
 bicycle mode so the numbers on arrival are the ones the route was made for.
 
 There is **no modal** on this page: a popup hid the map, could not be linked to, and printed the same
-route twice.
+route twice. The share button's own popup (§7) is the one transient layer here, and it is deliberately
+small and non-modal so the map stays visible and usable behind it.
 
 ### Saving a route
 
@@ -888,20 +918,32 @@ sets the reader's own list against the community's.
 `RouteShareButton` sits in the map's **top-right** corner (a `relative` wrapper around `AreaMap`, the
 button at `absolute right-4 top-4 z-20`; the bottom-right corner belongs to Google's own street-view
 control). The route is already in the url, so sharing is copying it: the button copies
-`builderPath(placeIds)` to the clipboard, stays disabled until there are two places (one place is not
-a route), and answers in an `aria-live` paragraph — the confirmation, or the link as text for a
-browser that will not hand over the clipboard. What a real share (an account, a stored route) needs is
-in `docs/BACKEND.md`.
+`builderPath(placeIds)` to the clipboard and answers in an `aria-live` paragraph — the confirmation,
+or the link as text for a browser that will not hand over the clipboard.
+
+With fewer than two places there is nothing to share (one place is not a route), so the button is
+**not disabled** — a dead button leaves the reader guessing at a `title` tooltip. Clicking it opens a
+small **popup**: a `role="alert"` bubble under the button that says a route needs at least two stops,
+raised on the `surface-container-highest` step with the shared 2px boundary and corner, and dismissed
+by its own "Sluiten", by escape, by a click outside it, or by picking the second place. It is a
+**popup and not a modal**, so the map behind it stays visible and usable — which is what keeps this
+page's no-modal rule (§7) true. What a real share (an account, a stored route) needs is in
+`docs/BACKEND.md`.
 
 ### The route list's filters
 
 The search box and the five selects are **one row** (`role="search"`, `flex flex-wrap items-end`)
 with the live count pushed right (`sm:ml-auto`) and the reset beside it — the list below is what the
-eye should land on. Every control **grows**: the search field is `min-w-0 grow basis-64` and each
-select `min-w-0 grow basis-44`, so the row fills the width it is given and reflows - six across on a
+eye should land on. Every control **grows**: the search field is `min-w-0 grow basis-56` and each
+select `min-w-0 grow basis-48`, so the row fills the width it is given and reflows - six across on a
 wide screen, three to a line on a laptop, one per line on a phone — instead of leaving a ragged tail
 of half-empty fields. The basis (not a fixed `w-52`) is what makes that wrapping predictable, and
 `min-w-0` is what lets a field shrink past its own label instead of pushing the row sideways.
+
+The reset action carries `h-12` and the count takes its own line under `sm` (`basis-full sm:basis-auto`),
+so it never squeezes the last select beside it. Both matter to the row reading as **one line of
+controls**: a field is 48px, BeerCSS's button is 40px, and `items-end` alone would leave the action
+8px short with the count under it (§5).
 
 The option lists live in `routeFilters.tsx` and not in `data/routes.ts`, because they are labels
 rather than data; every list rests on "all", which is why an untouched row filters nothing out.
@@ -1220,6 +1262,11 @@ Smoothness is measured, not assumed:
 
 - **Dutch, `nl-NL`.** Ratings use a comma decimal (`4,9`), distances use `km`,
   durations use `u`/`min` (`1 u 30`, `45 min`).
+- **Every user-visible word is Dutch — including the labels.** The places page is
+  "Bezienswaardigheden" in the top bar, the footer, its `h1` and the home preview's section
+  heading. Only the **url** keeps the English name (`/points-of-interest`), because a link is
+  something a reader may already have written down, and a label is something they read. Never
+  let one page's heading and its own nav entry disagree about what the page is called.
 - Sentence case in prose; labels and badges are short (`Populair`, `Bekijk`).
 - Tone: inviting and place-specific — name real Zwolle areas (Binnenstad, Assendorp, Berkum).
 - The hero carries no prose: one headline in two spans, then the map. Section copy stays a line.
@@ -1229,7 +1276,7 @@ Smoothness is measured, not assumed:
 ## 13. Craft rules
 
 The visual language above only holds up if the code holds up. These are the habits that keep it
-there — they apply to every file under `split/src/`.
+there — they apply to every file under `split/split/src/`.
 
 ### Where a piece lives
 
@@ -1410,7 +1457,7 @@ interface RouteFiltersProps {
 - **Before adding one**, write down what it replaces. If the answer is "a helper I could write in
   ten lines" (a class-name joiner, a date formatter) it does not go in. If it is "a router, a real
   map, a test runner", it is a real gap — check §15's triggers first, then record the decision.
-- **Never touch the backend's dependencies.** `split/backend/` belongs to the project collaborator.
+- **Never touch the backend's dependencies.** `split/split/backend/` belongs to the project collaborator.
 - Install with `npm --prefix split/split install <pkg>` and add the row to §15, so the next reader
   knows it is deliberate.
 
@@ -1509,7 +1556,7 @@ The one trigger §15 wrote down has since fired — the app became multi-page on
 - **The M3 roles are hand-authored, not generated.** `index.css` derives all ~40 roles in both
   themes from the Deltion huisstijl (§3). Generating them from a seed colour would replace the
   design with a machine-toned approximation of it — the palette _is_ the design here.
-- **`split/backend/` is not ours.** The Express API, the database and everything server-side
+- **`split/split/backend/` is not ours.** The Express API, the database and everything server-side
   belong to the project collaborator, who installs their own dependencies when they build it. Do
   not add server packages, and do not wire the frontend to an API that does not exist yet.
   **The search is the one place that waits on them**: `src/data/searchIndex.json` holds the
@@ -1633,7 +1680,7 @@ item it **deviates** from is listed here with the reason, so nobody "fixes" it b
 | Every colour role exists in both schemes (incl. `scrim`, `shadow`)           | `index.css` — both blocks                                                                                                                              |
 | Two static schemes selected by a `<body>` class, no wallpaper extraction     | `themeToggle.tsx`                                                                                                                                      |
 | Tonal steps + hairlines, no shadows at all                                   | §5 — BeerCSS elevation helpers are disabled in `@layer overrides`                                                                                      |
-| Top app bar: brand orange (`--bar`), full-width, 48px action targets         | `Navbar`, 65px tall, white text/icons at 6:1                                                                                                           |
+| Top app bar: brand orange (`--bar`), full-width, 48px action targets         | `Navbar`, **64px** tall (flat, no bottom hairline), white text/icons at 6:1                                                                            |
 | Shape: one corner on every box                                               | `article`, hero panel `rounded-box`                                                                                                                   |
 | Cards per breakpoint: 1 (mobile) / 2 / 3 (desktop), 4 when there is room     | BeerCSS `s12 m6 l4` + `xl:col-span-3`                                                                                                                  |
 | Section rhythm 32–64px, 4px spacing grid                                     | `py-band` (32–52px) and `px-gutter` (16–32px), both `clamp()`ed, on Tailwind's 4px scale; the page header band is tighter still (`pt-header`, 24–40px) |
@@ -1649,14 +1696,16 @@ item it **deviates** from is listed here with the reason, so nobody "fixes" it b
 | Spec                                                                                  | This project                                                                                                                                                     | Why                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Bottom nav < 600px, rail ≥ 600px                                                      | Top app bar at every width                                                                                                                                       | Five in-page anchors, not an app shell with destinations; a rail would eat a third of a phone's map.                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| Text fields 56px tall                                                                 | BeerCSS `.field` = 50px                                                                                                                                          | The field's floating-label geometry belongs to BeerCSS; overriding the height breaks it (§13).                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Text fields 56px tall                                                                 | BeerCSS `.field` = **48px** (its inner control's height; the wrapper carries no border, §5)                                                                        | The field's floating-label geometry belongs to BeerCSS, and 48px is the height BeerCSS's `--_input` already sets. It is also what every action standing beside a field is sized against (`h-12`), so a row of controls shares one height instead of three (§5, §13).                                                                                                                                                                                                                                                                                                  |
+| Buttons: a 40dp container                                                             | 40px alone, **48px (`h-12`) beside a field**                                                                                                                      | A field is 48px (§5). Two boxes of different heights on one line cannot share a top and a bottom, so the one action that belongs to a row of fields is grown to the row's height instead of the row being shrunk to the button's. Left alone, the button keeps Material 3's 40dp.                                                                                                                                                                                                                                                                                    |
+
 | Boundaries are 1px (`outline` / `outline_variant`)                                    | Every boundary is **2px**                                                                                                                                        | Material 3's hairline reads as almost nothing beside a filled control, and the brief asks for nothing thinner than 2px. The wider line is set once, with padding compensation so no text moves (§5).                                                                                                                                                                                                                                                                                                                                                               |
 
 | Content capped at 960–1200px                                                          | `max-w-[100rem]` (1600px)                                                                                                                                        | A map application wants width; 1280px left ~312px dead on each side of a 1920 screen.                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | Body text ~35ch                                                                       | 45–65ch (`max-w-md`–`max-w-2xl`)                                                                                                                                 | The hero lead wraps to six lines at 35ch and reads as a paragraph, not a lead.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | Headings at weight 600                                                                | `font-bold` (700)                                                                                                                                                | Montserrat 700 holds its own next to the map artwork; 600 goes soft at display sizes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | Screen edge padding 16px mobile                                                       | `px-5` (20px)                                                                                                                                                    | Optical: the card artwork's own inset needs the extra 4px to look flush.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| Dialogs, bottom sheets, snackbars, FABs                                               | Not implemented yet                                                                                                                                              | The app has no transient layer; adopt the recipes from the reference (§7, §12) when one is needed rather than inventing a variant. There is deliberately **no modal anywhere**: a route's full view is a url (`/routes/public/<id>`), which can be linked to, shared and read by a screen reader.                                                                                                                                                                                                                                                                |
+| Dialogs, bottom sheets, snackbars, FABs                                               | Only the share button's **non-modal popup** (§7)                                                                                                                                              | The app has no other transient layer; adopt the recipes from the reference (§7, §12) when one is needed rather than inventing a variant. There is deliberately **no modal anywhere**: a route's full view is a url (`/routes/public/<id>`), which can be linked to, shared and read by a screen reader, and the share popup leaves the map behind it usable.                                                                                                                                                                                                                                                                |
 | A selected control uses a container tone (`secondary-container`, 8% state layer)      | A **chosen filter** is filled with `primary` itself — orange with white text in light mode, `blue-300` with `blue-950` in dark — as is the active mobile nav row | The brief asks for the brand colours as fills, and a filter that has been set is the one control on the page worth spotting from across the room. In light mode this is the documented white-on-orange pairing (§3); in dark mode the fill is the pale blue, where the dark blue text measures well past 4.5:1.                                                                                                                                                                                                                                                  |
 | Top app bar is `surface`                                                              | The bar is the brand orange in light mode, the brand navy in dark                                                                                                | The bar is where the Deltion identity lives, and it carries no content — only a title, links and icon buttons. In light mode the true `#f68221` orange carries **white** text and icons, which is the brand's own pairing; blue on orange would measure 7.8:1 but reads as a different palette, so the accessible option was declined deliberately (white on `#f68221` is 2.6:1 — §3, §11). The alternative, a darker orange bar, is brown. In dark mode the bar is the desaturated brand navy, and the orange moves into the headings, the logo and the avatar. |
 | M3 expresses depth as tonal elevation **plus** a shadow, five levels deep             | No shadows at all                                                                                                                                                | A blurred offset edge reads as a smudge or a gradient, and the brief rules gradients out. Depth comes from surface steps and hairlines instead (§5).                                                                                                                                                                                                                                                                                                                                                                                                             |

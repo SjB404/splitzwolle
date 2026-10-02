@@ -218,14 +218,20 @@ test.describe("the route builder", { tag: "@builder" }, () => {
     expect(copied).toBe(new URL(path, page.url()).href);
   });
 
-  test("waits for a second place before it will share anything", async ({
+  test("answers a share with no route by opening a popup, not a dead button", async ({
     page,
   }) => {
     await page.goto(ROUTES_PATH);
 
-    await expect(
-      page.getByRole("button", { name: "Deel deze route" }),
-    ).toBeDisabled();
+    const share = page.getByRole("button", { name: "Deel deze route" });
+
+    await expect(share).toBeEnabled();
+
+    await share.click();
+
+    await expect(page.getByRole("alert")).toContainText(
+      "Kies eerst twee plekken op de kaart.",
+    );
   });
 
   test("sends the old planning url to the builder", async ({ page }) => {

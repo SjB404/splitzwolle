@@ -80,7 +80,8 @@ export default function HeroMap({ className = "" }: HeroMapProps) {
             onClick={() => showMapLayer(id)}
             aria-pressed={layer === id}
             /* the words are the track's two ends: "Nu" leads a left-to-right track on a phone and sits at the top of the rail above sm; px-0 takes back beerCSS's 1rem button padding, which would make a two letter word wider than the rail, and bg-transparent is a tailwind utility and not beerCSS's .transparent, whose `color: inherit !important` would take the muted ink away from the quiet word */
-            className={`tap-target ripple flex h-10 flex-none items-center bg-transparent px-0 text-xs sm:h-9 ${
+            /* h-10 at every width: a word was `sm:h-9`, and `tap-target` only adds 4px a side, so the 36px it became above sm left a 44px hit area — under material 3's 48px */
+            className={`tap-target ripple flex h-10 flex-none items-center bg-transparent px-0 text-xs ${
               index === 0 ? "order-3 sm:order-1" : "order-1 sm:order-3"
             } ${
               layer === id

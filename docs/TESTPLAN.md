@@ -215,7 +215,7 @@ average and the count, opened by one button with `aria-expanded`).
   filters sitting beside the search box; **every card's title loading its places into the builder** and
   its arrow opening the route's own page; the route's own page (title, trail, seeded builder, reviews
   folded out and back, an unknown id on the 404); the share action **copying the route's url** through
-  the real clipboard, and staying disabled until there are two places.
+  the real clipboard, and **opening a popup** until there are two places.
 - `points-of-interest.spec.ts` (`@poi`) — the count, every category chip (compared with
   `filterPointsOfInterest`), the search on name/area/category, the three sorts compared with the
   module's order, the selection renaming the map chip, the highlight dropping, the reset, the hand-off
@@ -273,8 +273,8 @@ average and the count, opened by one button with `aria-expanded`).
 | --- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------- |
 | 1   | `/inloggen` has **no route** in `App.tsx`, so the navbar avatar and the footer's Account column both land on the 404 page.                       | `app.test.tsx`, `navigation.spec.ts`           |
 | 2   | The share button copies the route's url and nothing more: there is no stored route behind it, so the link stops working if the places change.    | `routeShareButton.test.tsx`, `routes.spec.ts`  |
-| 3   | `RatingBreakdown` prints `"1 beoordelingen"` for a single review (no singular form).                                                             | `ratingBreakdown.test.tsx`                     |
-| 4   | `ReviewForm` only prevents the default: a submitted review is not stored anywhere.                                                               | `reviewForm.test.tsx`, `routeReviews.test.tsx` |
-| 5   | The strips and the results list show a slice (3 / 5 / 6) while the live count reports every match.                                               | `homePage.test.tsx`, `routes.spec.ts`          |
-| 6   | The results list collapses when a filter changes, so "Toon meer" cannot leave the reader on a list nobody asked for.                             | `routesPage.test.tsx`, `routes.spec.ts`        |
+| 3   | `RatingBreakdown` prints `"1 beoordelingen"` for a single review (no singular form).                                                             | `routeReviews.test.tsx`                        |
+| 4   | `ReviewForm` only prevents the default: a submitted review is not stored anywhere.                                                               | `routeReviews.test.tsx`                        |
+| 5   | The strips and the results list show a slice (3 / 5 / 6) while the live count reports every match.                                               | `home.test.tsx`, `routes.spec.ts`              |
+| 6   | The results list collapses when a filter changes, so "Toon meer" cannot leave the reader on a list nobody asked for.                             | `routes.test.tsx`, `routes.spec.ts`            |
 | 7   | A saved route lives only in this browser (`localStorage`), so it does not follow the reader anywhere. `docs/BACKEND.md` lists what is behind it. | `routes.test.tsx`, `routes.spec.ts`            |

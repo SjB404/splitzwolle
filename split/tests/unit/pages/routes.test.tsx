@@ -231,13 +231,19 @@ describe("RoutesPage, the url as the state", () => {
     );
   });
 
-  it("waits for two places before it will share the route", async () => {
+  it("answers a share with no route by opening a popup, not a dead button", async () => {
     renderAt(builderPath([first.id]));
     await screen.findByText(pickedLine(1));
 
-    expect(
-      screen.getByRole("button", { name: "Deel deze route" }),
-    ).toBeDisabled();
+    const share = screen.getByRole("button", { name: "Deel deze route" });
+
+    expect(share).toBeEnabled();
+
+    fireEvent.click(share);
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Kies eerst twee plekken op de kaart.",
+    );
   });
 
   it("offers the share action once there are two places", async () => {

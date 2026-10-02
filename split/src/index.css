@@ -325,9 +325,9 @@ body.dark {
 
 /* framework overrides — declared before every other layer on purpose: for !important the cascade reverses, so an important rule in an earlier layer beats one in a later layer, which is the only way to take a property back from beerCSS; a normal declaration here would be the weakest in the file */
 @layer overrides {
-  /* a field's own ring has to be invisible: beerCSS paints the boundary on the control inside it (--outline at rest, --primary at 2px on focus), so the hairline tailwind's `border` utility leaves on the wrapper — coloured currentColor, i.e. the ink — drew a second, heavier ring outside it */
+  /* a field's own ring has to be *gone*, not merely invisible: beerCSS paints the boundary on the control inside it (--outline at rest, --primary at 2px on focus), so the hairline tailwind's `border` utility leaves on the wrapper — coloured currentColor, i.e. the ink — would draw a second, heavier ring outside it. it is set to 0 rather than to a transparent colour, because a transparent border is still a border: 1px on each edge made every .field 50px tall around its own 48px control, so the field's box and the 48px action standing beside it (`h-12`) had two different heights and could never share a top and a bottom. a `.field` is now exactly as tall as the control it holds — material 3's own 48px single-line field (beerCSS's `.field { --_input: 3rem }`), which is what every other control in a row is sized against */
   .field.border {
-    border-color: transparent !important;
+    border: 0 !important;
   }
 
   /* an outlined button takes the same --outline as a field: beerCSS gives it --outline-variant, which is the card hairline and reads as no border at all beside a field */
@@ -452,7 +452,7 @@ body.dark {
   }
 }
 
-/* material 3's minimum touch target is 48x48px and beerCSS draws icon buttons at 40px, so the hit area is extended past the visual edge instead of growing the button, which would overrun the 320px bar; ::before, because beerCSS already owns ::after on buttons for its state layer */
+/* material 3's minimum touch target is 48x48px and beerCSS draws icon buttons at 40px, so the hit area is extended past the visual edge instead of growing the button, which would overrun the 320px bar; ::before, because beerCSS already owns ::after on buttons for its state layer. it adds 4px on each side, so it only reaches 48px on a control that is at least 40px tall: a 32px chip needs `chip medium` (40px) first, which is what makes the small control the same recipe everywhere (poiFilters, poiPicker) */
 .tap-target {
   position: relative;
 }

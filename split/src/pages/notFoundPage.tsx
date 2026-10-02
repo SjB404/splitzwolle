@@ -21,10 +21,13 @@ export default function NotFoundPage({
 
       <section className="py-band">
         <Container className="flex flex-wrap gap-3">
-          <Link to={HOME_PATH} className="button ripple">
+          <Link to={HOME_PATH} className="button ripple tap-target">
             Terug naar home
           </Link>
-          <Link to={ROUTES_PATH} className="button border text-ink ripple">
+          <Link
+            to={ROUTES_PATH}
+            className="button border text-ink ripple tap-target"
+          >
             Alle routes bekijken
           </Link>
         </Container>

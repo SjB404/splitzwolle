@@ -1,7 +1,7 @@
 # Pictures for the places
 
 Every place in `src/data/pointsOfInterest.ts` takes an optional `image`. Drop a file in
-`split/src/assets/places/`, import it, and set it on the place — the preview card (hover a dot on the
+`split/split/src/assets/places/`, import it, and set it on the place — the preview card (hover a dot on the
 map) and the home strip show it straight away. Until then both draw the category glyph instead.
 
 ```ts

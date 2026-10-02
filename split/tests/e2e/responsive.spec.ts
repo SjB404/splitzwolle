@@ -138,10 +138,12 @@ test.describe("every box shares one shape", { tag: "@layout" }, () => {
     }
   });
 
-  /* a beerCSS field is 50px tall and its own control 48px, so the action standing beside it takes
-     `h-12` and the two 48px boxes agree — on one line they share a top and a bottom too. beerCSS draws
-     a button as `content-box`, so without the override layer's border-box rule that button would be 48
-     *plus* its 2px boundary */
+  /* a beerCSS field is exactly as tall as the control inside it — 48px, material 3's single-line field —
+     because the override layer takes the 1px tailwind leaves on the `.field` wrapper down to 0 (a
+     transparent border is still a border, and it made the box 50px around a 48px control). the action
+     standing beside it takes `h-12` for the same 48px, so the two boxes agree and, on one line, share a
+     top and a bottom too. beerCSS draws a button as `content-box`, so without the override layer's
+     border-box rule that button would be 48 *plus* its 2px boundary */
   test("a control beside a field is exactly as tall as the field's own", async ({
     page,
   }) => {

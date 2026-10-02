@@ -15,7 +15,7 @@ export default function ClearFiltersButton({
     <button
       type="button"
       onClick={onClick}
-      className={`button border text-ink ripple ${className}`}
+      className={`button border text-ink ripple tap-target ${className}`}
     >
       {/* outlined buttons default to primary text (2.5:1 on white), so the ink comes from the theme — DESIGN.md §7 */}
       <Icon name="close" className="mr-1.5 text-base" />

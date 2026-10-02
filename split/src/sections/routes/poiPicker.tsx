@@ -43,7 +43,8 @@ export default function PoiPicker({
             type="button"
             aria-pressed={mode === item.mode}
             onClick={() => onModeChange(item.mode)}
-            className={`chip ripple ${
+            /* `medium` lifts the chip from 32px to 40px, which is what lets `tap-target` reach material 3's 48px hit area without growing the visual past it — the same recipe the places page's category chips use, so a chip is one control in both places */
+            className={`chip medium tap-target ripple ${
               mode === item.mode ? "secondary-container border-transparent" : ""
             }`}
           >
@@ -85,7 +86,8 @@ export default function PoiPicker({
                     type="button"
                     aria-pressed={order >= 0}
                     onClick={() => onToggle(point.id)}
-                    className={`chip ripple ${
+                    /* the same 40px chip as the travel mode above it: a place is one tap on a value, and every one of them has to be as hittable as the chip beside it */
+                    className={`chip medium tap-target ripple ${
                       order >= 0 ? "secondary-container border-transparent" : ""
                     }`}
                   >

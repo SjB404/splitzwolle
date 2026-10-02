@@ -182,7 +182,7 @@ describe("Navbar", () => {
       .filter((link) => link.getAttribute("aria-current") === "page");
 
     expect(current).toHaveLength(1);
-    expect(current[0]).toHaveAccessibleName("Points of Interest");
+    expect(current[0]).toHaveAccessibleName("Bezienswaardigheden");
   });
 
   it("keeps the parent link active on a route's own page", () => {
