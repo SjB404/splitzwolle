@@ -14,6 +14,8 @@ import HomePage from "./pages/homePage.tsx";
 import NotFoundPage from "./pages/notFoundPage.tsx";
 import PointsOfInterestPage from "./pages/pointsOfInterestPage.tsx";
 import RoutesPage from "./pages/routesPage.tsx";
+import LoginPage from "./pages/loginPage.tsx";
+import ContactPage from "./pages/contactPage.tsx";
 import {
   CUSTOM_ROUTE_PATH,
   HOME_PATH,
@@ -21,7 +23,8 @@ import {
   POI_PATH,
   PUBLIC_ROUTE_PATH,
   ROUTES_PATH,
-  publicRoutePath,
+  LOGIN_PATH,
+  CONTACT_PATH,
 } from "./data/navigation.ts";
 
 /* the shape a route's url had before it became /routes/custom and /routes/public, so an old link still lands somewhere */
@@ -39,7 +42,6 @@ function App() {
         {/* the paths come from data/navigation.ts, so renaming one re-points the router and every link at once */}
         <BrowserRouter>
           <ScrollToTop />
-
           <Routes>
             <Route element={<AppLayout />}>
               <Route path={HOME_PATH} element={<HomePage />} />
@@ -62,6 +64,8 @@ function App() {
                 element={<Navigate to={ROUTES_PATH} replace />}
               />
               <Route path={POI_PATH} element={<PointsOfInterestPage />} />
+              <Route path={LOGIN_PATH} element={<LoginPage />} />
+              <Route path={CONTACT_PATH} element={<ContactPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Route>
           </Routes>

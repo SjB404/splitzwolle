@@ -1,23 +1,25 @@
 /* the paths, the bar's links and the footer's groups — one module, so renaming a path re-points every link at once */
 
 import type { ContactDetails, FooterColumn, NavLink } from "../types.ts";
-
+export const LOGIN_PATH = "/login";
 export const HOME_PATH = "/";
 export const ROUTES_PATH = "/routes";
 /* the planner was folded into the builder: this path only exists so an old link still lands somewhere */
 export const PLANNING_PATH = "/planning";
 export const POI_PATH = "/points-of-interest";
-export const LOGIN_PATH = "/inloggen";
-/** the login page opens its registration form when the url carries this hash */
 export const REGISTER_PATH = "/inloggen#registreren";
+export const CONTACT_PATH = "/contact"
+/** the login page opens its registration form when the url carries this hash */
 
 /* Contact is not a page: it points at the footer band, the contact block on every page (shared/layout/footer.tsx) */
 /* the label is Dutch like every other word in the ui (docs/DESIGN.md §12); only the /points-of-interest url keeps the English name, because it is a stable link others may have written down */
 export const NAV_LINKS: NavLink[] = [
   { label: "Home", to: HOME_PATH },
   { label: "Routes", to: ROUTES_PATH },
-  { label: "Bezienswaardigheden", to: POI_PATH },
-  { label: "Contact", to: `${HOME_PATH}#contact` },
+  { label: "Planning", to: PLANNING_PATH },
+  { label: "Points of Interest", to: POI_PATH },
+  { label: "Contact", to: CONTACT_PATH },
+
 ];
 
 /* whether a nav link is the page you are on — the hash is ignored, and a sub page keeps its parent link active */
