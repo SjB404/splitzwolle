@@ -51,14 +51,18 @@ export {
   LOGIN_PATH,
   CUSTOM_ROUTE_PATH,
   PUBLIC_ROUTE_PATH,
-  NAV_LINKS,
-  FOOTER_COLUMNS,
-  CONTACT_DETAILS,
   isActiveLink,
   builderPath,
   publicRoutePath,
   parsePlaceIds,
 } from "../../src/data/navigation.ts";
+
+/* the bar's and the footer's links are declared with the components that render them now */
+export { NAV_LINKS } from "../../src/components/navbar.tsx";
+export {
+  FOOTER_COLUMNS,
+  CONTACT_DETAILS,
+} from "../../src/components/footer.tsx";
 
 export type {
   Route,

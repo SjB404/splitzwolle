@@ -2,8 +2,8 @@
 
 Everything here is machine-run: 563 tests in two suites.
 
-- **Unit + component tests** — Vitest + jsdom + React Testing Library. `split/split/tests/unit/`.
-- **End-to-end tests** — Playwright + Chromium against a real dev server. `split/split/tests/e2e/`.
+- **Unit + component tests** — Vitest + jsdom + React Testing Library. `split/tests/unit/`.
+- **End-to-end tests** — Playwright + Chromium against a real dev server. `split/tests/e2e/`.
 
 | Suite                 | Files | Tests                                                                 | Time   |
 | --------------------- | ----- | --------------------------------------------------------------------- | ------ |
@@ -37,23 +37,23 @@ This is the property that matters most, so it is a design rule rather than an ac
 
 | What                       | Command (from the repo root)                 |
 | -------------------------- | -------------------------------------------- |
-| Unit + component tests     | `npm --prefix split/split run test`          |
-| Watch mode                 | `npm --prefix split/split run test:watch`    |
-| Coverage (with thresholds) | `npm --prefix split/split run test:coverage` |
-| End-to-end tests           | `npm --prefix split/split run test:e2e`      |
-| Everything                 | `npm --prefix split/split run test:all`      |
+| Unit + component tests     | `npm --prefix split run test`          |
+| Watch mode                 | `npm --prefix split run test:watch`    |
+| Coverage (with thresholds) | `npm --prefix split run test:coverage` |
+| End-to-end tests           | `npm --prefix split run test:e2e`      |
+| Everything                 | `npm --prefix split run test:all`      |
 
-Playwright's browser is a one-off install: `npm --prefix split/split run test:e2e:install`.
+Playwright's browser is a one-off install: `npm --prefix split run test:e2e:install`.
 
 Slices and re-runs, which is what makes the suite cheap to live with day to day:
 
 ```bash
-npm --prefix split/split run test -- --changed HEAD      # vitest: only what the last commit touched
-npm --prefix split/split run test -- tests/unit/routes   # one file (a substring is enough)
-npm --prefix split/split run test:watch                  # rerun on save
-npm --prefix split/split run test:e2e -- --last-failed   # playwright: only what failed last time
-npm --prefix split/split run test:e2e -- --grep @builder # playwright: one tagged group
-npm --prefix split/split run test:e2e -- --ui            # playwright: time-travel through a run
+npm --prefix split run test -- --changed HEAD      # vitest: only what the last commit touched
+npm --prefix split run test -- tests/unit/routes   # one file (a substring is enough)
+npm --prefix split run test:watch                  # rerun on save
+npm --prefix split run test:e2e -- --last-failed   # playwright: only what failed last time
+npm --prefix split run test:e2e -- --grep @builder # playwright: one tagged group
+npm --prefix split run test:e2e -- --ui            # playwright: time-travel through a run
 ```
 
 ## The environment the tests run in
@@ -88,9 +88,9 @@ code runs — the setup file included, which is why `tests/setup.ts` imports not
 | Layer                        | What it owns                                                                                               | Where                              |
 | ---------------------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------- |
 | Data & pure helpers          | the domain rules: filtering, sorting, distances, durations, paths, the area box, the map api's own parsing | `tests/unit/*.test.ts`             |
-| Shared components            | one component's markup, props and behaviour                                                                | `tests/unit/components/*.test.tsx` |
-| Sections                     | one band/column/card of a page                                                                             | `tests/unit/sections/*.test.tsx`   |
-| Pages                        | the composition: route → state → sections                                                                  | `tests/unit/pages/*.test.tsx`      |
+| Components                   | one component's markup, props and behaviour                                                                | `tests/unit/components/*.test.tsx` |
+| Page bands                   | one band/column/card a page is assembled from                                                              | `tests/unit/sections/*.test.tsx`   |
+| Pages                        | the composition: route → state → components                                                                | `tests/unit/pages/*.test.tsx`      |
 | The app                      | the real router, the shell, the scroll behaviour                                                           | `tests/unit/app.test.tsx`          |
 | The site as a reader sees it | routing, urls, both palettes, the real browser                                                             | `tests/e2e/*.spec.ts`              |
 
@@ -137,7 +137,7 @@ only ids of the kind that was asked for.
 
 **`data/maps.ts`** — the five exports, their alt text, their fingerprinted asset path, the pixel size.
 
-**`shared/map/googleMaps.ts`** — the module the app talks to google through, driven by a fake api:
+**`data/googleMaps.ts`** — the module the app talks to google through, driven by a fake api:
 the key and the two switches, the loader (refuses without a key, one script, the api's own query
 parameters, the callback that resolves it), a rejected key reaching listeners before and after the
 fact, `mapOptions` (centre, zoom, the restriction's bounds built fresh every call, the development map
@@ -147,31 +147,31 @@ colour scheme from `<body>`, the static map url (one place is a marker, two are 
 the api's way — the measured trap — intermediates kept, the 1-minute floor, no route, a refusal
 remembered for the session, and the cache that answers the same question once).
 
-### 2. Unit — shared components
+### 2. Unit — components
 
-`Icon`, `StarRating` (rounding, filled/muted, the Dutch label), `TextButton`, `EmptyState` (h2 vs h3),
-`ClearFiltersButton`, `FilterPanel` (the live count, the reset only when there is something to reset),
-`FilterSelect`, `SearchField` (the icon first, as BeerCSS requires), `SectionSearchBar`, `MapLegend`,
-`MapChip`, `RouteCard` (title, link, distance/duration, score, chips, the popular badge with its
-switch), `RouteGrid`, `RouteShape` (nothing for no points, invalid coordinates dropped, repeats
-collapsed, ends drawn bigger, everything inside the box), `MapImage` (size, lazy/eager, decorative),
-`MapSnapshot` (the fallback, and the picture path with a stubbed environment — including a failed
-image falling back for good), `ThemeToggle` (the stored value, `<body>`, `aria-pressed`), `Breadcrumb`,
+`Icon`, `StarRating` (rounding, filled/muted, the Dutch label), `EmptyState` (h2 vs h3),
+`ClearFiltersButton`, `FilterSelect`, `SearchField` (the icon first, as BeerCSS requires),
+`SectionSearchBar`, `MapLegend`, `RouteShape` (nothing for no points, invalid coordinates dropped,
+repeats collapsed, ends drawn bigger, everything inside the box), `MapSnapshot` (the fallback, and the
+picture path with a stubbed environment — including a failed image falling back for good),
 `PageTitle`, `Container`, `SectionHeading`, `Navbar` (the links, `aria-current`, the search and
-account links, the mobile menu) and `Footer` (the landmark, the groups, the contact details, the year).
+account links, the mobile menu, and the bar's own theme switch — the stored value, `<body>`,
+`aria-pressed`) and `Footer` (the landmark, the groups, the contact details, the year).
+`PopularRoutesPreview` carries the home strip's cards (title, link, distance/duration, score, chips —
+and no popular badge, because the section title already says it); the hero's two pictures are checked
+through `HomePage`, which is also what keeps a piece that no longer has a file of its own covered.
 
-### 3. Unit — sections
+### 3. Unit — page bands
 
 `RouteFilters` (the search box and four selects in **one row**, with the live count), `RouteResults`
-(a page of results, "Toon meer", the empty state), `RouteOverviewCard` (the wide card: title, two-line
-description, stars, and the two actions — the title loads the route into the builder, the arrow opens
-the dialog), `RouteDialog` (the platform's `<dialog>`: opens, closes, clears on escape, holds the route
-detail page's own sections), `RouteShareButton` (the placeholder), `PoiFilters`, `PoiResults`,
-`PoiCard`, `PoiPicker`, `RoutePlanSummary` (the hint under two places, the stop list, the three status
-lines, the Google Maps link), `RouteFacts`, `RouteStops`, `RouteStory`, `RouteSummary`,
-`RatingBreakdown`, `ReviewCard`, `ReviewForm` (the live figure, the step, and a submit that stores
-nothing), `RouteReviews` (content only, no band of its own) and `RouteReviewsPanel` (closed on the
-average and the count, opened by one button with `aria-expanded`).
+(a page of results, "Toon meer", the empty state, and the wide card: title, two-line description,
+stars, and its two actions — the title loads the route into the builder, the arrow opens the route's
+own page), `RouteShareButton` (the placeholder), `PoiFilters`, `PoiResults` (the list, and the card
+it draws: place, category, era, distance, the two actions and the score), `PoiPicker`,
+`RoutePlanSummary` (the hint under two places, the stop list, the three status lines, the Google Maps
+link), and `RouteReviewsPanel` (closed on the average and the count, opened by one button with
+`aria-expanded`; the breakdown, the reviews and the form — the live figure, the step, and a submit
+that stores nothing — live inside it).
 
 ### 4. Unit — pages and the app
 
@@ -273,7 +273,7 @@ average and the count, opened by one button with `aria-expanded`).
 | --- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------- |
 | 1   | `/inloggen` has **no route** in `App.tsx`, so the navbar avatar and the footer's Account column both land on the 404 page.                       | `app.test.tsx`, `navigation.spec.ts`           |
 | 2   | The share button copies the route's url and nothing more: there is no stored route behind it, so the link stops working if the places change.    | `routeShareButton.test.tsx`, `routes.spec.ts`  |
-| 3   | `RatingBreakdown` prints `"1 beoordelingen"` for a single review (no singular form).                                                             | `routeReviews.test.tsx`                        |
+| 3   | The reviews panel prints `"(1 beoordelingen)"` for a single review (no singular form).                                                           | `routeReviews.test.tsx`                        |
 | 4   | `ReviewForm` only prevents the default: a submitted review is not stored anywhere.                                                               | `routeReviews.test.tsx`                        |
 | 5   | The strips and the results list show a slice (3 / 5 / 6) while the live count reports every match.                                               | `home.test.tsx`, `routes.spec.ts`              |
 | 6   | The results list collapses when a filter changes, so "Toon meer" cannot leave the reader on a list nobody asked for.                             | `routes.test.tsx`, `routes.spec.ts`            |

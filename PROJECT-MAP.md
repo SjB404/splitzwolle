@@ -14,9 +14,9 @@ Three parts live in this repo, and only the first one is real:
 
 | Part | State | Notes |
 | --- | --- | --- |
-| React frontend | **Real and complete** | 69 source files, 579 tests (454 unit + 125 e2e), works without a backend |
+| React frontend | **Real and complete** | one flat `src/components/` folder, every component in its own file where it earns one; the Vitest + Playwright suites covered it before the current merge, and a handful of tests still describe the pre-merge login/planning urls |
 | Express backend | **A stub that cannot even start** | 40 lines, no endpoints, imports two packages that are not installed |
-| Docs | **Genuinely good** | `docs/DESIGN.md` is 1707 lines of real design decisions |
+| Docs | **Genuinely good** | `docs/DESIGN.md` is 1700+ lines of real design decisions |
 
 Crucially: **the frontend never talks to the backend.** There is no `fetch`, no API base URL, no
 client. All content is hardcoded TypeScript/JSON in `src/data/`. That is why the app works today.
@@ -25,7 +25,7 @@ client. All content is hardcoded TypeScript/JSON in `src/data/`. That is why the
 
 ## 2. The one thing that confuses everyone first
 
-**The Vite project root is `split/split/`, not the repo root.**
+**The Vite project root is `split/`, not the repo root.**
 
 ```
 C:\Users\Arch\Documents\Coding\split\   <- repo root == git root == workspace root
@@ -33,33 +33,36 @@ C:\Users\Arch\Documents\Coding\split\   <- repo root == git root == workspace ro
 ├── PROJECT-MAP.md                      <- this file
 ├── docs/                               <- design system + test plan + backend placeholders
 ├── .github/                            <- AI instructions (copilot-instructions.md)
-└── split/                              <- a folder named split, containing…
-    └── split/                          <- THE ACTUAL PROJECT
-        ├── .env.local                  <- the Google Maps API key (gitignored)
-        ├── package.json
-        ├── index.html                  <- Vite entry, theme bootstrap
-        ├── src/
-        ├── tests/
-        └── backend/index.mjs           <- the Express stub
+└── split/                              <- THE ACTUAL PROJECT
+    ├── .env.local                      <- the Google Maps API key (gitignored)
+    ├── package.json
+    ├── index.html                      <- Vite entry, theme bootstrap
+    ├── src/
+    │   ├── components/                 <- every component, one flat folder
+    │   ├── pages/                      <- one file per route
+    │   ├── data/                       <- content + logic (no components)
+    │   ├── App.tsx                     <- the router and the shell
+    │   └── types.ts                    <- the domain vocabulary
+    ├── tests/
+    └── backend/index.mjs               <- the Express stub
 ```
 
-`split/node_modules/` at the intermediate level is a **leftover empty folder** plus a stray `.vite`
-cache — not a workspace. There is only one `package.json`.
+There is only one `package.json`.
 
-Run everything from the **repo root**, exactly as `README.md` says:
+Run everything from the **repo root**:
 
 ```bash
-npm --prefix split/split install
-npm --prefix split/split run dev        # http://localhost:5173
-npm --prefix split/split run build
-npm --prefix split/split run lint
-npm --prefix split/split run test       # unit + component (vitest)
-npm --prefix split/split run test:e2e   # browser (playwright)
+npm --prefix split install
+npm --prefix split run dev        # http://localhost:5173
+npm --prefix split run build
+npm --prefix split run lint
+npm --prefix split run test       # unit + component (vitest)
+npm --prefix split run test:e2e   # browser (playwright)
 ```
 
 > **Trap I hit:** npm resolves `--prefix` **relative to the current working directory**, so
-> `split/split` only works from the repo root. From inside `split/` the path doubles and you get
-> `ENOENT ... split\split\split\package.json`. If a command is failing with a doubled path, check
+> `split` only works from the repo root. From inside `split/` the path doubles and you get
+> `ENOENT ... split\split\package.json`. If a command is failing with a doubled path, check
 > where your shell is.
 
 ---
@@ -69,13 +72,12 @@ npm --prefix split/split run test:e2e   # browser (playwright)
 ```
 types.ts                    <- the domain vocabulary (Route, PointOfInterest, filter state)
     ↑
-src/data/*.ts               <- CONTENT + RULES. All hardcoded. No network calls.
+src/data/*.ts               <- CONTENT + RULES + LOGIC. All hardcoded. No network calls.
     ↑
-src/pages/*Page.tsx         <- owns the route, the shared state, the section order
+src/pages/*Page.tsx         <- owns the route, the shared state, the component order
     ↑
-src/sections/<page>/*.tsx   <- the bands, cards and columns of one page
-    ↑
-src/shared/<category>/*     <- what 2+ pages share (layout, primitives, content, filters, map)
+src/components/*.tsx        <- every component, one flat folder; a piece used once inside
+                               another component is written out in that component's file
 ```
 
 **Rules that hold everywhere:**
@@ -83,19 +85,20 @@ src/shared/<category>/*     <- what 2+ pages share (layout, primitives, content,
 - **Data flows up, never down.** `src/data/` is the only place content is produced. Components
   never hold content.
 - **A page is a table of contents.** Look at `homePage.tsx` — 18 lines: set the title, list the
-  sections. That is the whole pattern.
-- **Sections own markup, pages own state.**
-- **A piece moves to `shared/` the moment a second page needs it.** Until then it lives in
-  `src/sections/<its page>/`.
+  bands. That is the whole pattern.
+- **Bands own markup, pages own state.**
+- **A piece earns its own file by being used twice, or by owning a whole band.** One caller: it is
+  written out in the caller's file. A second caller: it moves to `src/components/`.
 - **The URL is the state** for the route builder — see §5.
 
 ### The two files to read first
 
-1. `split/split/src/types.ts` — 186 lines, defines every concept. Read it top to bottom and you know
+1. `split/src/types.ts` — 186 lines, defines every concept. Read it top to bottom and you know
    the domain.
-2. `split/split/src/App.tsx` — 74 lines, the whole routing table.
+2. `split/src/App.tsx` — the whole routing table, plus the shell (bar → `main` → footer) and the
+   scroll-to-top effect, both written out in the same file because nothing else uses them.
 
-Then: `split/split/src/pages/routesPage.tsx` — 268 lines, the most complex page and the best single
+Then: `split/src/pages/routesPage.tsx` — the most complex page and the best single
 example of the architecture.
 
 ---
@@ -132,13 +135,13 @@ The other persisted state is `localStorage`:
 
 - `zwolle-routes:saved` -> saved route ids (`src/data/savedRoutes.ts`, 68 lines, worth reading as a
   clean example of external-store syncing via a window event)
-- `zwolle-routes:theme` -> light/dark (`src/shared/layout/themeToggle.tsx`)
+- `zwolle-routes:theme` -> light/dark (`src/components/navbar.tsx`, the bar's own theme switch)
 
 ---
 
 ## 6. Maps — how they degrade
 
-`src/shared/map/googleMaps.ts` is the only file that touches Google. It owns the script tag, the
+`src/data/googleMaps.ts` is the only file that touches Google. It owns the script tag, the
 key, the options, the colours and the API calls.
 
 **The design rule: every service degrades, never breaks.**
@@ -159,14 +162,12 @@ tiles are checked by hand at localhost:5173.
 
 | Command | Result |
 | --- | --- |
-| `npm run lint` (oxlint) | 0 errors, 8 warnings — all 8 are the backend stub's unused vars, expected |
-| `npm run build` | code is fine; I was blocked from writing `tsconfig.tsbuildinfo` by a read-only sandbox |
-| `npm run test` | blocked by the sandbox (`spawn EPERM`), not by the project |
-| Git status | clean, 19 commits |
+| `npm run lint` (oxlint) | 0 errors; warnings only — the backend stub's unused vars and one `set-state-in-effect` in `loginPage.tsx`, all expected |
+| `npm run build` | `tsc -b` still reports pre-existing type errors: `tsconfig.node.json` type-checks all of `src/**/*.ts` without the DOM lib (so `data/*.ts` fails there), and that project has no declaration for the `*.webp` imports |
+| `npm run test` | 433 tests, 7 failing — each one still describes the **pre-merge** login url (`/inloggen`) or nav copy (`Bezienswaardigheden` vs `Points of Interest`); nothing in `src/` depends on them |
 | Secrets in git | **clean** — `.env.local` has never been committed, no key in any tracked file |
 
-`npm run lint` proves the whole source tree parses and the imports resolve. The build/test commands
-need a sandbox that permits writes and child-process stdio.
+`npm run lint` proves the whole source tree parses and the imports resolve.
 
 ---
 
@@ -176,7 +177,7 @@ Ordered by how much they matter for someone working by hand.
 
 ### 8.1 The backend cannot start — missing dependencies
 
-`split/split/backend/index.mjs` imports `cors` (line 2) and `bcryptjs` (line 5). **Neither is in
+`split/backend/index.mjs` imports `cors` (line 2) and `bcryptjs` (line 5). **Neither is in
 `package.json` and neither is installed.** `node backend/index.mjs` dies instantly with
 `ERR_MODULE_NOT_FOUND`.
 
@@ -184,7 +185,7 @@ Ordered by how much they matter for someone working by hand.
 Note that `docs/BACKEND.md` lists the fourth import as `bcrypt` when it is really `bcryptjs` — the
 doc and the code disagree.
 
-**Fix:** `npm --prefix split/split install cors bcryptjs`.
+**Fix:** `npm --prefix split install cors bcryptjs`.
 
 ### 8.2 The backend has no configuration and no endpoints
 
@@ -201,7 +202,7 @@ that persists a built route.
 
 ### 8.3 The Google Maps key is live in the working tree
 
-`split/split/.env.local` contains a real `AIzaSy...` key. It is **gitignored and has never been
+`split/.env.local` contains a real `AIzaSy...` key. It is **gitignored and has never been
 committed**, so this is not a leak — but it *is* a live credential sitting in a
 plaintext file, and it is currently the only reason the maps work.
 
@@ -210,11 +211,10 @@ browser key, so it is public by nature; the restriction is the actual protection
 
 ### 8.4 Stale comments pointing at files that do not exist — fixed
 
-`split/split/index.html` line 35 used to say the theme storage key is "kept in sync with
-`src/components/themeToggle.jsx`", a path that does not exist — the file is
-`src/shared/layout/themeToggle.tsx`, which line 30 of the same file gets right. The comment now points
-at the real file. It was harmless, but it is the kind of thing that makes you distrust the comments, so
-it is worth a grep whenever a file moves.
+`split/index.html` line 35 used to say the theme storage key is "kept in sync with
+`src/components/themeToggle.jsx`", a path that does not exist. The comments now point at
+`src/components/navbar.tsx`, where the switch and the key live. It was harmless, but it is the kind of
+thing that makes you distrust the comments, so it is worth a grep whenever a file moves.
 
 ### 8.5 Git history is unusable
 
@@ -258,18 +258,18 @@ These are enforced by tests and will fail loudly (which is the point).
 | A colour, font or spacing | the two seeds + `@theme` in `src/index.css`, and `docs/DESIGN.md` in the same change |
 | The look of a component | copy the canonical markup from `docs/DESIGN.md` §7, don't invent it |
 | How filtering works | `filterRoutes` / `filterPointsOfInterest` in `src/data/` |
-| A page's contents | its `src/pages/*Page.tsx`, then its sections |
+| A page's contents | its `src/pages/*Page.tsx`, then its components |
 | What the API should do | `docs/BACKEND.md`, then `backend/index.mjs` |
 
 ---
 
 ## 11. Suggested first moves
 
-1. **Get it running.** `npm --prefix split/split install` then `run dev`, open localhost:5173, click
+1. **Get it running.** `npm --prefix split install` then `run dev`, open localhost:5173, click
    through all four pages in both themes. This takes 10 minutes and gives you the ground truth.
-2. **Read `types.ts` then `App.tsx`.** 260 lines total. After that the codebase stops being a mystery.
+2. **Read `types.ts` then `App.tsx`.** After that the codebase stops being a mystery.
 3. **Read `routesPage.tsx` with `docs/DESIGN.md` §7 open.** That is where the architecture is densest.
-4. **Run `npm --prefix split/split run test`.** 563 tests that all pass tell you the frontend is solid
-   and give you a safety net before you touch anything.
+4. **Run `npm --prefix split run test`.** The suite gives you a safety net before you touch anything;
+   the 7 red tests are the merge leftovers listed in §7, not your doing.
 5. **Decide what "fix it" means** — the frontend is in good shape; the backend is essentially empty.
    Those are very different jobs. See §8.

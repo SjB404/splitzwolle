@@ -9,8 +9,8 @@ Placeholders from the original draft are resolved for this project:
 
 | Placeholder                | This project                                                                                     |
 | -------------------------- | ------------------------------------------------------------------------------------------------ |
-| `[DESIGN_FILE_PATH]`       | `docs/DESIGN.md` (decisions) + `split/split/src/index.css` (the role values)                     |
-| `[theme_toggle_mechanism]` | the `light` / `dark` class on `<body>`, owned by `split/split/src/shared/layout/themeToggle.tsx` |
+| `[DESIGN_FILE_PATH]`       | `docs/DESIGN.md` (decisions) + `split/src/index.css` (the role values)                     |
+| `[theme_toggle_mechanism]` | the `light` / `dark` class on `<body>`, owned by `split/src/components/navbar.tsx` |
 | `[dark_mode_mechanism]`    | `body.dark` (BeerCSS reads the same class)                                                       |
 
 House rules that override the spec: **no gradients anywhere**, the palette is the
@@ -22,7 +22,7 @@ from the pixel values below.
 
 ## 0. Theming rules (critical)
 
-- All colors come from the project's design file: `docs/DESIGN.md` + `split/split/src/index.css`.
+- All colors come from the project's design file: `docs/DESIGN.md` + `split/src/index.css`.
 - Reference colors by ROLE NAME only (e.g. `primary`, `surface-container-high`). Never hardcode
   hex values.
 - Two static schemes exist: light and dark. Switch via the `<body>` class.
@@ -68,7 +68,7 @@ Font stack (CSS):
 - Body: `font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;`
 - Headings: `font-family: 'Montserrat', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;`
 
-Load via `@font-face` or a CDN (this project uses the Google Fonts link in `split/split/index.html`).
+Load via `@font-face` or a CDN (this project uses the Google Fonts link in `split/index.html`).
 Preload the weights you actually use.
 
 ### Type scale
@@ -432,7 +432,7 @@ not an app shell with N destinations) — see DESIGN.md §16.
 - Never animate layout-shifting properties (width, height, top, left) — use `transform` and `opacity`
 - Respect `prefers-reduced-motion`: disable all non-essential animations
 
-> Both curves are tokens in `split/split/src/index.css` (`--ease-standard`, `--ease-exit`) and the
+> Both curves are tokens in `split/src/index.css` (`--ease-standard`, `--ease-exit`) and the
 > 200ms/standard-curve pair is the **default** for every Tailwind `transition-*` utility.
 
 ---
@@ -498,7 +498,7 @@ Rules:
 - Dark mode: swap the variable set via `body.dark`
 - Do NOT define component-level colors in component files — always pull from the token layer
 
-> In this project the "design file" is `split/split/src/index.css`: `@theme static` holds the Deltion
+> In this project the "design file" is `split/src/index.css`: `@theme static` holds the Deltion
 > ramps, and `:root, body.light` / `body.dark` hold every M3 role. BeerCSS reads those variables
 > directly, so no `--md-` prefix is used.
 

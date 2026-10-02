@@ -1,10 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import MapLegend from "../../../src/shared/map/mapLegend.tsx";
-import MapChip from "../../../src/shared/map/mapChip.tsx";
-import RouteShape from "../../../src/shared/map/routeShape.tsx";
-import MapSnapshot from "../../../src/shared/map/mapSnapshot.tsx";
-import { MapImage } from "../../../src/shared/map/mapArtwork.tsx";
-import { MAP_IMAGES } from "../../../src/data/maps.ts";
+import MapLegend from "../../../src/components/mapLegend.tsx";
+import RouteShape from "../../../src/components/routeShape.tsx";
+import MapSnapshot from "../../../src/components/mapSnapshot.tsx";
 import type { LatLng } from "../../../src/types.ts";
 
 const POINTS: LatLng[] = [
@@ -42,26 +39,6 @@ describe("MapLegend", () => {
     const { container } = render(<MapLegend items={[]} />);
 
     expect(container.querySelectorAll("li")).toHaveLength(0);
-  });
-});
-
-describe("MapChip", () => {
-  it("shows its label with a hidden dot", () => {
-    const { container } = render(<MapChip label="2 van 9 plekken" />);
-
-    expect(screen.getByText("2 van 9 plekken")).toBeInTheDocument();
-    expect(container.querySelector("span span")).toHaveAttribute(
-      "aria-hidden",
-      "true",
-    );
-  });
-
-  it("takes a class name for its own placement", () => {
-    const { container } = render(
-      <MapChip label="Kaart" className="absolute" />,
-    );
-
-    expect(container.firstElementChild).toHaveClass("absolute");
   });
 });
 
@@ -167,7 +144,7 @@ describe("MapSnapshot", () => {
     vi.stubEnv("VITE_GOOGLE_MAPS_STATIC_MAPS", "true");
 
     const { default: MapSnapshot } =
-      await import("../../../src/shared/map/mapSnapshot.tsx");
+      await import("../../../src/components/mapSnapshot.tsx");
     render(
       <MapSnapshot
         points={POINTS}
@@ -188,53 +165,5 @@ describe("MapSnapshot", () => {
 
     expect(screen.getByText("de route")).toBeInTheDocument();
     expect(screen.queryByRole("img")).toBeNull();
-  });
-});
-
-describe("MapImage", () => {
-  it("renders the picture with the export's own size", () => {
-    render(<MapImage image={MAP_IMAGES.historic} />);
-    const image = screen.getByRole("img", { name: MAP_IMAGES.historic.alt });
-
-    expect(image).toHaveAttribute("src", MAP_IMAGES.historic.src);
-    expect(image).toHaveAttribute("width", "1520");
-    expect(image).toHaveAttribute("height", "984");
-  });
-
-  it("loads lazily by default and eagerly when it is the first paint", () => {
-    const { rerender } = render(<MapImage image={MAP_IMAGES.satellite} />);
-    expect(screen.getByRole("img")).toHaveAttribute("loading", "lazy");
-
-    rerender(<MapImage image={MAP_IMAGES.satellite} priority />);
-
-    const image = screen.getByRole("img");
-    expect(image).toHaveAttribute("loading", "eager");
-    expect(image.getAttribute("fetchpriority")).toBe("high");
-  });
-
-  it("hides a decorative picture from screen readers", () => {
-    const { container } = render(
-      <MapImage image={MAP_IMAGES.places} decorative />,
-    );
-    const image = container.querySelector("img");
-
-    expect(image).toHaveAttribute("alt", "");
-    expect(image).toHaveAttribute("aria-hidden", "true");
-  });
-
-  it("takes a different alt when the caller has better words", () => {
-    render(<MapImage image={MAP_IMAGES.places} alt="De kaart van de route" />);
-
-    expect(
-      screen.getByRole("img", { name: "De kaart van de route" }),
-    ).toBeInTheDocument();
-  });
-
-  it("takes a class name for its own sizing", () => {
-    const { container } = render(
-      <MapImage image={MAP_IMAGES.roads} className="h-full w-full" />,
-    );
-
-    expect(container.querySelector("img")).toHaveClass("h-full", "w-full");
   });
 });

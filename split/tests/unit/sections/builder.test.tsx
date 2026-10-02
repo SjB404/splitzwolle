@@ -1,7 +1,7 @@
 import { fireEvent, screen } from "@testing-library/react";
-import PoiPicker from "../../../src/sections/routes/poiPicker.tsx";
-import RoutePlanSummary from "../../../src/sections/routes/routePlanSummary.tsx";
-import type { PlannedRoute } from "../../../src/shared/map/usePlannedRoute.ts";
+import PoiPicker from "../../../src/components/poiPicker.tsx";
+import RoutePlanSummary from "../../../src/components/routePlanSummary.tsx";
+import type { PlannedRoute } from "../../../src/data/usePlannedRoute.ts";
 import { POINTS_OF_INTEREST } from "../../../src/data/pointsOfInterest.ts";
 import { renderWithRouter } from "../helpers.tsx";
 import type { PointOfInterest, TravelMode } from "../../../src/types.ts";

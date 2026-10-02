@@ -125,7 +125,7 @@ Tailwind utility of the same name:
 ### Icons
 
 - Icons are **Material Symbols** rendered with BeerCSS's `<i>` element
-  (`<i className="text-base">search</i>`), via the `<Icon>` helper in `src/shared/primitives/icon.tsx`.
+  (`<i className="text-base">search</i>`), via the `<Icon>` helper in `src/components/icon.tsx`.
 - The font is a **Google Fonts subset**, linked in `index.html`. **Adding a new icon means
   adding its name to that URL first** — otherwise the ligature renders as literal text. That
   includes the glyphs BeerCSS's own components draw (`check_box`, `check_box_outline_blank`,
@@ -158,12 +158,13 @@ read roles, so they never branch on the theme.
 | ------------------------------------- | ------------------------------------------------------------------------------------- |
 | `index.html` → `<body class="light">` | The default, and the signal that stops BeerCSS from auto-switching to its own palette |
 | `index.html` → inline script          | Re-applies the stored theme before the first paint, so there is no flash              |
-| `src/shared/layout/themeToggle.tsx`   | Owns the state, writes the `<body>` class and persists the choice to `localStorage`   |
+| `src/components/navbar.tsx`           | The bar's own theme switch: it owns the state, writes the `<body>` class and persists the choice to `localStorage` (`THEME_STORAGE_KEY`) |
 
 Adding a theme-aware colour means adding a **role** to both blocks in `src/index.css`, not a
 fixed colour in a component. Three effects exist in the whole codebase, and each syncs with
-something outside React because it has to: `ThemeToggle` (the `<body>` class and `localStorage`),
-`ScrollToTop` (the scroll position after a route change) and `PageTitle` (`document.title`).
+something outside React because it has to: the bar's theme switch (the `<body>` class and
+`localStorage`), `ScrollToTop` in `src/App.tsx` (the scroll position after a route change) and
+`PageTitle` (`document.title`).
 
 ---
 
@@ -510,7 +511,7 @@ full-height grid with `header`, `main` and `footer` areas. Keep that structure:
     <nav>
       …
       <div className="max" />
-      <ThemeToggle />…
+      … {/* the bar's theme switch is part of navbar.tsx */}
     </nav>
   </header>
   <main className="p-0">…</main>
@@ -587,8 +588,9 @@ start on the same 20px (mobile) / 32px (desktop) gutter.
 ### Pages & routing
 
 The app is **client-routed** (`react-router-dom` — see §15 for why it was added). `src/App.tsx`
-maps paths to pages and wraps **every page** in `AppLayout` (bar → `main` → footer); the account
-screen, once the collaborator's login lands, is deliberately **outside** that shell. The paths
+maps paths to pages and wraps **every page** in the `AppLayout` written out in that same file
+(bar → `main` → footer); the account screen keeps the bar but hides the footer, because it is a
+screen of its own. The paths
 themselves live in `src/data/navigation.ts`, so the router, the top bar and the footer cannot
 disagree about a URL. `/planning` is a `<Navigate to="/routes" replace>` — the planner was folded
 into the builder, and the path only survives so an old link still lands somewhere.
@@ -622,10 +624,10 @@ the section headings below already say, and the band reads shorter without it. I
 title too,
 so a page is named in the tab, in history and for a screen reader.
 
-A page owns its route, the state its sections share, and the order they appear in — not their
-markup. The bands, columns and cards it is built from live in `src/sections/<page>/`, and anything a
-second page can use is promoted to `src/shared/<category>/`. §13 ("Where a piece lives") has the
-homes and the rule for moving a piece up.
+A page owns its route, the state its components share, and the order they appear in — not their
+markup. The bands, columns and cards it is built from live in `src/components/`, one flat folder,
+and a piece earns its own file there by being used in more than one place or by owning a whole band
+of a page. §13 ("Where a piece lives") has the rule and the suffix table.
 
 `ScrollToTop` puts a route change back at the top, and honours a `#hash` instead — which is what
 makes "Contact" (`/#contact`) work from any page.
@@ -653,10 +655,10 @@ makes "Contact" (`/#contact`) work from any page.
 ## 7. Components
 
 Prefer a BeerCSS component over hand-built styles. These are the canonical shapes, as they appear in
-`src/sections/home/hero.tsx` and the pages around it. The shapes that more than one page needs are already
-components — `FilterPanel`, `SearchField`, `SectionSearchBar`, `EmptyState`, `Breadcrumb`,
-`MapLegend`, `SectionHeading`, `PageHeader`, `RouteGrid`, `MapChip`, `ClearFiltersButton`,
-`MapSnapshot`, `Container` — so look for one before writing the markup again (§13).
+`src/components/hero.tsx` and the pages around it. The shapes that more than one page needs are already
+components — `Container`, `SearchField`, `FilterSelect`, `ClearFiltersButton`, `SectionSearchBar`,
+`EmptyState`, `SectionHeading`, `PageHeader`, `StarRating`, `MapLegend`, `MapSnapshot`, `RouteShape`,
+`AreaMap` — so look for one before writing the markup again (§13).
 
 ```jsx
 // The hero band — headline over the map panel, both as wide as the gutter allows. The band
@@ -673,9 +675,11 @@ components — `FilterPanel`, `SearchField`, `SectionSearchBar`, `EmptyState`, `
       <span className="block lg:inline">Ontdek Zwolle</span>{" "}
       <span className="block lg:inline">toen en nu</span>
     </h1>
-    <HeroMap className="mt-6 motion-safe:animate-rise sm:mt-8" />
+    <div className="surface [contain:layout_paint] …">…</div>
   </Container>
 </section>
+// The map panel itself (the stacked pictures, the cross-fade slider, the rail) is written out
+// in the same hero.tsx file — the hero is its only caller, so it is not a component of its own.
 // Filled action — a bare <button> is already Deltion-orange with navy text.
 // `ripple` is BeerCSS's Material 3 press ripple + 10% hover/focus state layer,
 // and the JS for it is part of beer.min.js — no animation code of our own.
@@ -695,8 +699,13 @@ components — `FilterPanel`, `SearchField`, `SectionSearchBar`, `EmptyState`, `
 // override layer, and the field's resting padding takes its focus padding's value so nothing moves.
 
 // Theme switch — the only stateful control in the header.
-// See src/shared/layout/themeToggle.tsx for the <body> class + localStorage sync.
-<ThemeToggle />
+// The bar's own switch (src/components/navbar.tsx) owns the <body> class + localStorage sync.
+<button
+  type="button"
+  className="circle transparent ripple tap-target text-on-bar"
+  aria-pressed={isDark}
+  aria-label={isDark ? "Schakel naar licht thema" : "Schakel naar donker thema"}
+>…</button>
 
 // Icon-only button — `tap-target` keeps the 40px circle but gives it a 48px hit area,
 // `ripple` gives it the press animation
@@ -835,7 +844,7 @@ components — `FilterPanel`, `SearchField`, `SectionSearchBar`, `EmptyState`, `
 <Link to={ROUTES_PATH} className="button border text-ink ripple">Alle routes bekijken</Link>
 
 // Star rating — BeerCSS's `i.fill` flips the Material Symbols FILL axis; empty stars take the
-// muted ink (§3: never opacity). Wrapped in role="img" + aria-label by shared/primitives/starRating.tsx.
+// muted ink (§3: never opacity). Wrapped in role="img" + aria-label by src/components/starRating.tsx.
 <Icon name="star" className="fill text-base text-accent" />
 
 // Review histogram — the Material 3 linear progress, tinted by `--primary` (orange on paper,
@@ -843,12 +852,13 @@ components — `FilterPanel`, `SearchField`, `SectionSearchBar`, `EmptyState`, `
 <progress className="medium flex-1" value={count} max={total} aria-hidden="true" />
 
 // Breadcrumb — a plain <nav>. BeerCSS leaves `nav` unstyled apart from flex + a 1rem gap.
+// The routes page's own header band wears the only one (src/pages/routesPage.tsx).
 <nav aria-label="Kruimelpad" className="flex flex-wrap items-center gap-2 text-sm text-ink-muted">…</nav>
 
 // Select with a floating label and a chevron. The label floats because it follows the `select`
 // in the markup, and the chevron sits in the field's trailing slot because it is *not* the first
 // child (BeerCSS places the first icon as a prefix). `suffix` reserves the room — see
-// shared/filters/filterSelect.tsx for the whole component.
+// src/components/filterSelect.tsx for the whole component.
 <div className="field round border label suffix s12 m6 l3">
   <select id="route-theme" value={theme} onChange={…}>…</select>
   <label htmlFor="route-theme">Type route</label>
@@ -873,7 +883,7 @@ It has **three actions, and they are siblings, never nested**:
 
 - the **title** is a `<button>` with a stretched `after:absolute after:inset-0` pseudo-element, so the
   whole card loads the route into the builder as a custom route (`/routes/custom/…`, in visit order)
-  — the same button-in-a-card trick the small `RouteCard` uses with a link;
+  — the same button-in-a-card trick the home strip's cards use with a link;
 - the **bookmark** saves the route to this browser (§7), with `aria-pressed` as its state and its
   label naming the route (`Bewaar …` / `Haal … uit je opgeslagen routes`);
 - the **arrow** is a `<Link>` to the route's own page (`/routes/public/<id>`), bottom-right,
@@ -887,14 +897,15 @@ another control: a `<button>` inside a `<button>` is not HTML.
 `/routes/public/<route-id>` renders **the very same page** as the bare builder, with three
 differences:
 
-- the header band wears the route's own `title`, `theme`, area and score (`PageHeader` with a
-  `Breadcrumb` back to the list) instead of the generic builder copy, and the tab says the route's
-  name;
+- the header band wears the route's own `title`, `theme`, area and score (`PageHeader` with the
+  trail back to the list written into `routesPage.tsx`) instead of the generic builder copy, and the
+  tab says the route's name;
 - the builder is **seeded with the route's places**, so the map, the picker and the summary are filled
   in on arrival — read from the url like any other pick, never stored;
 - the reviews sit under the map in **`RouteReviewsPanel`**: one button for the whole row, the score
-  and the count while it is closed, `aria-expanded` as its state, and `RouteReviews` (breakdown +
-  reviews, which own no band of their own) when it opens. Collapsed by default, because on this page
+  and the count while it is closed, `aria-expanded` as its state, and the breakdown, the reviews and
+  the form written out in the same file (they own no band of their own) when it opens. Collapsed by
+  default, because on this page
   the route itself is the point; opening slides it in (§12), closing is instant.
 
 An id that is not a route answers with `NotFoundPage`'s own wording, and a bicycle route opens in
@@ -959,7 +970,7 @@ control's own text for the fill (§16).
 
 **Two kinds of map live in this app.** The hero is **artwork** — the 1652 engraving over a satellite
 photo with a slider between them — and it is the one place a map is a picture: two exports in
-`src/assets/maps/`, drawn by `MapImage` (`shared/map/mapArtwork.tsx`). **Every other map is Google
+`src/assets/maps/`, drawn by the hero's own `MapImage` helper (`src/components/hero.tsx`). **Every other map is Google
 Maps.** The hand-placed 0–100 overlay layer that used to draw routes and pins on those exports is
 **retired**: nothing on the site positions anything by hand any more.
 
@@ -983,7 +994,7 @@ therefore cannot drift from its stops, and editing a place moves every line that
 
 ### The interactive map
 
-`AreaMap` (`shared/map/areaMap.tsx`) is the one interactive map. Two pages use it: the routes page
+`AreaMap` (`components/areaMap.tsx`) is the one interactive map. Two pages use it: the routes page
 (one url for the builder, one per built route, one per ready-made route — §7) and the places
 overview. It takes the places to pin, the line to draw, the visit order, a click handler and the
 height it should stand at — the page decides what a click means there, and the builder asks for a
@@ -1017,9 +1028,9 @@ taller map because there the map is the work surface.
 
 ### Where the route between the places comes from
 
-`requestDirections` (`shared/map/googleMaps.ts`) asks the **Routes API**
+`requestDirections` (`data/googleMaps.ts`) asks the **Routes API**
 (`google.maps.routes.Route.computeRoutes`, `fields: ["path", "distanceMeters", "durationMillis"]`),
-and `usePlannedRoute` (`shared/map/usePlannedRoute.ts`) is the hook around it. A key without the
+and `usePlannedRoute` (`data/usePlannedRoute.ts`) is the hook around it. A key without the
 Routes API gets **one refusal remembered for the session**; the hook then answers with
 `straightRoute()` from `data/routeGeometry.ts` — the places connected, length haversine × 1.25,
 duration from the pace in `PACE_KM_PER_HOUR` — and the summary says which of the two the reader is
@@ -1033,11 +1044,11 @@ charged for the same route twice.
 
 A card wants a picture, not a second map instance.
 
-- **`MapPreview`** is a **Maps Static API** image of a route's places or of a single place, and it is
+- **`MapSnapshot`** is a **Maps Static API** image of a route's places or of a single place, and it is
   **off by default**: the static api is a second service on the key, and a card that asks for a
   picture the key cannot give logs a console error _per card_ (measured: nine on one page). Set
   `VITE_GOOGLE_MAPS_STATIC_MAPS=true` once the api is enabled for the key.
-- **`RouteShape`** (`shared/map/routeShape.tsx`) is the route preview that always works: the places
+- **`RouteShape`** (`components/routeShape.tsx`) is the route preview that always works: the places
   projected from their real coordinates into the card's own 16:10 box, **one scale for both axes** so
   the shape keeps its proportions, in the same casing-plus-orange recipe, with bigger dots at the two
   ends to show the direction of travel. It costs no request at all. (Stretching each axis was tried
@@ -1138,8 +1149,8 @@ below exist to keep that motion _coherent and cheap_, never to remove it.
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------- |
 | Press / click a control          | **BeerCSS ripple** — the `ripple` class (600ms expanding circle)                                                                           | `ripple` is on every button, toggle and nav row |
 | Hover / keyboard focus a control | State layer: `currentcolor` at 10%                                                                                                         | BeerCSS, same `ripple` class                    |
-| Hover a route card               | `motion-safe:hover:-translate-y-1`, 200ms transform                                                                                        | `RouteCard`                                     |
-| Toggle the theme                 | The sun/moon icon spins out and in (Motion, 150ms, `mode="wait"`) + the ripple                                                             | `ThemeToggle`                                   |
+| Hover a route card               | `motion-safe:hover:-translate-y-1`, 200ms transform                                                                                        | the route cards (`popularRoutesPreview`, `routeResults`) |
+| Toggle the theme                 | The sun/moon icon spins out and in (Motion, 150ms, `mode="wait"`) + the ripple                                                             | the bar's theme switch (`navbar`)               |
 | Drag the map slider              | The historic layer's opacity fades over `--speed2` (200ms)                                                                                 | `.historic-layer`                               |
 | Load the page                    | The hero's map panel rises 12px and fades in                                                                                               | `animate-rise` (CSS)                            |
 | Open / close the mobile menu     | Height + opacity, 200ms, animates **out** as well as in; the rows fade in 30ms apart, and the burger's own glyph turns as it swaps (150ms) | `m` + `AnimatePresence` (Motion)                |
@@ -1276,41 +1287,43 @@ Smoothness is measured, not assumed:
 ## 13. Craft rules
 
 The visual language above only holds up if the code holds up. These are the habits that keep it
-there — they apply to every file under `split/split/src/`.
+there — they apply to every file under `split/src/`.
 
 ### Where a piece lives
 
-A piece only ever moves one way: **up**. It starts in the page it was written for, and it is
-promoted the moment a second page needs it — never copied.
+A piece earns its own file by being needed in more than one place, or by owning a whole band of a
+page. Anything that only ever appears inside one other component is written **there** — the bar
+holds its own link list, the footer its own columns, the hero its own map panel. Splitting a piece
+out "in case it is reused" is indirection, not structure.
 
 | Home                     | Holds                                                                                                                                                                                    | Rule                                                                                                                                                                                                                                                                                |
 | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/pages/`             | one file per route, `<name>Page.tsx`, the default export `App.tsx` mounts                                                                                                                | resolves the route, owns the state its sections share, and lists the sections in order. It owns a band only when that band holds more than one section.                                                                                                                             |
-| `src/sections/<page>/`   | the pieces a page is assembled from: a band, a grid column, a card, a row — in the folder of the page that owns it (`home/`, `routes/`, `pointsOfInterest/`)                             | **page-scoped**. One component per file, named after the component.                                                                                                                                                                                                                 |
-| `src/shared/<category>/` | what two or more pages share, in a category folder: `layout/` (the shell and the page scaffolding), `primitives/`, `content/`, `filters/`, `map/`                                        | **shared**. Promoted here from `sections/`; a section that turns out to be generic (`MapPanel`, `EmptyState`) belongs here.                                                                                                                                                         |
-| `src/data/`              | the content and the pure helpers over it (`routes.ts`, `pointsOfInterest.ts`, `area.ts`, `maps.ts`, `routeGeometry.ts`, `directions.ts`, `navigation.ts`, `search.ts`, `savedRoutes.ts`) | **content and logic only** — no components. `searchIndex.json` is the one data file that is not TypeScript, because it stands in for an api response (§15). `savedRoutes.ts` is the reader's own list in `localStorage`, which is why it also exports the one hook that watches it. |
+| `src/pages/`             | one file per route, `<name>Page.tsx`, the default export `App.tsx` mounts                                                                                                                | resolves the route, owns the state its components share, and lists them in order. It owns a band only when that band holds more than one piece.                                                                                                                                     |
+| `src/components/`        | **every component, in one flat folder** — a band (a section, a list, a grid, a fold), a primitive (`Icon`, `StarRating`), a filter control, a map panel. One per camelCase file.          | **named exactly after the component**. A piece used once inside another component lives in that component's file; the moment a second file needs it, it moves out into a file of its own — never copied.                                                                            |
+| `src/data/`              | the content and the logic over it (`routes.ts`, `pointsOfInterest.ts`, `area.ts`, `maps.ts`, `routeGeometry.ts`, `directions.ts`, `navigation.ts`, `search.ts`, `savedRoutes.ts`, `googleMaps.ts`, `usePlannedRoute.ts`) | **content and logic only** — no components. `searchIndex.json` is the one data file that is not TypeScript, because it stands in for an api response (§15). `savedRoutes.ts` is the reader's own list in `localStorage`, which is why it also exports the one hook that watches it. |
 | `src/types.ts`           | the shape of that content: `Route`, `PointOfInterest`, `MapPicture`, `RouteFilterState`                                                                                                  | **types only**, no runtime code. A component names the type it needs instead of repeating its fields.                                                                                                                                                                               |
 
-The test is the name. If it needs its page in it ("the planner's map"), it is a section
-(`planMap.tsx`). If the name stands on its own (`MapPanel`, `EmptyState`), it is a component — and
-it was probably already used twice.
+The test is the **caller count**. One caller: the piece is written out in the caller's file, private
+helpers and small local functions included. A second caller: it moves up into its own file in
+`src/components/` — never copied, and never a category folder: the flat folder is the whole
+convention, so nothing has to be guessed or promoted twice.
 
-A page should read as a table of contents: the header band, then the sections in order. If a page
-file is more than about a hundred lines of markup, a section is still hiding inside it.
+A page should read as a table of contents: the header band, then its bands in order. If a page
+file is more than about a hundred lines of markup, a band is still hiding inside it.
 
 ### Naming
 
 | Thing                    | Convention                                                             | Example                                                        |
 | ------------------------ | ---------------------------------------------------------------------- | -------------------------------------------------------------- |
 | Page file                | **camelCase** + `Page`, in `src/pages/`                                | `homePage.tsx`, `routesPage.tsx`, `pointsOfInterestPage.tsx`   |
-| Section / component file | **camelCase**, one component per file, named exactly for the component | `heroMap.tsx` → `HeroMap`, `mapPanel.tsx` → `MapPanel`         |
+| Component file           | **camelCase**, one component per file, named exactly for the component | `areaMap.tsx` → `AreaMap`, `poiResults.tsx` → `PoiResults`     |
 | Domain type              | **PascalCase**, in `src/types.ts`                                      | `Route`, `StarBucket`, `MapPicture`, `PoiFilterState`          |
-| Content constants        | **SCREAMING_SNAKE_CASE**, declared above the component that uses them  | `NAV_LINKS`, `MAP_LAYERS`, `ROUTE_PREVIEW_COUNT`               |
+| Content constants        | **SCREAMING_SNAKE_CASE**, declared above the component that uses them  | `NAV_LINKS`, `RAIL_ENDS`, `ROUTE_PREVIEW_COUNT`                |
 | Props, state, locals     | **camelCase**, no abbreviations                                        | `historicOpacity`, `visibleRoutes`, `menuOpen`                 |
 | Custom CSS class         | **kebab-case**, only in `index.css`                                    | `.historic-layer`                                              |
 | CSS variable             | **kebab-case** custom property                                         | `--surface-container-low`, `--historic-opacity`                |
 | Content module           | camelCase file, one topic per file, in `src/data/`                     | `routes.ts`, `pointsOfInterest.ts`, `navigation.ts`            |
-| `Poi`                    | the established short form for a point of interest                     | `PoiCard`, `PoiOverlay`, `POI_SORTS`, `filterPointsOfInterest` |
+| `Poi`                    | the established short form for a point of interest                     | `PoiPicker`, `PoiFilters`, `POI_SORTS`, `filterPointsOfInterest` |
 
 The **suffix says what the thing is**, so a file name can be read without opening it:
 
@@ -1318,30 +1331,31 @@ The **suffix says what the thing is**, so a file name can be read without openin
 | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
 | `…Page`                                    | a route's entry point, in `pages/`                                                                                | `homePage.tsx`, `pointsOfInterestPage.tsx`              |
 | `…Preview`                                 | a home-page strip showing a slice of another page, with the link to it                                            | `PopularRoutesPreview`, `PointsOfInterestPreview`       |
-| `…Panel`                                   | a framed surface holding a control group or artwork                                                               | `FilterPanel`                                           |
-| `…Card`                                    | one record on a bordered surface                                                                                  | `RouteCard`, `RouteOverviewCard`, `ReviewCard`          |
-| `…Grid`                                    | the grid a repeating card is laid out in, fade included                                                           | `RouteGrid`                                             |
+| `…Panel`                                   | a framed surface holding a control group or artwork                                                               | `RouteReviewsPanel`                                     |
+| `…Card`                                    | one record on a bordered surface — only when it needs a name of its own                                           | none left: the route and place cards are written out in the list that shows them |
+| `…Grid`                                    | the grid a repeating card is laid out in, fade included                                                           | none left: each list owns its grid                              |
 | `…Button`                                  | one action, in the shape the design gives it                                                                      | `ClearFiltersButton`, `RouteShareButton`                |
 | `…Bar`                                     | a control strip that belongs to a section                                                                         | `SectionSearchBar`                                      |
-| `…Chip`                                    | a small labelled token that sits on a surface                                                                     | `MapChip`                                               |
-| `…Form`                                    | the inputs that submit something                                                                                  | `ReviewForm`                                            |
+| `…Chip`                                    | a small labelled token that sits on a surface                                                                     | none left: the map chip is a private helper in `areaMap.tsx` |
+| `…Form`                                    | the inputs that submit something                                                                                  | none left: the review form is private to `routeReviewsPanel.tsx` |
 | `…Filters`                                 | the controls that narrow a list                                                                                   | `RouteFilters`, `PoiFilters`                            |
 | `…Results`                                 | what a filter left behind, empty state included                                                                   | `RouteResults`, `PoiResults`                            |
-| `…Dialog`                                  | a modal the platform opens, holding another page's sections                                                       | none left — a route's full view is a url (§7)           |
-| `…Map`                                     | a map panel plus the key that explains it                                                                         | `AreaMap`, `HeroMap`                                    |
+| `…Dialog`                                  | a modal the platform opens, holding another page's components                                                     | none left — a route's full view is a url (§7)           |
+| `…Map`                                     | a map panel plus the key that explains it                                                                         | `AreaMap`                                               |
 | `…Picker`                                  | the controls that choose what a map or a route is made of                                                         | `PoiPicker`                                             |
-| `…Summary` / `…Reviews`                    | the named column of one page, and the reviews a route carries                                                     | `RoutePlanSummary`, `RouteReviews`, `RouteReviewsPanel` |
-| `…Overlay` / `…Image` / `…Crop` / `…Shape` | artwork: SVG drawn over a map picture, the picture, a cropped piece of it, a route drawn from its own coordinates | `MapImage`, `RouteShape`                                |
+| `…Summary` / `…Reviews`                    | the named column of one page, and the reviews a route carries                                                     | `RoutePlanSummary`, `RouteReviewsPanel`                 |
+| `…Image` / `…Shape`                        | artwork: a picture, and a route drawn from its own coordinates                                                    | `RouteShape` (`MapImage` is private to `hero.tsx`)      |
 | `…Snapshot`                                | a picture of a map, drawn by an api rather than by us                                                             | `MapSnapshot`                                           |
 
-- Default-export the one public piece of a file; use named exports for siblings. `mapArtwork.tsx`
-  is the exception that proves the rule: it is now a one-component file (`MapImage`) and keeps the
-  old name because the overlay layer it was named for is gone — rename it when something else
-  touches it. `container.tsx` makes the other exception on purpose: it exports `Container` _and_ the
-  bare `CONTAINER` class string, because the bar's `<nav>` is a container that has to be another
-  element.
-- A section that is not one of the shapes above is simply named after what it renders
-  (`HeroMap`, `PoiPicker`), never after where it sits or who uses it.
+- Default-export the one public piece of a file; use named exports for siblings. Two files make a
+  deliberate second exception: `container.tsx` exports `Container` _and_ the bare `CONTAINER` class
+  string (the bar's `<nav>` is a container that has to be another element), and `navbar.tsx` /
+  `footer.tsx` export their link lists, because that is what the bar and the footer render and what
+  the tests pin.
+- A component that is not one of the shapes above is simply named after what it renders
+  (`PoiPicker`, `RouteShareButton`), never after where it sits or who uses it.
+- A piece that is only used inside another one keeps that file's name out of it entirely: it is a
+  plain function (or no function at all, just the markup), not an exported component.
 - Data that the JSX maps over is a named constant, not an array literal buried in the markup.
 - Never invent a class name that Tailwind or BeerCSS already owns (see the collision table in §2).
 
@@ -1381,7 +1395,7 @@ The **suffix says what the thing is**, so a file name can be read without openin
 left edge, no numbered lists. Plain lines that start at column zero, one line each:
 
 ```tsx
-/* the filter card above the route overview — FilterPanel is the card, this file owns what goes in it */
+/* the route list's search box and its five filters — one row, next to each other, so the list below is what the eye lands on */
 /* the option lists live here and not in data/routes.ts because they are labels, not data */
 
 interface RouteFiltersProps {
@@ -1393,13 +1407,14 @@ interface RouteFiltersProps {
 ### React practice
 
 - Function components and hooks only; one responsibility per component.
-- Extract to `src/shared/<category>/` once a piece is shared — see "Where a piece lives" above for
-  the homes and the promotion rule. `Icon`, the map artwork, `ThemeToggle`, `MapPanel` and
-  `EmptyState` are the shapes that got there.
+- Give a piece its own file in `src/components/` once a second caller needs it — see "Where a piece
+  lives" above for the caller-count rule. `Icon`, `StarRating`, `EmptyState` and `AreaMap` are the
+  shapes that got there.
 - Destructure props in the signature and default them (`function Icon({ name, className = "" })`).
 - Derive, don't duplicate: no state that can be computed (`visibleRoutes` from `showAll`).
-- Effects only to sync with something outside React: `ThemeToggle` (the `<body>` class +
-  `localStorage`), `ScrollToTop` (the scroll position), `PageTitle` (`document.title`) and the
+- Effects only to sync with something outside React: the bar's theme switch in `navbar.tsx`
+  (the `<body>` class + `localStorage`), `ScrollToTop` in `App.tsx` (the scroll position),
+  `PageTitle` (`document.title`) and the
   Google Maps layer — `AreaMap` (creating the map, rebuilding it for the theme, reconciling the dots
   and the line) and `usePlannedRoute` (asking the Routes API). Nothing else has one.
 - Key lists by a stable id; never the array index.
@@ -1457,8 +1472,8 @@ interface RouteFiltersProps {
 - **Before adding one**, write down what it replaces. If the answer is "a helper I could write in
   ten lines" (a class-name joiner, a date formatter) it does not go in. If it is "a router, a real
   map, a test runner", it is a real gap — check §15's triggers first, then record the decision.
-- **Never touch the backend's dependencies.** `split/split/backend/` belongs to the project collaborator.
-- Install with `npm --prefix split/split install <pkg>` and add the row to §15, so the next reader
+- **Never touch the backend's dependencies.** `split/backend/` belongs to the project collaborator.
+- Install with `npm --prefix split install <pkg>` and add the row to §15, so the next reader
   knows it is deliberate.
 
 ### Responsive by default
@@ -1556,7 +1571,7 @@ The one trigger §15 wrote down has since fired — the app became multi-page on
 - **The M3 roles are hand-authored, not generated.** `index.css` derives all ~40 roles in both
   themes from the Deltion huisstijl (§3). Generating them from a seed colour would replace the
   design with a machine-toned approximation of it — the palette _is_ the design here.
-- **`split/split/backend/` is not ours.** The Express API, the database and everything server-side
+- **`split/backend/` is not ours.** The Express API, the database and everything server-side
   belong to the project collaborator, who installs their own dependencies when they build it. Do
   not add server packages, and do not wire the frontend to an API that does not exist yet.
   **The search is the one place that waits on them**: `src/data/searchIndex.json` holds the
@@ -1609,11 +1624,11 @@ tokens in §10, and a library will not make the ripple, the card lift or the her
 ### Google Maps (added 2026-09-28)
 
 The app's maps are the **Google Maps JavaScript API**, loaded as a script by
-`src/shared/map/googleMaps.ts` — **not** as a package, so the "no new dependencies" rule above still
+`src/data/googleMaps.ts` — **not** as a package, so the "no new dependencies" rule above still
 holds: nothing was added to `package.json`, and `src/googleMaps.d.ts` declares the slice of the api
 the app uses by hand, the same trade `beercss.d.ts` makes.
 
-- **The key lives in `split/split/.env.local`** (already gitignored by the `*.local` rule) as
+- **The key lives in `split/.env.local`** (already gitignored by the `*.local` rule) as
   `VITE_GOOGLE_MAPS_API_KEY`; `.env.example` documents it. Without a key every map is replaced by a
   panel that says it could not load, and the rest of the app is unaffected.
 - **Required: Maps JavaScript API.** Two further services are optional and **off by default**,
@@ -1647,8 +1662,9 @@ Why the library and not a hand-rolled hash router: the routes are real URLs that
 shared and bookmarked, and back/forward, active-link state and breadcrumbs all have to behave.
 That is more than the ten lines §13's rule allows before a dependency is justified.
 
-- Paths live in `src/data/navigation.js`; `App.tsx` maps them to pages and `AppLayout` gives every
-  page its shell.
+- Paths live in `src/data/navigation.ts`; `App.tsx` maps them to pages and its own `AppLayout` gives
+  every page its shell. The bar's link list lives in `components/navbar.tsx`, the footer's in
+  `components/footer.tsx` — both read their targets from `navigation.ts`.
 - `BrowserRouter` (clean URLs, no `#`) expects the host to serve `index.html` for unknown paths.
   Vite's dev server and `vite preview` both do; **a static host needs an SPA fallback** (or the
   router has to move to `HashRouter`), otherwise a deep link 404s on load.
@@ -1678,7 +1694,7 @@ item it **deviates** from is listed here with the reason, so nobody "fixes" it b
 | Spec item                                                                    | Where                                                                                                                                                  |
 | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Every colour role exists in both schemes (incl. `scrim`, `shadow`)           | `index.css` — both blocks                                                                                                                              |
-| Two static schemes selected by a `<body>` class, no wallpaper extraction     | `themeToggle.tsx`                                                                                                                                      |
+| Two static schemes selected by a `<body>` class, no wallpaper extraction     | `navbar.tsx` (the bar's theme switch)                                                                                                                  |
 | Tonal steps + hairlines, no shadows at all                                   | §5 — BeerCSS elevation helpers are disabled in `@layer overrides`                                                                                      |
 | Top app bar: brand orange (`--bar`), full-width, 48px action targets         | `Navbar`, **64px** tall (flat, no bottom hairline), white text/icons at 6:1                                                                            |
 | Shape: one corner on every box                                               | `article`, hero panel `rounded-box`                                                                                                                   |

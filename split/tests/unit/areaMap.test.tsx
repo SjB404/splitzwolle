@@ -44,7 +44,7 @@ async function renderMap(props: MapProps = {}) {
   vi.stubEnv("VITE_GOOGLE_MAPS_API_KEY", "test-key");
 
   const built = installFakeMaps();
-  const { default: AreaMap } = await import("../../src/shared/map/areaMap.tsx");
+  const { default: AreaMap } = await import("../../src/components/areaMap.tsx");
 
   const view = render(<AreaMap {...mapProps(props)} />);
 

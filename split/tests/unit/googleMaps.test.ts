@@ -63,7 +63,7 @@ async function freshModule(
   vi.stubEnv("VITE_GOOGLE_MAPS_STATIC_MAPS", env.staticMaps ?? "false");
   vi.stubEnv("VITE_GOOGLE_MAPS_MAP_ID", env.mapId ?? "");
 
-  return await import("../../src/shared/map/googleMaps.ts");
+  return await import("../../src/data/googleMaps.ts");
 }
 
 describe("the key", () => {

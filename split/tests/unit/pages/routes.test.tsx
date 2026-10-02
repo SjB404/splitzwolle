@@ -406,6 +406,10 @@ describe("RoutesPage, a route's own page", () => {
       "href",
       ROUTES_PATH,
     );
+    /* the trail is a labelled navigation with the current page printed as text */
+    const trail = header.getByRole("navigation", { name: "Kruimelpad" });
+
+    expect(within(trail).getByText(ROUTE.title)).toBeInTheDocument();
     expect(header.getByText(ROUTE.theme)).toBeInTheDocument();
     expect(header.getByText(ROUTE.area)).toBeInTheDocument();
   });

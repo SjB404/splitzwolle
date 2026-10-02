@@ -8,7 +8,7 @@ import {
   straightRoute,
 } from "../../src/data/routeGeometry.ts";
 import { POINTS_OF_INTEREST } from "../../src/data/pointsOfInterest.ts";
-import type { PlannedRoute } from "../../src/shared/map/usePlannedRoute.ts";
+import type { PlannedRoute } from "../../src/data/usePlannedRoute.ts";
 import type { PointOfInterest, TravelMode } from "../../src/types.ts";
 
 const PLACES = POINTS_OF_INTEREST.slice(0, 3) as PointOfInterest[];
@@ -24,7 +24,7 @@ let planHook: (points: PointOfInterest[], mode: TravelMode) => PlannedRoute;
 
 async function loadHook() {
   vi.resetModules();
-  const mod = await import("../../src/shared/map/usePlannedRoute.ts");
+  const mod = await import("../../src/data/usePlannedRoute.ts");
   planHook = mod.usePlannedRoute;
 }
 

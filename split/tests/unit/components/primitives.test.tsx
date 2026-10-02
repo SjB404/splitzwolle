@@ -1,9 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import Icon from "../../../src/shared/primitives/icon.tsx";
-import StarRating from "../../../src/shared/primitives/starRating.tsx";
-import TextButton from "../../../src/shared/primitives/textButton.tsx";
-import EmptyState from "../../../src/shared/content/emptyState.tsx";
-import ClearFiltersButton from "../../../src/shared/filters/clearFiltersButton.tsx";
+import Icon from "../../../src/components/icon.tsx";
+import StarRating from "../../../src/components/starRating.tsx";
+import EmptyState from "../../../src/components/emptyState.tsx";
+import ClearFiltersButton from "../../../src/components/clearFiltersButton.tsx";
 
 describe("Icon", () => {
   it("renders the glyph name as text, hidden from screen readers", () => {
@@ -66,32 +65,6 @@ describe("StarRating", () => {
     render(<StarRating value={4} className="mt-2" />);
 
     expect(screen.getByRole("img")).toHaveClass("mt-2");
-  });
-});
-
-describe("TextButton", () => {
-  it("is a button of type button that renders its label", () => {
-    render(<TextButton>Bekijk alle routes</TextButton>);
-    const button = screen.getByRole("button", { name: "Bekijk alle routes" });
-
-    expect(button).toHaveAttribute("type", "button");
-  });
-
-  it("calls back when it is clicked", () => {
-    const onClick = vi.fn();
-    render(<TextButton onClick={onClick}>Wissen</TextButton>);
-
-    fireEvent.click(screen.getByRole("button", { name: "Wissen" }));
-
-    expect(onClick).toHaveBeenCalledTimes(1);
-  });
-
-  it("survives a click without a callback", () => {
-    render(<TextButton>Zonder actie</TextButton>);
-
-    expect(() =>
-      fireEvent.click(screen.getByRole("button", { name: "Zonder actie" })),
-    ).not.toThrow();
   });
 });
 

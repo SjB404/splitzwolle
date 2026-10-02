@@ -1,43 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import FilterPanel from "../../../src/shared/filters/filterPanel.tsx";
-import FilterSelect from "../../../src/shared/filters/filterSelect.tsx";
-import SearchField from "../../../src/shared/filters/searchField.tsx";
-import SectionSearchBar from "../../../src/shared/filters/sectionSearchBar.tsx";
-
-describe("FilterPanel", () => {
-  it("renders its controls and the live count", () => {
-    const { container } = render(
-      <FilterPanel resultLabel="8 routes gevonden">
-        <p>de filters</p>
-      </FilterPanel>,
-    );
-
-    expect(screen.getByText("de filters")).toBeInTheDocument();
-
-    const count = screen.getByText("8 routes gevonden");
-    expect(count).toHaveAttribute("aria-live", "polite");
-    expect(container.querySelector("article")).toBeInTheDocument();
-  });
-
-  it("hides the reset button while nothing is filtered", () => {
-    render(<FilterPanel resultLabel="8 routes gevonden">…</FilterPanel>);
-
-    expect(screen.queryByRole("button")).toBeNull();
-  });
-
-  it("shows the reset button and calls back once filters are active", () => {
-    const onReset = vi.fn();
-    render(
-      <FilterPanel resultLabel="3 routes gevonden" onReset={onReset}>
-        …
-      </FilterPanel>,
-    );
-
-    fireEvent.click(screen.getByRole("button", { name: "Filters wissen" }));
-
-    expect(onReset).toHaveBeenCalledTimes(1);
-  });
-});
+import FilterSelect from "../../../src/components/filterSelect.tsx";
+import SearchField from "../../../src/components/searchField.tsx";
+import SectionSearchBar from "../../../src/components/sectionSearchBar.tsx";
 
 describe("FilterSelect", () => {
   const options = [

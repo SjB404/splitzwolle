@@ -1,6 +1,7 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import HomePage from "../../../src/pages/homePage.tsx";
 import { ROUTE_PREVIEW_COUNT } from "../../../src/data/routes.ts";
+import { MAP_IMAGES } from "../../../src/data/maps.ts";
 import { renderWithRouter } from "../helpers.tsx";
 
 const POI_PREVIEW_COUNT = 5;
@@ -61,6 +62,32 @@ describe("HomePage", () => {
         }) as HTMLInputElement
       ).value,
     ).toBe("100");
+  });
+
+  it("draws the hero's two maps with their size declared, the current one part of the first paint", () => {
+    const { container } = renderWithRouter(<HomePage />);
+
+    const images = container.querySelectorAll<HTMLImageElement>("#home img");
+
+    expect(images).toHaveLength(2);
+
+    for (const image of images) {
+      expect(image).toHaveAttribute("width", "1520");
+      expect(image).toHaveAttribute("height", "984");
+    }
+
+    /* the current map is the frame and loads eagerly; the historic layer sits on top of it and can wait */
+    expect(images[0]).toHaveAttribute("loading", "eager");
+    expect(images[0].getAttribute("fetchpriority")).toBe("high");
+    expect(images[1]).toHaveAttribute("loading", "lazy");
+    expect(images[1]).toHaveClass("historic-layer");
+
+    expect(
+      screen.getByRole("img", { name: MAP_IMAGES.satellite.alt }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: MAP_IMAGES.historic.alt }),
+    ).toBeInTheDocument();
   });
 
   it("previews three routes and five places", () => {

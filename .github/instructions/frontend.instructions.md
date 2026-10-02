@@ -1,9 +1,9 @@
 ---
 description: "Use when building or editing UI in this project — React components, pages, JSX/TSX, styling, BeerCSS or Tailwind classes, colors, typography, or design tokens. Covers the Zwolle Routes Material 3 design system (BeerCSS + Deltion colors), component recipes, and React best practices. Read docs/DESIGN.md for the full reference."
 applyTo:
-  - "split/split/src/**/*.ts"
-  - "split/split/src/**/*.tsx"
-  - "split/split/src/**/*.css"
+  - "split/src/**/*.ts"
+  - "split/src/**/*.tsx"
+  - "split/src/**/*.css"
 ---
 
 # Frontend Guidelines — Zwolle Routes
@@ -23,7 +23,7 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   `.slider`, `.grid` + `.s12/.m6/.l4`, `<i>` for Material Symbols. Copy the canonical markup from
   the "Components" section of `docs/DESIGN.md` rather than inventing styles.
 - **Never hardcode colors.** Two layers own color:
-  - `@theme static` in `split/split/src/index.css` → the palette, derived from **two seeds**:
+  - `@theme static` in `split/src/index.css` → the palette, derived from **two seeds**:
     `--seed-orange: #f68221` and `--seed-blue: #282c6d` generate `orange-50…500`, `blue-50…950`,
     the desaturated `navy-*` ramp for the dark theme's surfaces, and the neutrals (`sand-*` = orange
     over white, `haze-*` = blue over white). Change a seed and every shade, role and theme step
@@ -51,7 +51,7 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   `border-radius: inherit`, so a divider inside a 2rem card is painted as the top edge of a rounded
   box and curves away from the card's edges.
 - **Both themes are supported.** The palette is chosen by the `light`/`dark` class on `<body>`
-  (see `src/shared/layout/themeToggle.tsx`); components never branch on the theme, they just read
+  (see `src/components/navbar.tsx`); components never branch on the theme, they just read
   roles. Anything hardcoded to the light palette will break dark mode.
 - **Text on the brand orange is white; text on a light orange tint is blue.** White goes **only** on
   `orange-500` itself — the bar, the selected segment, a filled action, the artwork badge — never on
@@ -141,11 +141,11 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   load-bearing half** — the trap, the measured number, the deliberate deviation — never a
   paragraph. `docs/DESIGN.md` §13 has the full craft rules.
 - **Icons are Material Symbols** via `<Icon name="…" />`. Adding an icon means adding its name to
-  the subset URL in `split/split/index.html` first.
+  the subset URL in `split/index.html` first.
 - **Maps: the hero is a picture, everything else is Google Maps.** The hero's historic/current
   cross-fade stays artwork (two exports in `src/assets/maps/`, WebP, imported through `src/data/maps.ts`
   because imported assets are fingerprinted by Vite — `public/` is only for files whose _path_ is
-  fixed, like the favicon). **`AreaMap`** (`shared/map/areaMap.tsx`) is the interactive map: places as
+  fixed, like the favicon). **`AreaMap`** (`components/areaMap.tsx`) is the interactive map: places as
   dots whose fill says which era they belong to, the picked ones numbered in visit order, the route
   as a white casing under the brand line, a hover preview per place and a nudge that keeps overlapping
   dots clickable. It is scoped to `src/data/area.ts` (the binnenstad + the Noorder Eiland) and built
@@ -178,13 +178,14 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   fields it reads. Props are an `interface <Component>Props` above the component, optional fields
   defaulted in the signature, and a closed set of values (`RouteTheme`, `RouteDifficulty`, a filter)
   is a **union**, never `string`.
-- **Reuse before you write markup.** `Container` owns the page width and gutter, `RouteGrid` the
-  grid route cards are listed in, `ClearFiltersButton` the way out of a filtered list and `MapChip`
-  a label on a map. If a piece exists, it takes props — copy it into a second file and the two
-  copies start to drift (§13, „Where a piece lives“).
-- **One component per file, one responsibility per component.** A piece one page needs lives in
-  `src/sections/<page>/` (its page's own folder); the moment a second page needs it, promote it to
-  `src/shared/<category>/` (`layout/`, `primitives/`, `content/`, `filters/`, `map/`). See
+- **Reuse before you write markup.** `Container` owns the page width and gutter,
+  `ClearFiltersButton` the way out of a filtered list, `SearchField` the search box and `RouteShape`
+  a route drawn from its own coordinates. If a piece exists, it takes props — copy it into a second
+  file and the two copies start to drift (§13, „Where a piece lives“).
+- **One component per file, one responsibility per component.** A piece earns its own file by
+  being used in more than one place, or by owning a whole band of a page; anything that only ever
+  appears inside one component is written out there, in that file. Every component lives in the one
+  flat `src/components/` folder — there are no category or page subfolders. See
   `docs/DESIGN.md` §13 ("Where a piece lives") and the suffix table there before naming anything.
 - **Semantic HTML:** `header` / `nav` / `main` / `section` / `article` / `footer`, not `div` soup.
 - **Props are destructured in the signature** with defaults: `function Badge({ label, tone = "brand" })`.
@@ -196,17 +197,19 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   `style={{ "--historic-opacity": value }}`. Static styling is always a Tailwind class.
 - **Never mutate props or state** — derive new arrays/objects.
 - **Keep effects out unless syncing with an external system.** There are three, and each one has to
-  be: `ThemeToggle` (the `<body>` class + localStorage), `ScrollToTop` (the scroll position after a
+  be: the bar's theme switch in `src/components/navbar.tsx` (the `<body>` class + localStorage),
+  `ScrollToTop` in `src/App.tsx` (the scroll position after a
   route change) and `PageTitle` (`document.title`). Never add one to compute render values.
 - **File naming:** camelCase files, one component each, named exactly for the component —
-  `src/pages/homePage.tsx` → `HomePage`, `src/sections/routes/routePlanSummary.tsx` →
-  `RoutePlanSummary`, `src/shared/map/areaMap.tsx` → `AreaMap`, `src/sections/pointsOfInterest/poiCard.tsx`
-  → `PoiCard`. A page owns its route, the state its sections share and
-  the order they appear in; the markup lives in its sections. `App.tsx` only maps paths to pages.
+  `src/pages/homePage.tsx` → `HomePage`, `src/components/routePlanSummary.tsx` →
+  `RoutePlanSummary`, `src/components/areaMap.tsx` → `AreaMap`, `src/components/poiResults.tsx` →
+  `PoiResults`. A page owns its route, the state its components share and
+  the order they appear in; the markup lives in its components. `App.tsx` only maps paths to pages
+  (and holds the bar / `main` / footer shell).
 - **Routing:** paths live in `src/data/navigation.ts` and are used with `<Link to={…}>`. A link that
   has to look like a button carries BeerCSS's `.button` (`className="button border text-ink ripple"`)
   — a bare `<a>` has no height, padding or fill, so `ripple` alone renders a text link. The bar,
-  `main` and footer are `shared/layout/appLayout.tsx`; a content page starts with `<PageHeader>`
+  `main` and footer are the `AppLayout` inside `src/App.tsx`; a content page starts with `<PageHeader>`
   (band + title, and it sets the document title).
 
 ## Accessibility
@@ -221,26 +224,26 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
 
 ## Gotchas
 
-- The Vite project root is **`split/split/`**, not the repo root — the short `src/` paths in this file
-  are relative to **`split/split/`**. The `applyTo` globs at the top of this file are repo-root
-  relative, which is why they start with `split/split/` and not `split/`.
-- `split/split/src/index.css` owns the Tailwind import, the BeerCSS layer imports and the tokens.
-  `split/split/src/App.css` must **not** `@import "tailwindcss"` (it duplicates the entire base CSS).
+- The Vite project root is **`split/`**, not the repo root — the short `src/` paths in this file
+  are relative to **`split/`**. The `applyTo` globs at the top of this file are repo-root
+  relative, which is why they start with `split/` and not `src/`.
+- `split/src/index.css` owns the Tailwind import, the BeerCSS layer imports and the tokens.
+  `split/src/App.css` must **not** `@import "tailwindcss"` (it duplicates the entire base CSS).
 - BeerCSS is imported **piecewise** and wrapped in `layer(beercss)`. Keep the layer statement
   (`@layer theme, base, beercss, components, utilities;`) and the `layer(beercss)` on every
   BeerCSS `@import` — drop either and Tailwind's preflight or its utilities start fighting the
   Material 3 components. `settings/font.css` and `settings/dark.css` are intentionally not
   imported (see `docs/DESIGN.md` §2).
-- `<body class="light">` in `split/split/index.html` is the default theme **and** the signal that stops
+- `<body class="light">` in `split/index.html` is the default theme **and** the signal that stops
   BeerCSS from following the OS preference into its own purple palette. The inline script there
   re-applies a stored `dark` choice before the first paint — keep its storage key in sync with
-  `src/shared/layout/themeToggle.tsx`.
+  `src/components/navbar.tsx`.
 - BeerCSS's `<i>` icon ligatures only render if the name is in the Google Fonts subset URL in
-  `split/split/index.html`. That includes the glyphs BeerCSS components draw themselves —
+  `split/index.html`. That includes the glyphs BeerCSS components draw themselves —
   `check_box`, `check_box_outline_blank` (checkbox) and `check` (switch). A filled Material Symbol
   (the rating stars) is BeerCSS's `i.fill`, which flips the `FILL` axis.
-- `split/split/src/index.css` imports `elements/selection.css` **in addition to** `elements/all.css`:
+- `split/src/index.css` imports `elements/selection.css` **in addition to** `elements/all.css`:
   BeerCSS 5's `all.css` does not pull it in, and without it checkboxes, radios and switches fall
   back to the browser's own controls. Keep it inside `layer(beercss)`.
-- Validate with `npm --prefix split/split run build` and `npm --prefix split/split run lint`,
+- Validate with `npm --prefix split run build` and `npm --prefix split run lint`,
   and check the result in the browser at http://localhost:5173.

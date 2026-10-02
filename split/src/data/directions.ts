@@ -1,4 +1,4 @@
-/* the link out to google maps for the places of a route — a url and not the api: the interactive map itself is shared/map/googleMaps.ts */
+/* the link out to google maps for the places of a route — a url and not the api: the interactive map itself is data/googleMaps.ts */
 
 import type { LatLng, TravelMode } from "../types.ts";
 

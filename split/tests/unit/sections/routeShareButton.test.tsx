@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useState } from "react";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
-import RouteShareButton from "../../../src/sections/routes/routeShareButton.tsx";
+import RouteShareButton from "../../../src/components/routeShareButton.tsx";
 import { builderPath } from "../../../src/data/navigation.ts";
 import { renderWithRouter } from "../helpers.tsx";
 

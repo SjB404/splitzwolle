@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import PageHeader from "../shared/layout/pageHeader.tsx";
-import Container from "../shared/layout/container.tsx";
+import PageHeader from "../components/pageHeader.tsx";
+import Container from "../components/container.tsx";
 import "beercss/scoped";
 
 const SUBJECT_OPTIONS = [

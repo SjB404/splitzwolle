@@ -2,13 +2,13 @@
 /* the selection is derived from the filtered list, so filtering a place away cannot leave a highlight pointing off screen */
 
 import { useMemo, useState } from "react";
-import AreaMap from "../shared/map/areaMap.tsx";
-import MapLegend from "../shared/map/mapLegend.tsx";
-import type { MapLegendItem } from "../shared/map/mapLegend.tsx";
-import PageHeader from "../shared/layout/pageHeader.tsx";
-import Container from "../shared/layout/container.tsx";
-import PoiFilters from "../sections/pointsOfInterest/poiFilters.tsx";
-import PoiResults from "../sections/pointsOfInterest/poiResults.tsx";
+import AreaMap from "../components/areaMap.tsx";
+import MapLegend from "../components/mapLegend.tsx";
+import type { MapLegendItem } from "../components/mapLegend.tsx";
+import PageHeader from "../components/pageHeader.tsx";
+import Container from "../components/container.tsx";
+import PoiFilters from "../components/poiFilters.tsx";
+import PoiResults from "../components/poiResults.tsx";
 import { AREA_NAME } from "../data/area.ts";
 import {
   INITIAL_POI_FILTERS,

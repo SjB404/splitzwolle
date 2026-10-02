@@ -1,10 +1,7 @@
 import {
-  CONTACT_DETAILS,
   CUSTOM_ROUTE_PATH,
-  FOOTER_COLUMNS,
   HOME_PATH,
   LOGIN_PATH,
-  NAV_LINKS,
   PLANNING_PATH,
   POI_PATH,
   PUBLIC_ROUTE_PATH,
@@ -15,6 +12,11 @@ import {
   parsePlaceIds,
   publicRoutePath,
 } from "../../src/data/navigation.ts";
+import { NAV_LINKS } from "../../src/components/navbar.tsx";
+import {
+  CONTACT_DETAILS,
+  FOOTER_COLUMNS,
+} from "../../src/components/footer.tsx";
 
 /* the bar's links that go to a page, in the order the bar shows them */
 const PAGE_LINKS = NAV_LINKS.filter((link) => !link.to.includes("#"));

@@ -1,25 +1,29 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import ThemeToggle, {
+import Navbar, {
+  NAV_LINKS,
   THEME_STORAGE_KEY,
-} from "../../../src/shared/layout/themeToggle.tsx";
-import Breadcrumb from "../../../src/shared/layout/breadcrumb.tsx";
-import PageTitle from "../../../src/shared/layout/pageTitle.tsx";
-import Container from "../../../src/shared/layout/container.tsx";
-import SectionHeading from "../../../src/shared/layout/sectionHeading.tsx";
-import Navbar from "../../../src/shared/layout/navbar.tsx";
-import Footer from "../../../src/shared/layout/footer.tsx";
-import {
+} from "../../../src/components/navbar.tsx";
+import Footer, {
   CONTACT_DETAILS,
   FOOTER_COLUMNS,
-  NAV_LINKS,
-} from "../../../src/data/navigation.ts";
-import { renderWithMotion, renderWithRouter } from "../helpers.tsx";
+} from "../../../src/components/footer.tsx";
+import PageTitle from "../../../src/components/pageTitle.tsx";
+import Container from "../../../src/components/container.tsx";
+import SectionHeading from "../../../src/components/sectionHeading.tsx";
+import { renderWithRouter } from "../helpers.tsx";
 
-describe("ThemeToggle", () => {
+describe("the bar's theme switch", () => {
+  const themeButton = () =>
+    screen.getByRole("button", { name: /Schakel naar (donker|licht) thema/ });
+
+  function renderBar(route = "/routes") {
+    return renderWithRouter(<Navbar />, route);
+  }
+
   it("starts light and says what a click will do", () => {
-    renderWithMotion(<ThemeToggle />);
-    const button = screen.getByRole("button");
+    renderBar();
+    const button = themeButton();
 
     expect(button).toHaveAttribute("aria-pressed", "false");
     expect(button).toHaveAccessibleName("Schakel naar donker thema");
@@ -27,8 +31,8 @@ describe("ThemeToggle", () => {
   });
 
   it("flips the palette on <body> and remembers the choice", () => {
-    renderWithMotion(<ThemeToggle />);
-    const button = screen.getByRole("button");
+    renderBar();
+    const button = themeButton();
 
     fireEvent.click(button);
 
@@ -40,8 +44,8 @@ describe("ThemeToggle", () => {
   });
 
   it("flips back on a second click", () => {
-    renderWithMotion(<ThemeToggle />);
-    const button = screen.getByRole("button");
+    renderBar();
+    const button = themeButton();
 
     fireEvent.click(button);
     fireEvent.click(button);
@@ -53,33 +57,18 @@ describe("ThemeToggle", () => {
   it("starts dark when that is what was stored", () => {
     localStorage.setItem(THEME_STORAGE_KEY, "dark");
 
-    renderWithMotion(<ThemeToggle />);
+    renderBar();
 
     expect(document.body.classList.contains("dark")).toBe(true);
-    expect(screen.getByRole("button")).toHaveAttribute("aria-pressed", "true");
+    expect(themeButton()).toHaveAttribute("aria-pressed", "true");
   });
 
   it("falls back to light for a value it does not know", () => {
     localStorage.setItem(THEME_STORAGE_KEY, "paars");
 
-    renderWithMotion(<ThemeToggle />);
+    renderBar();
 
     expect(document.body.classList.contains("light")).toBe(true);
-  });
-});
-
-describe("Breadcrumb", () => {
-  it("is a labelled navigation with a link back and the current page", () => {
-    renderWithRouter(
-      <Breadcrumb to="/routes" label="Alle routes" current="Planning" />,
-    );
-
-    const nav = screen.getByRole("navigation", { name: "Kruimelpad" });
-
-    expect(
-      within(nav).getByRole("link", { name: "Alle routes" }),
-    ).toHaveAttribute("href", "/routes");
-    expect(within(nav).getByText("Planning")).toBeInTheDocument();
   });
 });
 

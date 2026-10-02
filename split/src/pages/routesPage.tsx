@@ -3,24 +3,23 @@
 /* the filters are state and not url parameters: they are a view of one list, not a destination */
 
 import { useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import Breadcrumb from "../shared/layout/breadcrumb.tsx";
-import Container from "../shared/layout/container.tsx";
-import PageHeader from "../shared/layout/pageHeader.tsx";
-import SectionHeading from "../shared/layout/sectionHeading.tsx";
-import Icon from "../shared/primitives/icon.tsx";
-import StarRating from "../shared/primitives/starRating.tsx";
-import AreaMap from "../shared/map/areaMap.tsx";
-import MapLegend from "../shared/map/mapLegend.tsx";
-import type { MapLegendItem } from "../shared/map/mapLegend.tsx";
-import { usePlannedRoute } from "../shared/map/usePlannedRoute.ts";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import Container from "../components/container.tsx";
+import PageHeader from "../components/pageHeader.tsx";
+import SectionHeading from "../components/sectionHeading.tsx";
+import Icon from "../components/icon.tsx";
+import StarRating from "../components/starRating.tsx";
+import AreaMap from "../components/areaMap.tsx";
+import MapLegend from "../components/mapLegend.tsx";
+import type { MapLegendItem } from "../components/mapLegend.tsx";
+import { usePlannedRoute } from "../data/usePlannedRoute.ts";
 import NotFoundPage from "./notFoundPage.tsx";
-import PoiPicker from "../sections/routes/poiPicker.tsx";
-import RouteFilters from "../sections/routes/routeFilters.tsx";
-import RoutePlanSummary from "../sections/routes/routePlanSummary.tsx";
-import RouteResults from "../sections/routes/routeResults.tsx";
-import RouteReviewsPanel from "../sections/routes/routeReviewsPanel.tsx";
-import RouteShareButton from "../sections/routes/routeShareButton.tsx";
+import PoiPicker from "../components/poiPicker.tsx";
+import RouteFilters from "../components/routeFilters.tsx";
+import RoutePlanSummary from "../components/routePlanSummary.tsx";
+import RouteResults from "../components/routeResults.tsx";
+import RouteReviewsPanel from "../components/routeReviewsPanel.tsx";
+import RouteShareButton from "../components/routeShareButton.tsx";
 import { AREA_NAME, pointsInArea } from "../data/area.ts";
 import {
   POINTS_OF_INTEREST,
@@ -149,11 +148,23 @@ export default function RoutesPage() {
       {publicRoute ? (
         <PageHeader
           breadcrumb={
-            <Breadcrumb
-              to={ROUTES_PATH}
-              label="Alle routes"
-              current={publicRoute.title}
-            />
+            /* the trail a sub page opens with; only this page has one, so it is written out here */
+            <nav
+              aria-label="Kruimelpad"
+              className="flex flex-wrap items-center gap-2 text-sm text-ink-muted"
+            >
+              <Link
+                to={ROUTES_PATH}
+                className="inline-flex items-center gap-1.5 transition-colors hover:text-ink"
+              >
+                <Icon name="arrow_back" className="text-base" />
+                Alle routes
+              </Link>
+
+              <Icon name="chevron_right" className="text-base" />
+
+              <span className="text-ink">{publicRoute.title}</span>
+            </nav>
           }
           eyebrow={publicRoute.theme}
           title={publicRoute.title}

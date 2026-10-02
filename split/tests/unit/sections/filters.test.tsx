@@ -1,9 +1,8 @@
 import { fireEvent, screen } from "@testing-library/react";
-import RouteFilters from "../../../src/sections/routes/routeFilters.tsx";
-import RouteResults from "../../../src/sections/routes/routeResults.tsx";
-import PoiFilters from "../../../src/sections/pointsOfInterest/poiFilters.tsx";
-import PoiResults from "../../../src/sections/pointsOfInterest/poiResults.tsx";
-import PoiCard from "../../../src/sections/pointsOfInterest/poiCard.tsx";
+import RouteFilters from "../../../src/components/routeFilters.tsx";
+import RouteResults from "../../../src/components/routeResults.tsx";
+import PoiFilters from "../../../src/components/poiFilters.tsx";
+import PoiResults from "../../../src/components/poiResults.tsx";
 import { INITIAL_ROUTE_FILTERS, ROUTES } from "../../../src/data/routes.ts";
 import { builderPath } from "../../../src/data/navigation.ts";
 import {
@@ -380,13 +379,22 @@ describe("PoiResults", () => {
   });
 });
 
-describe("PoiCard", () => {
+describe("PoiResults' cards", () => {
   const point = getPointOfInterest("sassenpoort")!;
 
-  it("prints the place, its category, its era and how far it is", () => {
-    const { container } = renderWithRouter(
-      <PoiCard point={point} selected={false} onSelect={() => {}} />,
+  /* the card is written out in PoiResults, so the grid is what renders it */
+  const renderCard = (selectedId: string | null = null, onSelect = () => {}) =>
+    renderWithRouter(
+      <PoiResults
+        points={[point]}
+        selectedId={selectedId}
+        onSelect={onSelect}
+        onReset={() => {}}
+      />,
     );
+
+  it("prints the place, its category, its era and how far it is", () => {
+    const { container } = renderCard();
 
     expect(
       screen.getByRole("heading", { level: 3, name: point.name }),
@@ -399,15 +407,13 @@ describe("PoiCard", () => {
 
   it("offers to put it on the map, and says when it is already there", () => {
     const onSelect = vi.fn();
-    const { unmount } = renderWithRouter(
-      <PoiCard point={point} selected={false} onSelect={onSelect} />,
-    );
+    const { unmount } = renderCard(null, onSelect);
 
     fireEvent.click(screen.getByRole("button", { name: "Toon op kaart" }));
     expect(onSelect).toHaveBeenCalledWith(point.id);
 
     unmount();
-    renderWithRouter(<PoiCard point={point} selected onSelect={() => {}} />);
+    renderCard(point.id);
 
     expect(screen.getByRole("button", { name: "Op de kaart" })).toHaveAttribute(
       "aria-pressed",
@@ -416,9 +422,7 @@ describe("PoiCard", () => {
   });
 
   it("hands the place to the route builder by url", () => {
-    renderWithRouter(
-      <PoiCard point={point} selected={false} onSelect={() => {}} />,
-    );
+    renderCard();
 
     expect(screen.getByRole("link", { name: "In een route" })).toHaveAttribute(
       "href",
@@ -427,9 +431,7 @@ describe("PoiCard", () => {
   });
 
   it("shows the score it was given", () => {
-    renderWithRouter(
-      <PoiCard point={point} selected={false} onSelect={() => {}} />,
-    );
+    renderCard();
 
     expect(screen.getByText("4,9")).toBeInTheDocument();
   });

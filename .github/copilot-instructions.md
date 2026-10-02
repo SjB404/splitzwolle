@@ -26,7 +26,7 @@ code** — do not re-derive styles by scanning the project.
   Material 3 spec.
 - Upstream spec digest: `docs/reference/material-3-reference.md` (component metrics, type scale,
   motion curves, accessibility) — consult it for spec numbers, DESIGN.md for decisions.
-  Auto-applied rules for `split/split/src/**/*.{ts,tsx,css}`:
+  Auto-applied rules for `split/src/**/*.{ts,tsx,css}`:
   `.github/instructions/frontend.instructions.md`
 - **Keep `docs/DESIGN.md` current, automatically.** If a change touches anything written down there —
   a token, a role, a recipe, a class, a path, a file that moved, a name, a rule, a spec deviation —
@@ -37,45 +37,41 @@ code** — do not re-derive styles by scanning the project.
 Vite 8 + React 19 + TypeScript, Tailwind CSS v4 via `@tailwindcss/vite`, **BeerCSS 5**
 (Material 3 components + Material Symbols icons), **`react-router-dom`** for the client-side pages,
 **`motion`** for enter/exit animation, oxlint.
-**Google Maps** (the JavaScript API, loaded as a script by `src/shared/map/googleMaps.ts`) draws every
+**Google Maps** (the JavaScript API, loaded as a script by `src/data/googleMaps.ts`) draws every
 map except the hero's — see `docs/DESIGN.md` §8. The key is `VITE_GOOGLE_MAPS_API_KEY` in
-`split/split/.env.local`; without it every map falls back to the map artwork.
-Express is a declared dependency for the (currently minimal) `split/split/backend/` folder.
+`split/.env.local`; without it every map falls back to the map artwork.
+Express is a declared dependency for the (currently minimal) `split/backend/` folder.
 
 ## Project Layout
 
-- **The Vite project root is `split/split/`**, not the repo root. The short `src/…` paths below
-  are relative to **`split/split/`**; a path written out in full starts at the repo root.
+- **The Vite project root is `split/`**, not the repo root. The short `src/…` paths below
+  are relative to **`split/`**; a path written out in full starts at the repo root.
 - `src/index.css` — Tailwind import + all `@theme` design tokens
 - `src/main.tsx` — entry, mounts `<App />`
-- `src/App.tsx` — the router: paths → pages, plus the root `LazyMotion` / `MotionConfig`
+- `src/App.tsx` — the router plus the shell: it maps paths → pages, and the bar / `main` / footer
+  around them and the scroll-to-top effect are written out in this file, because nothing else uses
+  them. The root `LazyMotion` / `MotionConfig` live here too.
 - `src/pages/*.tsx` — one page per route, camelCase file name ending in `Page`, default export.
-  A page is a table of contents: it resolves the route, owns the state its sections share, and
-  lists them in order (`homePage`, `routesPage`, `pointsOfInterestPage`, `notFoundPage`).
+  A page is a table of contents: it resolves the route, owns the state its components share, and
+  lists them in order (`homePage`, `routesPage`, `pointsOfInterestPage`, `notFoundPage`, `loginPage`,
+  `contactPage`).
   `routesPage` is the one page serving three urls — `/routes`, `/routes/custom/<place-ids>` and
   `/routes/public/<route-id>` — where **the url is the state**: it is read for the picked places and
   written back on every pick, so a built route is shareable. See `docs/DESIGN.md` §7.
-- `src/sections/<page>/` — the pieces a page is assembled from (a band, a grid column, a card, a
-  row), one component per file, **page-scoped**, grouped by the page that owns them: `home/`,
-  `routes/`, `pointsOfInterest/`. Promoted to `src/shared/`
-  the moment a second page needs one.
-- `src/shared/<category>/` — what two or more pages share, grouped by category:
-  - `layout/` — the shell and the page scaffolding: `appLayout`, `navbar`, `footer`, `container`,
-    `pageHeader`, `pageTitle`, `sectionHeading`, `scrollToTop`, `themeToggle`, `breadcrumb`
-  - `primitives/` — `icon`, `starRating`, `textButton`
-  - `content/` — `routeCard`, `routeGrid`, `emptyState`
-  - `filters/` — `filterPanel`, `filterSelect`, `searchField`, `sectionSearchBar`,
-    `clearFiltersButton`
-  - `map/` — `areaMap` (the interactive map every page shares — the dots, the preview, the route),
-    `googleMaps` (the loader, the options, the colours, the Places/Routes calls), `usePlannedRoute`
-    (the route between the picked places), `mapArtwork` (the hero's pictures), `mapChip`, `mapLegend`,
-    `mapSnapshot` (a static map picture), `routeShape` (a route drawn from its own coordinates)
+- `src/components/` — **every component, in one flat folder**, one per camelCase file. A piece earns
+  its own file by being used in more than one place, or by owning a whole band of a page; a piece
+  that only ever appears inside another component is written out there (the bar's links live in
+  `navbar.tsx`, the footer's groups in `footer.tsx`, the hero, its map panel and its map pictures in
+  `hero.tsx`).
 - `src/data/navigation.ts` holds **every path** and the two url builders: `builderPath(placeIds)` →
   `/routes/custom/<ids>` (empty → `/routes`) and `publicRoutePath(routeId)` → `/routes/public/<id>`,
   with `parsePlaceIds` reading the first back. A route's old `/routes/<id>` url redirects to its public
-  url, and `/planning` redirects to the builder.
-- `src/data/` — the content the pages share (`routes.ts`, `pointsOfInterest.ts`, `area.ts`,
-  `maps.ts`, `routeGeometry.ts`, `directions.ts`, `navigation.ts`, `savedRoutes.ts`); `src/format.ts`
+  url, and `/planning` redirects to the builder. The link *lists* are not here: the bar's are in
+  `components/navbar.tsx`, the footer's in `components/footer.tsx`.
+- `src/data/` — the content and the logic the pages share (`routes.ts`, `pointsOfInterest.ts`,
+  `area.ts`, `maps.ts`, `routeGeometry.ts`, `directions.ts`, `navigation.ts`, `savedRoutes.ts`,
+  `googleMaps.ts` — the loader, the options, the colours, the Places/Routes calls — and
+  `usePlannedRoute.ts`, the route between the picked places); `src/format.ts`
   formats the Dutch `nl-NL` values. `savedRoutes.ts` is the reader's own list in `localStorage`,
   which is why it also exports the one hook that watches it.
 - `src/googleMaps.d.ts` — the slice of the Google Maps API the app uses, declared by hand (like
@@ -87,7 +83,7 @@ Express is a declared dependency for the (currently minimal) `split/split/backen
   state): the one place the domain vocabulary is written down
 - `src/assets/maps/` — the map imagery, imported by `src/data/maps.ts`
 - `tests/unit/` — Vitest + React Testing Library: `*.test.ts` for data and pure helpers,
-  `*.test.tsx` for components, sections and pages (with `motionProvider.tsx` and `helpers.tsx` for
+  `*.test.tsx` for components and pages (with `motionProvider.tsx` and `helpers.tsx` for
   the LazyMotion/router wrappers)
 - `tests/e2e/` — Playwright: the site as a reader sees it, with `fixtures.ts` holding the shared
   fixture
@@ -100,14 +96,14 @@ Run from the repo root using `--prefix` (the terminal tool strips `cd` prefixes)
 
 | Task             | Command                                                                        |
 | ---------------- | ------------------------------------------------------------------------------ |
-| Dev server       | `npm --prefix split/split run dev` — http://localhost:5173                     |
-| Production build | `npm --prefix split/split run build`                                           |
-| Lint             | `npm --prefix split/split run lint`                                            |
-| Preview build    | `npm --prefix split/split run preview`                                         |
-| Unit tests       | `npm --prefix split/split run test`                                            |
-| Coverage         | `npm --prefix split/split run test:coverage`                                   |
-| End-to-end tests | `npm --prefix split/split run test:e2e` (needs the one-off `test:e2e:install`) |
-| Both suites      | `npm --prefix split/split run test:all`                                        |
+| Dev server       | `npm --prefix split run dev` — http://localhost:5173                           |
+| Production build | `npm --prefix split run build`                                                 |
+| Lint             | `npm --prefix split run lint`                                                  |
+| Preview build    | `npm --prefix split run preview`                                               |
+| Unit tests       | `npm --prefix split run test`                                                  |
+| Coverage         | `npm --prefix split run test:coverage`                                         |
+| End-to-end tests | `npm --prefix split run test:e2e` (needs the one-off `test:e2e:install`)       |
+| Both suites      | `npm --prefix split run test:all`                                              |
 
 `docs/TESTPLAN.md` is the plan behind the folders: what each suite owns, the traps it encodes, and how
 the suite follows a content change. The e2e groups are tagged (`@smoke`, `@nav`, `@builder`, `@list`,
@@ -133,18 +129,20 @@ the suite follows a content change. The e2e groups are tagged (`@smoke`, `@nav`,
 - **A route stores the places it visits** (`Route.poiIds`) and no geometry: `routePoints` and
   `routeCoordinates` are derived in `src/data/routes.ts`, so a route and its stops cannot drift apart.
 - **Paths are declared once** in `src/data/navigation.ts` — the router, the top bar and the
-  footer all read them from there, so a renamed URL cannot leave a stale link behind.
+  footer all read them from there, so a renamed URL cannot leave a stale link behind. The link
+  lists themselves sit with the component that renders them.
 - **Verify UI changes in the browser** at http://localhost:5173, and run the production build
   before finishing.
-- **Run the tests before finishing** — `npm --prefix split/split run test` (fast) and, when the
+- **Run the tests before finishing** — `npm --prefix split run test` (fast) and, when the
   change touches a page or a flow, `run test:e2e`. Both suites run with **no maps key**, so the maps
   are exercised through their fallback panel; the real maps are checked by hand at 5173. Test files
   use vitest's globals and never `import { … } from "vitest"` (see `docs/TESTPLAN.md`).
 - UI copy is Dutch (`nl-NL`); code, comments, and commits are English.
-- Everything under `split/split/src/` is TypeScript — `.tsx` for anything with markup, `.ts` for data,
-  types and pure helpers — and `split/split/tsconfig.app.json` has `strict: true`. `allowJs` is off: a
+- Everything under `split/src/` is TypeScript — `.tsx` for anything with markup, `.ts` for data,
+  types and pure helpers — and `split/tsconfig.app.json` has `strict: true`. `allowJs` is off: a
   stray `.js` file in `src/` is a file that will not be compiled.
 - BeerCSS and Material Symbols are the only UI dependencies; don't add more (no icon
   libraries, no animation libraries, no component kits). Everything else is Tailwind
-  utilities, the Material 3 CSS variables in `split/split/src/index.css`, the map imagery in
-  `split/split/src/assets/maps/`, and Google Maps drawn by `src/shared/map/`.
+  utilities, the Material 3 CSS variables in `split/src/index.css`, the map imagery in
+  `split/src/assets/maps/`, and Google Maps drawn by `src/components/areaMap.tsx` through
+  `src/data/googleMaps.ts`.
