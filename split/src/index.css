@@ -193,10 +193,10 @@ body.light {
   --heading: var(--color-blue-500);
   --accent-text: var(--color-blue-500);
 
-  /* surfaces — white bands, warm canvas, white cards, so the page alternates; the canvas is sand-200 and not sand-50 because a 4% tint over white is invisible, and the alternation has to be visible to exist */
-  --background: var(--color-sand-200);
+  /* surfaces — white bands, cream canvas, white cards, so the page alternates; the canvas is a warm cream rather than the orange sand tint, so the alternation still exists without the page reading as orange */
+  --background: #fffcf0;
   --on-background: var(--color-blue-900);
-  --surface: var(--color-sand-200);
+  --surface: #fffcf0;
   --on-surface: var(--color-blue-900);
   --surface-variant: var(--color-haze-200);
   --on-surface-variant: color-mix(in oklab, var(--seed-blue) 72%, white);
