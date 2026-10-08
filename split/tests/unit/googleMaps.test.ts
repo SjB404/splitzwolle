@@ -38,6 +38,21 @@ function apiRoute(distanceMeters = 1234, durationMillis = 600_000) {
 function fakeGoogle(options: FakeGoogleOptions = {}) {
   return {
     maps: {
+      /* the api's control corners, named member for named member: `mapOptions` reads RIGHT_TOP to pin the zoom control */
+      ControlPosition: {
+        TOP_LEFT: 1,
+        TOP_CENTER: 2,
+        TOP_RIGHT: 3,
+        LEFT_CENTER: 4,
+        LEFT_TOP: 5,
+        LEFT_BOTTOM: 6,
+        RIGHT_TOP: 7,
+        RIGHT_CENTER: 8,
+        RIGHT_BOTTOM: 9,
+        BOTTOM_LEFT: 10,
+        BOTTOM_CENTER: 11,
+        BOTTOM_RIGHT: 12,
+      },
       /* the api's own bounds class, reduced to the two corners it was handed */
       LatLngBounds: class {
         constructor(southWest: LatLng, northEast: LatLng) {
@@ -198,6 +213,10 @@ describe("mapOptions", () => {
     expect(options.gestureHandling).toBe("cooperative");
     expect(options.disableDefaultUI).toBe(true);
     expect(options.clickableIcons).toBe(false);
+    /* the zoom control is the api's chrome the map keeps, and it is pinned to the top-right: the bottom-right corner is the share button's (DESIGN.md §7, §8) */
+    expect(options.zoomControlOptions).toEqual({
+      position: 7,
+    });
     expect(bounds).toEqual(AREA_CORNERS);
     /* strictBounds would also stop fitBounds from framing the places, which is a measured trap */
     expect(options.restriction).not.toHaveProperty("strictBounds");

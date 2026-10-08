@@ -20,7 +20,7 @@ This is the property that matters most, so it is a design rule rather than an ac
    `FOOTER_COLUMNS`, `formatDistance`, `isActiveLink` and the paths, so the expectations are computed
    instead of written down. Add a route and the smoke, overflow, accessibility and detail-page cases
    appear by themselves; change a filter bucket and the facet sweep follows it.
-2. **One tripwire per dataset, on purpose.** Only `ROUTES` (8) and `POINTS_OF_INTEREST` (9) are
+2. **One tripwire per dataset, on purpose.** Only `ROUTES` (8) and `POINTS_OF_INTEREST` (11) are
    asserted as counts, in one test each, because a content change _should_ be acknowledged once. Every
    other check is an invariant (a property, a partition, an ordering) or is derived from the data, so
    it cannot go stale.
@@ -123,6 +123,9 @@ card's worth of fields. Then the categories, both eras, the distance derived fro
 lookup, and the filter (property checks for the query, the categories, and the three sorts whose order
 is the documented rule).
 
+**`data/placeImages.ts`** — the picture map and the dataset agree in both directions: every place has
+a key, and no key names a place that does not exist — both are typos that otherwise throw nothing.
+
 **`data/navigation.ts`** — the path constants, the bar's links, the footer's groups, the contact
 details and their `tel:` form, and `isActiveLink`'s whole table (exact on home, prefix on a sub-page,
 hash ignored).
@@ -165,8 +168,9 @@ through `HomePage`, which is also what keeps a piece that no longer has a file o
 
 `RouteFilters` (the search box and four selects in **one row**, with the live count), `RouteResults`
 (a page of results, "Toon meer", the empty state, and the wide card: title, two-line description,
-stars, and its two actions — the title loads the route into the builder, the arrow opens the route's
-own page), `RouteShareButton` (the placeholder), `PoiFilters`, `PoiResults` (the list, and the card
+stars, and its two actions — the card's overlay link opening the route's own page, and the save
+button riding on the picture, which flips `aria-pressed` and answers with the `role="status"`
+notice), `RouteShareButton` (the placeholder), `PoiFilters`, `PoiResults` (the list, and the card
 it draws: place, category, era, distance, the two actions and the score), `PoiPicker`,
 `RoutePlanSummary` (the hint under two places, the stop list, the three status lines, the Google Maps
 link), and `RouteReviewsPanel` (closed on the average and the count, opened by one button with
@@ -176,18 +180,21 @@ that stores nothing — live inside it).
 ### 4. Unit — pages and the app
 
 - `HomePage` — the hero, the slider's default position and its two words, three route cards and five
-  place tiles, both search bars (including their empty states), the strip links.
+  place tiles (each one a link at its own place's card, §6), both search bars (including their empty
+  states), the strip links.
 - `RoutesPage` — three urls, one page, rendered through the **real router** (the url is the state, so a
   bare `MemoryRouter` would hand the page no parameters at all): the builder (the picker, the map chip,
   the mode switch, the summary and the estimate, the share action waiting for a second place), the
-  ready-made list (a filter narrowing and collapsing it, the reset, a card's title loading that route's
-  places and writing them to the url, the bookmark saving and unsaving into `localStorage`, the
-  ownership filter narrowing to them), the built-route url (places seeded, an id that does not exist
+  ready-made list (a filter narrowing and collapsing it, the reset, a card opening that route's own
+  page with its places already in the builder, the bookmark saving and unsaving into `localStorage`,
+  the ownership filter narrowing to them), the built-route url (places seeded, an id that does not exist
   ignored, the Google Maps link in visit order), and a route's own url (its title, trail, theme, area,
   the builder seeded from it, a bicycle route opening on a bicycle, the reviews folded away until asked
   for, and an unknown id landing on the 404).
 - `PointsOfInterestPage` — the list, a category chip, the search, the three sorts, the reset, the
-  selection renaming the map chip, the highlight dropping when the place is filtered away.
+  selection renaming the map chip, the highlight dropping when the place is filtered away, and the
+  **anchored url** (`#poi-…`) opening on that place, card id and all: the landing card wears the
+  **flash** and not the picked tone, while a card the reader picks wears the tone and never flashes.
 - `NotFoundPage` — the default wording, its own wording, the tab title.
 - `App` — the **real** router: the pages the paths in `data/navigation.ts` point at, every route's own
   `/routes/public/<id>` page, a route's old `/routes/<id>` url redirected to it, the built-route url, the
@@ -212,19 +219,34 @@ that stores nothing — live inside it).
   era grouping; two places build a route (numbered, summarised, estimated, cleared, shareable by url);
   the mode switch; the facet sweep, which walks **every option of every filter select** (ownership
   included) and compares the cards on screen with what `filterRoutes` says, plus the live count; the
-  filters sitting beside the search box; **every card's title loading its places into the builder** and
-  its arrow opening the route's own page; the route's own page (title, trail, seeded builder, reviews
+  filters sitting beside the search box; **a click at the bottom of a card opening its route** (a
+  `mouse.click` in the card's own box, which is the only way to prove the whole card is the target)
+  and **the save button on the picture saving it without opening anything**, notice included; the
+  route's own page (title, trail, seeded builder, reviews
   folded out and back, an unknown id on the 404); the share action **copying the route's url** through
   the real clipboard, and **opening a popup** until there are two places.
 - `points-of-interest.spec.ts` (`@poi`) — the count, every category chip (compared with
-  `filterPointsOfInterest`), the search on name/area/category, the three sorts compared with the
+  `filterPointsOfInterest`), a selected chip's brand fill in **both themes** (the seed itself, orange
+  then blue), the search on name/area/category, the three sorts compared with the
   module's order, the selection renaming the map chip, the highlight dropping, the reset, the hand-off
-  into the builder.
+  into the builder, and **a home tile opening that place's own card** — chosen, named on the map,
+  in the viewport, the flash on that card and on no other, with a pick made afterwards leaving the
+  reader where they were and putting the tone on the picked card; **the flash's own colour in
+  both themes**, read off the card's edge as it lands (orange, then blue); and **the same flash
+  under an emulated `prefers-reduced-motion: reduce`** — colour-only feedback is exempt from the
+  reduced-motion block, so the edge still lights (DESIGN.md §11).
 - `responsive.spec.ts` (`@layout`) — no horizontal overflow on **every url the app serves** at 320 /
   390 / 768 / 1024 / 1440 / 1920, in the dark palette too; the footer below the content; no box shadow
-  anywhere; **one corner** on every card, chip, field, field control, action and menu of every page
-  (read as a computed style, not a baseline); a control beside a field sharing the field control's own
-  height, top and bottom; a full-width mobile menu row staying inside its column at 320px.
+  anywhere; **one corner** (1.5rem) on every card, chip, field, field control, action and menu of
+  every page (read as a computed style, not a baseline); **a child that butts inside a clipped panel
+  square** (the hero's picture and rail, a card's media band, the map frame, the reviews panel's row)
+  while the panel itself keeps its 24px; **the hero showing its pictures whole**, with the panel
+  shrunk to them — the crop is measured against each file that arrived, so another picture at another
+  ratio is covered by the same case; **a thin bar a 48px pill**, on the contacts page (its field,
+  its submit and an accordion row — the page beerCSS's scoped build covers, where plain utilities are
+  reverted away); a control beside a field sharing the field
+  control's own height, top and bottom; a full-width mobile menu row staying inside its column at
+  320px.
 - `a11y.spec.ts` (`@a11y`) — on **every url**: one `h1`, every image with alt text or hidden, every
   link/button with an accessible name, every field with a label, no duplicate id, heading levels that
   do not skip (the allowance map is empty: the builder's band carries the `h2` the picker's `h3` groups
@@ -234,10 +256,10 @@ that stores nothing — live inside it).
 
 | Not covered                                                    | Why, and what covers it instead                                                                                                                                                                                                                                              |
 | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| The live Google Maps tiles, the real Places/Routes/Static APIs | They need a key, a billing account and a quota; the automated suite runs without one. `googleMaps.ts`'s logic is covered against a fake api, the component's map-building path against a fake map, and the fallback in both suites. The live map is checked by hand at 5173. |
+| The live Google Maps tiles, the real Places/Routes/Static APIs | They need a key, a billing account and a quota; the automated suite runs without one. `googleMaps.ts`'s logic is covered against a fake api, the component's map-building path against a fake map, and the fallback in both suites. The live map is checked by hand at 5173 — including the api's own dom, which our stylesheet reaches into (`areaMap.css`: its corner, and the "ctrl + scroll" hint's centring). |
 | Pixel-level appearance                                         | No screenshot baselines: they are device- and font-dependent, and this repo's visual rules (no gradients, no shadows, the one corner, the card ratios, both palettes) are asserted as computed style and DOM invariants instead.                                                             |
 | The Express backend                                            | `backend/index.mjs` is a collaborator's stub with no endpoints yet, and it needs MySQL. `docs/BACKEND.md` is the full list of what is still front-of-house only.                                                                                                             |
-| Real reduced-motion behaviour                                  | Motion runs at its defaults; the OS preference is a `MotionConfig` feature of the app, not something a test can fake convincingly.                                                                                                                                           |
+| Reduced-motion behaviour beyond the landing flash              | The suite emulates the preference in one case — the flash must survive it (colour-only feedback, `DESIGN.md` §11); everywhere else motion runs at its defaults, and the Motion-driven pieces' reduced behaviour stays a hand check, because it is a `MotionConfig` feature rather than something the suite can fake convincingly. |
 
 ## Traps the suite encodes (learned while writing it)
 
@@ -252,6 +274,7 @@ that stores nothing — live inside it).
 | `m` (motion) components need `LazyMotion`; `Link` needs a router.                                    | `tests/unit/motionProvider.tsx` and the `renderWithMotion` / `renderWithRouter` helpers.                                                           |
 | jsdom has no `matchMedia`, no persistent `<body>` class, and neither scroll function.                | `tests/setup.ts` stubs all four.                                                                                                                   |
 | jest-dom's `toBeCloseTo(x, digits)` takes digits, not a tolerance; `(2.65).toFixed(1)` is `"2.6"`.   | The geometry tests use bounds and digits, never a tolerance.                                                                                       |
+| beerCSS resets every element to `border-radius: inherit`, and the corner token is handed out with `!important`. | The token rule excludes `.rounded-none`, so a seam (a divider, or a child that fills a clipped panel such as the reviews panel's button row) really is square; `responsive.spec.ts` reads the computed corner on the panel *and* on each of its children. |
 
 ## Changing things — what happens when you do
 

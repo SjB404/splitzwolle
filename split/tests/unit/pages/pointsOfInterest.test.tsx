@@ -1,7 +1,11 @@
 import { fireEvent, screen, within } from "@testing-library/react";
 import PointsOfInterestPage from "../../../src/pages/pointsOfInterestPage.tsx";
 import { POINTS_OF_INTEREST } from "../../../src/data/pointsOfInterest.ts";
-import { builderPath } from "../../../src/data/navigation.ts";
+import {
+  builderPath,
+  pointOfInterestAnchor,
+  pointOfInterestPath,
+} from "../../../src/data/navigation.ts";
 import { renderWithRouter } from "../helpers.tsx";
 
 const placeLinks = () => screen.getAllByRole("link", { name: "In een route" });
@@ -44,8 +48,8 @@ describe("PointsOfInterestPage", () => {
       "aria-pressed",
       "true",
     );
-    expect(placeLinks()).toHaveLength(2);
-    expect(screen.getByText("2 bezienswaardigheden")).toBeInTheDocument();
+    expect(placeLinks()).toHaveLength(3);
+    expect(screen.getByText("3 bezienswaardigheden")).toBeInTheDocument();
   });
 
   it("searches on name, area and category", () => {
@@ -64,7 +68,7 @@ describe("PointsOfInterestPage", () => {
     expect(
       screen.getByRole("heading", {
         level: 3,
-        name: "Grote Kerk (Academiehuis)",
+        name: "Academiehuis de Grote Kerk",
       }),
     ).toBeInTheDocument();
   });
@@ -98,7 +102,7 @@ describe("PointsOfInterestPage", () => {
 
     fireEvent.change(select, { target: { value: "name" } });
     expect(screen.getAllByRole("heading", { level: 3 })[0]).toHaveTextContent(
-      "ANNO Stadsmuseum",
+      "Academiehuis de Grote Kerk",
     );
   });
 
@@ -116,6 +120,31 @@ describe("PointsOfInterestPage", () => {
       within(card).getByRole("button", { name: "Op de kaart" }),
     ).toHaveAttribute("aria-pressed", "true");
     expect(chipTexts()).toContain("Sassenpoort");
+
+    /* a pick is the tone, and the tone only: the flash belongs to a url landing (DESIGN.md §10) */
+    expect(card).toHaveClass("secondary-container");
+    expect(card).not.toHaveClass("animate-flash");
+  });
+
+  it("opens on the place the url names, and flashes its edge", () => {
+    const place = POINTS_OF_INTEREST[0];
+
+    renderWithRouter(<PointsOfInterestPage />, pointOfInterestPath(place.id));
+
+    const card = screen
+      .getByRole("heading", { level: 3, name: place.name })
+      .closest("article")!;
+
+    /* the id is what a url's fragment resolves to, so the two have to agree */
+    expect(card).toHaveAttribute("id", pointOfInterestAnchor(place.id));
+    expect(
+      within(card).getByRole("button", { name: "Op de kaart" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(chipTexts()).toContain(place.name);
+
+    /* the tone is the page's own background colour, so it marks a reader's pick; a card the url named lights its own edge instead — the bare token, because colour-only feedback is not motion-safe-gated (DESIGN.md §11) */
+    expect(card).toHaveClass("animate-flash");
+    expect(card).not.toHaveClass("secondary-container");
   });
 
   it("drops the selection when the place is filtered away", () => {
@@ -136,8 +165,8 @@ describe("PointsOfInterestPage", () => {
   it("resets the filters to the whole list", () => {
     renderWithRouter(<PointsOfInterestPage />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Parken" }));
-    expect(placeLinks()).toHaveLength(1);
+    fireEvent.click(screen.getByRole("button", { name: "Culinair" }));
+    expect(placeLinks()).toHaveLength(2);
 
     fireEvent.click(screen.getByRole("button", { name: "Filters wissen" }));
 

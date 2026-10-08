@@ -29,7 +29,6 @@ export type RouteTheme =
   | "Wandel"
   | "Kunst"
   | "Fiets"
-  | "Natuur"
   | "Culinair";
 
 export type RouteDifficulty = "Makkelijk" | "Gemiddeld";

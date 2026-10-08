@@ -146,7 +146,6 @@ describe("RouteResults", () => {
         showAll={showAll}
         onShowAll={onShowAll}
         onReset={onReset}
-        onBuild={() => {}}
         savedIds={savedIds}
         onToggleSave={() => {}}
       />,
@@ -222,7 +221,6 @@ describe("PoiFilters", () => {
       "false",
     );
     expect(screen.getByRole("button", { name: "Musea" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Parken" })).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Culinair" }),
     ).toBeInTheDocument();
@@ -283,8 +281,8 @@ describe("PoiFilters", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Parken" }));
-    expect(onFilterChange).toHaveBeenLastCalledWith({ category: "Parken" });
+    fireEvent.click(screen.getByRole("button", { name: "Culinair" }));
+    expect(onFilterChange).toHaveBeenLastCalledWith({ category: "Culinair" });
 
     fireEvent.change(
       screen.getByRole("searchbox", {

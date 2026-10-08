@@ -8,13 +8,14 @@ import EmptyState from "./emptyState.tsx";
 import SectionHeading from "./sectionHeading.tsx";
 import SectionSearchBar from "./sectionSearchBar.tsx";
 import Container from "./container.tsx";
-import { POI_PATH } from "../data/navigation.ts";
+import { POI_PATH, pointOfInterestPath } from "../data/navigation.ts";
 import { searchIds } from "../data/search.ts";
 import {
   INITIAL_POI_FILTERS,
   filterPointsOfInterest,
   poiCategoryIcon,
 } from "../data/pointsOfInterest.ts";
+import { PLACE_IMAGES } from "../data/placeImages.ts";
 
 /* how many places the strip shows before it links to the full list */
 const POI_PREVIEW_COUNT = 5;
@@ -66,35 +67,48 @@ export default function PointsOfInterestPreview() {
           />
         ) : (
           <ul className="mt-10 flex flex-wrap gap-x-6 gap-y-8">
-            {matches.slice(0, POI_PREVIEW_COUNT).map((point) => (
-              <li
-                key={point.id}
-                /* the tiles divide the row instead of sitting at a fixed 112px, so the strip fills the band at every width; flex and not a grid, because a bare `grid` class is beerCSS's 12 column grid (§2) */
-                className="flex basis-[calc(50%-0.75rem)] flex-col items-center gap-2 text-center sm:basis-[calc(33.333%-1rem)] lg:basis-[calc(20%-1.2rem)]"
-              >
-                {/* a picture of the place once there is one, and its category glyph until then: the hand-placed artwork crop went with the rest of the artwork layer */}
-                <span className="surface-container flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-line">
-                  {point.image ? (
-                    <img
-                      src={point.image}
-                      alt=""
-                      className="h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <Icon
-                      name={poiCategoryIcon(point.category)}
-                      className="text-2xl text-ink-muted"
-                    />
-                  )}
-                </span>
-                {/* two lines reserved for the name, so the categories line up across the row */}
-                <span className="min-h-10 text-sm font-semibold text-ink">
-                  {point.name}
-                </span>
-                <span className="text-xs text-ink-muted">{point.category}</span>
-              </li>
-            ))}
+            {matches.slice(0, POI_PREVIEW_COUNT).map((point) => {
+              const image = point.image ?? PLACE_IMAGES[point.id];
+
+              return (
+                <li
+                  key={point.id}
+                  /* the tiles divide the row instead of sitting at a fixed 112px, so the strip fills the band at every width; flex and not a grid, because a bare `grid` class is beerCSS's 12 column grid (§2) */
+                  className="flex basis-[calc(50%-0.75rem)] sm:basis-[calc(33.333%-1rem)] lg:basis-[calc(20%-1.2rem)]"
+                >
+                  {/* the whole tile is one link: the strip shows the name and the category, and the rest of the place lives on the card its url names — the places page opens with that card chosen (DESIGN.md §7) */}
+                  <Link
+                    to={pointOfInterestPath(point.id)}
+                    className="group flex w-full flex-col items-center gap-2 text-center"
+                  >
+                    {/* the place's own picture, and its category glyph until there is one: the hand-placed artwork crop went with the rest of the artwork layer */}
+                    <span className="surface-container flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-line">
+                      {image ? (
+                        <img
+                          src={image}
+                          alt=""
+                          aria-hidden="true"
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <Icon
+                          name={poiCategoryIcon(point.category)}
+                          className="text-2xl text-ink-muted"
+                        />
+                      )}
+                    </span>
+                    {/* two lines reserved for the name, so the categories line up across the row; the hover is the bar's own recipe, an underline and the muted line coming up to full ink */}
+                    <span className="min-h-10 text-sm font-semibold text-ink group-hover:underline">
+                      {point.name}
+                    </span>
+                    <span className="text-xs text-ink-muted transition-colors group-hover:text-ink">
+                      {point.category}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         )}
       </Container>

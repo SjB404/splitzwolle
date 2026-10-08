@@ -77,7 +77,7 @@ export default function PoiFilters({
                 aria-pressed={active}
                 onClick={() => onFilterChange({ category: category.id })}
                 className={`chip medium tap-target ripple ${
-                  active ? "secondary-container border-transparent" : ""
+                  active ? "bg-selected text-on-selected border-transparent" : ""
                 }`}
               >
                 <Icon name={category.icon} className="text-base" />

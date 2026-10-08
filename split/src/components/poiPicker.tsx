@@ -45,7 +45,7 @@ export default function PoiPicker({
             onClick={() => onModeChange(item.mode)}
             /* `medium` lifts the chip from 32px to 40px, which is what lets `tap-target` reach material 3's 48px hit area without growing the visual past it — the same recipe the places page's category chips use, so a chip is one control in both places */
             className={`chip medium tap-target ripple ${
-              mode === item.mode ? "secondary-container border-transparent" : ""
+              mode === item.mode ? "bg-selected text-on-selected border-transparent" : ""
             }`}
           >
             <Icon name={item.icon} className="text-base" />
@@ -88,7 +88,7 @@ export default function PoiPicker({
                     onClick={() => onToggle(point.id)}
                     /* the same 40px chip as the travel mode above it: a place is one tap on a value, and every one of them has to be as hittable as the chip beside it */
                     className={`chip medium tap-target ripple ${
-                      order >= 0 ? "secondary-container border-transparent" : ""
+                      order >= 0 ? "bg-selected text-on-selected border-transparent" : ""
                     }`}
                   >
                     <Icon

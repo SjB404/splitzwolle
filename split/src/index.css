@@ -67,12 +67,15 @@
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
 
-  /* the one corner every box in the app shares: a field, a button, a chip, a card, a panel. it lives with
-     the tokens and not in a component because a page has to read as one system — beerCSS ships four radii
-     (a 2rem round field, a 1.25rem button, a 0.75rem card, a 0.5rem chip), which put a pill search bar
-     directly above a rounded rectangle card. the override layer applies it once, and a hand-built panel
-     (the hero's map frame, the reviews panel) wears it as `rounded-box` */
-  --radius-box: 2rem;
+  /* the one corner every box in the app shares: a field, a button, a chip, a card, a panel. 1.5rem is the
+     value that works for the whole page at once: a 48px control clamps to exactly half its height — 24px,
+     a true pill — and anything larger rounds the cards more than the controls they sit on, anything smaller
+     squares the pills off. the bigger boxes simply draw the 24px it says, which is a corner on a 320px card
+     and the same corner a 48px button renders, so a card and the action on it read as one family. beerCSS
+     ships four radii of its own (a 2rem round field, a 1.25rem button, a 0.75rem card, a 0.5rem chip),
+     which is why it is handed out in the override layer rather than per component; a hand-built panel (the
+     hero's map frame, the reviews panel) wears it as `rounded-box` */
+  --radius-box: 1.5rem;
 }
 
 /* the default for every tailwind transition-* utility: 200ms, set once so no component has to name a duration or a curve */
@@ -103,6 +106,35 @@
       transform: translateY(0.75rem);
     }
   }
+
+  /* and the app's one flash: the card whose url a reader arrived on lights its own edge twice, then lets the
+     second light fade out over the last 1.5s of the two (the print of the flash itself is `outline-2
+     -outline-offset-2 outline-transparent` where the card is drawn, because the outline is the one edge it
+     is free to animate — its border and its shadow are `!important` in `@layer overrides`). The colour is
+     `--selected`, the brand seed at full strength: orange under white in light mode, blue under white in
+     dark, which is exactly what a control that is *on* is filled with (§3). The stops sit a hair apart
+     because a flash has to cut and not blend, and a keyframe can only hold one value */
+  --animate-flash: flash 2s var(--ease-standard);
+
+  @keyframes flash {
+    0%,
+    12.5% {
+      outline-color: var(--selected);
+    }
+
+    12.6%,
+    25% {
+      outline-color: transparent;
+    }
+
+    25.1% {
+      outline-color: var(--selected);
+    }
+
+    100% {
+      outline-color: transparent;
+    }
+  }
 }
 
 /* semantic text and hairline utilities, aliased onto the roles below; inline makes tailwind emit color: var(--on-surface) instead of a copy of it, so text-ink follows whichever theme <body> carries */
@@ -116,6 +148,8 @@
   --color-on-bar: var(--on-bar);
   --color-avatar: var(--avatar);
   --color-on-avatar: var(--on-avatar);
+  --color-selected: var(--selected);
+  --color-on-selected: var(--on-selected);
 }
 
 /* material 3 colour roles — beerCSS reads these for every component, so this block decides how the app looks, not the components; the selector mirrors beerCSS's own :root, body.light, because beerCSS re-declares every role on body.light and its default purple would otherwise win */
@@ -130,11 +164,18 @@ body.light {
   --on-primary-container: var(--color-blue-900);
   --inverse-primary: var(--color-orange-500);
 
-  /* secondary — deltion blue: structure and quiet surfaces; secondary-container is the "selected" tone (beerCSS .fill, the active mobile row), a warm orange tint because light mode is orange led */
+  /* secondary — deltion blue: structure and quiet surfaces; secondary-container is the tint a selected *surface* wears (the place card that follows the map), warm orange because light mode is orange led — a selected *control* fills with --selected instead, at the seed's full strength */
   --secondary: var(--color-blue-500);
   --on-secondary: #ffffff;
   --secondary-container: var(--color-orange-100);
   --on-secondary-container: var(--color-blue-900);
+
+  /* the selected control — a chip that is on (a filter, a way of travelling, a stop's order): the full brand
+     seed and never a tint of it, because a control that is on has to read as on at a glance, and a 15% wash
+     over white reads as a hover. light mode fills with the true orange under white, dark mode with the true
+     blue (DESIGN.md §3, §7) */
+  --selected: var(--color-orange-500);
+  --on-selected: #ffffff;
 
   /* tertiary — the historic paper layer */
   --tertiary: var(--color-sand-300);
@@ -206,6 +247,10 @@ body.dark {
   --on-secondary: var(--color-blue-950);
   --secondary-container: var(--color-blue-800);
   --on-secondary-container: var(--color-blue-100);
+
+  /* the selected control, in the dark theme's own brand colour: the true deltion blue under white, the same way light mode fills with the true orange (DESIGN.md §3, §7) */
+  --selected: var(--color-blue-500);
+  --on-selected: #ffffff;
 
   /* tertiary — the historic paper, inverted */
   --tertiary: var(--color-sand-300);
@@ -335,21 +380,6 @@ body.dark {
     border-color: var(--outline) !important;
   }
 
-  /* a chosen filter is a filled field wearing the brand colour. beerCSS's fill keeps its own surface tone for the control and then colours the label for that tone, so the tone is handed back to the role and the label is given the colour that belongs on the fill — the floating label sits inside a filled field, which is the only place a roled label can be read */
-  .field.fill.primary {
-    background: var(--primary) !important;
-  }
-
-  .field.fill.primary > :is(select, input) {
-    background: transparent !important;
-    /* the control's own text too: beerCSS leaves it --on-surface, which is nearly white in dark mode, on a fill that is pale there */
-    color: var(--on-primary) !important;
-  }
-
-  .field.fill.primary > label {
-    color: var(--on-primary) !important;
-  }
-
   /* an unselected filter chip — a <button>, unlike the badge <span>s that sit over artwork — takes the same --outline boundary as a field or an outlined button: beerCSS leaves it --outline-variant, which all but disappears beside them. The selected chip keeps its border-transparent, which is what stops it moving when it is picked */
   button.chip:not(.border-transparent) {
     border-color: var(--outline) !important;
@@ -386,10 +416,14 @@ body.dark {
   /* --- every box shares one corner ---
      material 3 gives each family its own radius and beerCSS ships four of them, so a page carried four
      systems at once: the home search bar was a pill, the card under it a rounded rectangle, the outlined
-     button beside it a third thing. the corner is set here, once, the way the 2px boundary is, and
-     --radius-box is what a hand-built panel reaches for (`rounded-box`) instead of a one-off utility. a
-     radius wider than half a box is scaled down to it, so the .circle icon buttons stay circles. */
-  :is(.field, .button, button, article, .chip, .badge, menu),
+     button beside it a third thing. the value lives in the tokens above (`--radius-box`) and is handed out
+     here, once, the way the 2px boundary is — and a hand-built panel reaches for it as `rounded-box`
+     instead of a one-off utility. a radius wider than half a box is scaled down to it, so the one value
+     renders as both shapes: a 48px field is a true pill, a card draws the full 24px.
+     `:not(.rounded-none)` is what gives the seam its way: a box that butts inside a clipped panel says so
+     with `rounded-none` (DESIGN.md §5), and without the exclusion this rule's `!important` would hand it
+     the corner back — the reviews panel's header row, a full width button, is exactly that case. */
+  :is(.field, .button, button, article, .chip, .badge, menu):not(.rounded-none),
   .field > :is(input, textarea, select) {
     border-radius: var(--radius-box) !important;
   }
@@ -404,7 +438,7 @@ body.dark {
 
   /* a boundary a pixel wider would push the text inward, so the control keeps the room its 1px line left
      (each resting padding takes the focus padding's value), and nothing moves when the reader focuses it.
-     one corner means one inset too: every field is a pill now, so the round field's inset is *the* field's
+     one inset too: every field is a pill now, so the round field's inset is *the* field's
      inset, and the review form's textarea starts its text where the search bar does. */
   .field.border > :is(input, textarea, select) {
     padding-inline: 1.375rem !important;
@@ -441,14 +475,9 @@ body.dark {
     transform: none !important;
   }
 
-  /* no elevation anywhere: surfaces are separated by tone and hairlines, and a 2px offset shadow on a 12px radius card reads as a smudged edge or, worse, a gradient; beerCSS puts one on every article */
+  /* no elevation anywhere: surfaces are separated by tone and hairlines, and a 2px offset shadow on a 24px radius card reads as a smudged edge or, worse, a gradient; beerCSS puts one on every article */
   article {
     box-shadow: none !important;
-  }
-
-  /* beerCSS resets every element to `border-radius: inherit`, which leaks our 12px card radius into google's own dom: 168 elements inside one map were rounded (measured), so the map canvas was a rounded rectangle sitting inside our rounded frame and the tiles read as a card in a card. our own dots are excluded, they are the one thing that has to stay round */
-  .gm-style *:not(gmp-advanced-marker, gmp-advanced-marker *) {
-    border-radius: 0 !important;
   }
 }
 
@@ -463,13 +492,7 @@ body.dark {
   border-radius: inherit;
 }
 
-/* fades the historic map picture out as the slider moves to "Actueel"; the layer is an img stacked on the current map and its opacity is a custom property set by the React layer, so a drag patches one declaration instead of re-rendering the stack */
-.historic-layer {
-  opacity: var(--historic-opacity, 1);
-  transition: opacity var(--speed2, 0.2s) var(--ease-standard);
-}
-
-/* material 3 asks for non essential motion to stop when the OS requests it: keyframes go (beerCSS's ripple), movement written as a utility is gated with motion-safe: at the call site, and colour and opacity feedback stays, because a ui that goes completely inert reads as broken */
+/* material 3 asks for non essential motion to stop when the OS requests it: keyframes go (beerCSS's ripple), movement written as a utility is gated with motion-safe: at the call site, and colour and opacity feedback stays, because a ui that goes completely inert reads as broken — including the landing card's flash, the one keyframe put back below */
 /* !important is normally banned in this project; this is its one sanctioned use, since it has to outrank framework animations declared later in the cascade */
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -482,5 +505,10 @@ body.dark {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-delay: 0s !important;
+  }
+
+  /* the flash is colour-only feedback and the only thing that says which card a link named, so it survives the block above: the class is not motion-safe-gated and the keyframe is put back from its token (DESIGN.md §11) */
+  .animate-flash {
+    animation: var(--animate-flash) !important;
   }
 }

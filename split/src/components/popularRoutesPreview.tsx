@@ -75,10 +75,10 @@ export default function PopularRoutesPreview() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={MOTION_TRANSITION}
-                  className="s12 m6 l4 xl:col-span-3 no-padding group relative flex flex-col overflow-hidden transition-transform motion-safe:hover:-translate-y-1"
+                  className="s12 m6 l4 xl:col-span-3 no-padding group relative flex flex-col overflow-hidden transition-transform motion-safe:hover:-translate-y-1 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-(--primary)"
                 >
-                  {/* the frame takes its height from the column and keeps a map's kind of ratio, so the preview scales with the card instead of stepping at two widths */}
-                  <div className="relative aspect-[16/10] overflow-hidden surface-container">
+                  {/* the frame takes its height from the column and keeps a map's kind of ratio, so the preview scales with the card instead of stepping at two widths; square, so it butts the card body and the panel's own clip draws the top corners (DESIGN.md §5) */}
+                  <div className="relative aspect-[16/10] overflow-hidden rounded-none surface-container">
                     {/* the route's own shape, drawn from the places it visits; a real map picture takes its place when the static map service is switched on */}
                     <MapSnapshot
                       points={routeCoordinates(route)}
@@ -96,16 +96,8 @@ export default function PopularRoutesPreview() {
                     </span>
                   </div>
 
-                  <div className="flex flex-1 flex-col p-5">
-                    {/* one stretched link makes the whole card clickable without nesting interactive elements; content-[''] matters because BeerCSS's reset clears both pseudo-elements */}
-                    <h3 className="text-xl font-bold">
-                      <Link
-                        to={publicRoutePath(route.id)}
-                        className="after:absolute after:inset-0 after:content-['']"
-                      >
-                        {route.title}
-                      </Link>
-                    </h3>
+                  <div className="flex flex-1 flex-col rounded-none p-5">
+                    <h3 className="text-xl font-bold">{route.title}</h3>
 
                     <p className="mt-2 flex items-center gap-1.5 text-sm text-ink-muted">
                       <Icon name="route" className="text-base" />
@@ -131,6 +123,13 @@ export default function PopularRoutesPreview() {
                       </span>
                     </div>
                   </div>
+
+                  {/* the whole card is the way to the route's own page: an empty link laid over it, last so it paints above the picture and the body. A stretched `::after` on the title cannot do this — beerCSS's reset makes every element relative, so inset-0 stops at the heading instead of reaching the card. It stays square (§5) and hands the focus ring to the card, which draws it outside its own clip */}
+                  <Link
+                    to={publicRoutePath(route.id)}
+                    aria-label={route.title}
+                    className="absolute inset-0 z-0 rounded-none focus-visible:outline-none"
+                  />
                 </m.article>
               ))}
             </AnimatePresence>

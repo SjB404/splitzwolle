@@ -3,32 +3,32 @@
     {
       "id": "binnenstad-highlights",
       "title": "Binnenstad Highlights",
-      "meta": "Binnenstad · Historisch · Sassenpoort · Peperbus · Melkmarkt"
+      "meta": "Binnenstad · Historisch · Sassenpoort · Peperbus · Vrouwenhuis"
     },
     {
       "id": "hanzekwartier-peperbus",
       "title": "Hanzekwartier & Peperbus",
-      "meta": "Binnenstad · Wandel · Thorbeckegracht · Melkmarkt · Peperbus"
+      "meta": "Binnenstad · Wandel · Thorbeckegracht · Vrouwenhuis · Peperbus"
     },
     {
       "id": "musea-in-het-centrum",
       "title": "Musea in het centrum",
-      "meta": "Binnenstad · Kunst · Museum de Fundatie · ANNO Stadsmuseum · Melkmarkt"
+      "meta": "Binnenstad · Kunst · Museum de Fundatie · ANNO Stadsmuseum · Vrouwenhuis"
     },
     {
       "id": "culinair-centrum",
       "title": "Culinair centrum",
-      "meta": "Binnenstad · Culinair · Melkmarkt · Thorbeckegracht · Restaurant De Librije"
+      "meta": "Binnenstad · Culinair · Het Zwolse Balletjeshuis · Thorbeckegracht"
     },
     {
       "id": "park-en-gracht",
-      "title": "Park & gracht",
-      "meta": "Buitensingel · Natuur · Park Eekhout · Museum de Fundatie · Thorbeckegracht"
+      "title": "Fundatie & gracht",
+      "meta": "Buitensingel · Kunst · Museum de Fundatie · Thorbeckegracht"
     },
     {
       "id": "rondje-stadsgracht",
       "title": "Rondje Stadsgracht",
-      "meta": "Buitensingel · Wandel · Sassenpoort · Thorbeckegracht · Museum de Fundatie · Park Eekhout"
+      "meta": "Buitensingel · Wandel · Sassenpoort · Thorbeckegracht · Museum de Fundatie"
     },
     {
       "id": "grachten-fietsroute",
@@ -54,8 +54,13 @@
     },
     {
       "id": "grote-kerk",
-      "title": "Grote Kerk (Academiehuis)",
+      "title": "Academiehuis de Grote Kerk",
       "meta": "Monumenten · Binnenstad · kerk · orgel · toen"
+    },
+    {
+      "id": "balletjeshuis",
+      "title": "Het Zwolse Balletjeshuis",
+      "meta": "Culinair · Binnenstad · eten · snoep · balletjes"
     },
     {
       "id": "museum-de-fundatie",
@@ -68,24 +73,19 @@
       "meta": "Musea · Binnenstad · geschiedenis · nu"
     },
     {
-      "id": "park-eekhout",
-      "title": "Park Eekhout",
-      "meta": "Parken · Binnenstad · park · groen · nu"
-    },
-    {
-      "id": "restaurant-de-librije",
-      "title": "Restaurant De Librije",
-      "meta": "Culinair · Binnenstad · eten"
-    },
-    {
       "id": "thorbeckegracht",
-      "title": "Thorbeckegracht",
-      "meta": "Culinair · Binnenstad · gracht · terras · nu"
+      "title": "Thorbeckegracht & Stadsmuren",
+      "meta": "Culinair · Binnenstad · eten · gracht · terras · nu"
     },
     {
-      "id": "melkmarkt",
-      "title": "Melkmarkt",
-      "meta": "Culinair · Binnenstad · eten · terras"
+      "id": "vrouwenhuis",
+      "title": "Het Vrouwenhuis",
+      "meta": "Musea · Binnenstad · geschiedenis · vrouwenhuis · toen"
+    },
+    {
+      "id": "van-der-velde-in-de-broeren",
+      "title": "Van der Velde in de Broeren",
+      "meta": "Monumenten · Binnenstad · boekhandel · boeken · nu"
     }
   ]
 }

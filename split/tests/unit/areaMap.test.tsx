@@ -125,8 +125,21 @@ describe("AreaMap", () => {
     )!;
 
     expect(ordered.element.textContent).toBe("1");
-    expect(ordered.element.className).toContain("h-6");
+    expect(ordered.element.className).toContain("h-8 w-8");
     expect(ordered.element.className).toContain("scale-125");
+  });
+
+  /* a marker is only as big as its dot, and a 24px circle is not a thumb target: the dot carries a
+     pseudo element that takes the touch area out to 48px without drawing anything (DESIGN.md §5, §8) */
+  it("gives every dot a touch area of its own", async () => {
+    const { built } = await renderMap();
+
+    for (const marker of built.markers) {
+      expect(marker.element.className).toContain("h-6 w-6");
+      expect(marker.element.className).toContain(
+        "before:absolute before:-inset-3.5 before:content-['']",
+      );
+    }
   });
 
   it("hangs a ring on the place the page is about", async () => {

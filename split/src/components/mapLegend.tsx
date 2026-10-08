@@ -14,16 +14,16 @@ const LEGEND_SWATCHES: Record<LegendShape, ReactNode> = {
   route: (
     <span className="h-1 w-6 rounded-full bg-orange-500" aria-hidden="true" />
   ),
-  /* the two dot styles the interactive maps draw: today's places in the brand orange, the ones van toen in the brand blue, both with a white ring */
+  /* the two dot styles the interactive maps draw: today's places in the brand orange, the ones van toen in the brand blue, both with a white ring; the swatch is the dot's own 24px (§8) */
   historic: (
     <span
-      className="h-4 w-4 rounded-full border-2 border-white bg-blue-500"
+      className="h-6 w-6 rounded-full border-2 border-white bg-blue-500"
       aria-hidden="true"
     />
   ),
   current: (
     <span
-      className="h-4 w-4 rounded-full border-2 border-white bg-orange-500"
+      className="h-6 w-6 rounded-full border-2 border-white bg-orange-500"
       aria-hidden="true"
     />
   ),

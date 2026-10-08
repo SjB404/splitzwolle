@@ -10,7 +10,6 @@ import {
   CONTACT_PATH,
   HOME_PATH,
   LOGIN_PATH,
-  PLANNING_PATH,
   POI_PATH,
   ROUTES_PATH,
   isActiveLink,
@@ -22,7 +21,6 @@ import type { NavLink } from "../types.ts";
 export const NAV_LINKS: NavLink[] = [
   { label: "Home", to: HOME_PATH },
   { label: "Routes", to: ROUTES_PATH },
-  { label: "Planning", to: PLANNING_PATH },
   { label: "Points of Interest", to: POI_PATH },
   { label: "Contact", to: CONTACT_PATH },
 ];

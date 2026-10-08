@@ -2,6 +2,7 @@
 /* the map is built once, outside react, and lives in a host element react never touches again: this component is what reads that instance and paints it */
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import "./areaMap.css";
 import Icon from "./icon.tsx";
 import RouteShape from "./routeShape.tsx";
 import {
@@ -13,6 +14,7 @@ import {
   routeLineColors,
 } from "../data/googleMaps.ts";
 import { poiCategoryIcon } from "../data/pointsOfInterest.ts";
+import { PLACE_IMAGES } from "../data/placeImages.ts";
 import { formatDistance, formatRating } from "../format.ts";
 import type {
   LatLng,
@@ -24,8 +26,13 @@ import type {
 /* the line's two weights, the same recipe the cards use: a white casing under the brand line */
 const LINE_STYLE = { casing: 10, line: 5, zIndex: 1 };
 
-/* how far apart two dots have to sit before they stop covering each other, in pixels */
-const DOT_GAP = 24;
+/* the preview card's own size, which the placement maths needs: `w-56` is 224px wide, and 296px is the card at its tallest — picture, name, category line, address and score (measured, not guessed) */
+const PREVIEW_WIDTH = 224;
+const PREVIEW_HEIGHT = 296;
+const PREVIEW_GAP = 12;
+
+/* how far apart two dots have to sit before they stop covering each other, in pixels: a place's own 24px dot plus 8px of air — a numbered or highlighted dot draws a quarter bigger, and `MAX_SHIFT` is what separates the ones that end up closer than this */
+const DOT_GAP = 32;
 
 /* the most a dot is pushed off its own position: past this the nudge would be a lie about where a place is */
 const MAX_SHIFT = 14;
@@ -81,29 +88,39 @@ export default function AreaMap({
   const [colorScheme, setColorScheme] = useState(mapColorScheme());
   /* a checkout without a key never loads the api at all, so the map starts out failed rather than being sent there by an effect */
   const [failed, setFailed] = useState(!hasGoogleMapsKey);
-  /* which dot the pointer is over, and where to put its card */
+  /* which dot the pointer is over, and where to put its card: `below` flips the card under the dot when the map frame has no room above it */
   const [preview, setPreview] = useState<{
     id: string;
     x: number;
     y: number;
+    below: boolean;
   } | null>(null);
 
   useEffect(() => {
     clickRef.current = onClickPoint;
   }, [onClickPoint]);
 
-  /* where the pointer is, in the wrapper's own coordinates */
+  /* where the pointer is, in the wrapper's own coordinates. the card cannot leave the map sideways, and flips under the dot when it would not fit above it, so it is whole wherever the dot is */
   function showPreview(id: string, element: HTMLElement) {
     const wrapper = element.closest(".relative");
     if (!wrapper) return;
 
     const dot = element.getBoundingClientRect();
     const box = wrapper.getBoundingClientRect();
+    const half = PREVIEW_WIDTH / 2;
+    const centre = dot.left - box.left + dot.width / 2;
+    const top = dot.top - box.top;
+    const bottom = dot.bottom - box.top;
+    /* the card hangs above the dot, which is where the dot's own tooltip belongs; it drops below only when the frame's top is too close and there is room under the dot, and it overhangs the frame when neither fits — the frame clips, so a card at the map's edge used to lose the picture */
+    const below =
+      top < PREVIEW_HEIGHT + PREVIEW_GAP &&
+      box.height - bottom >= PREVIEW_HEIGHT + PREVIEW_GAP;
 
     setPreview({
       id,
-      x: dot.left - box.left + dot.width / 2,
-      y: dot.top - box.top,
+      x: Math.max(half + 8, Math.min(centre, box.width - half - 8)),
+      y: below ? bottom : top,
+      below,
     });
   }
 
@@ -322,23 +339,26 @@ export default function AreaMap({
   return (
     <div className={`relative ${className}`}>
       <div className="surface relative overflow-hidden rounded-box border-2 border-line">
-        <div ref={hostRef} className={`${heightClassName} w-full`} />
+        {/* square, like the frame it fills: the frame clips its own corner, and google's own dom is squared in areaMap.css for the same reason (DESIGN.md §5) */}
+        <div ref={hostRef} className={`${heightClassName} w-full rounded-none`} />
 
         {mapGeneration === 0 && (
           <p className="absolute inset-0 grid place-items-center text-sm text-ink-muted">
             Kaart wordt geladen…
           </p>
         )}
-
-        {previewPoint && preview && (
-          <PreviewCard
-            point={previewPoint}
-            hint={clickHint}
-            x={preview.x}
-            y={preview.y}
-          />
-        )}
       </div>
+
+      {/* outside the frame above, which clips its own corners: a dot at an edge still gets a whole card */}
+      {previewPoint && preview && (
+        <PreviewCard
+          point={previewPoint}
+          hint={clickHint}
+          x={preview.x}
+          y={preview.y}
+          below={preview.below}
+        />
+      )}
 
       <MapChip label={label} className="absolute left-4 top-4 z-10" />
       <p className="sr-only">{description}</p>
@@ -352,26 +372,34 @@ function PreviewCard({
   hint,
   x,
   y,
+  below,
 }: {
   point: PointOfInterest;
   hint: string;
   x: number;
   y: number;
+  below: boolean;
 }) {
+  const image = point.image ?? PLACE_IMAGES[point.id];
+
   return (
     <div
-      className="surface-container-lowest pointer-events-none absolute z-20 w-56 -translate-x-1/2 -translate-y-[calc(100%+0.75rem)] overflow-hidden rounded-xl border-2 border-line"
+      className={`surface-container-lowest pointer-events-none absolute z-20 w-56 -translate-x-1/2 overflow-hidden rounded-xl border-2 border-line ${
+        below ? "translate-y-3" : "-translate-y-[calc(100%+0.75rem)]"
+      }`}
       style={{ left: x, top: y }}
     >
-      {point.image ? (
+      {/* square children: the card clips its own corner, so the picture and the glyph panel butt straight against the text below (DESIGN.md §5) */}
+      {image ? (
         <img
-          src={point.image}
+          src={image}
           alt=""
-          className="h-28 w-full object-cover"
+          aria-hidden="true"
+          className="h-28 w-full rounded-none object-cover"
           loading="lazy"
         />
       ) : (
-        <div className="surface-container flex h-28 w-full items-center justify-center">
+        <div className="surface-container flex h-28 w-full items-center justify-center rounded-none">
           <Icon
             name={poiCategoryIcon(point.category)}
             className="text-3xl text-ink-muted"
@@ -417,7 +445,7 @@ function MapUnavailable({
     <div className={`relative ${className}`}>
       <div className="surface relative overflow-hidden rounded-box border-2 border-line">
         <div
-          className={`flex ${heightClassName} w-full flex-col items-center justify-center gap-4 p-6 text-center`}
+          className={`flex ${heightClassName} w-full flex-col items-center justify-center gap-4 rounded-none p-6 text-center`}
         >
           {line && line.path.length > 1 ? (
             <RouteShape points={line.path} className="h-40 w-full max-w-md" />
@@ -466,10 +494,19 @@ function paintDot(
     "flex items-center justify-center rounded-full border-2 font-bold leading-none transition-transform",
     /* the shift the map works out for overlapping dots arrives as a custom property */
     "[translate:var(--dot-shift,0_0)]",
+    /* a marker is only as big as its dot, and a 24px circle is a fiddly thing to hit with a thumb: the
+       pseudo element carries the touch area out to 48px without drawing anything, the way `tap-target`
+       widens a 40px control (§5). `-inset-3.5` is 14px a side, which is what lands on 48px: an absolutely
+       positioned box is placed against the *padding* box, so the dot's own 2px boundary is not counted
+       (measured: `-inset-3` gave 44px). It is not written as `tap-target`, whose 4px a side would need a
+       40px dot to reach 48px */
+    "before:absolute before:-inset-3.5 before:content-['']",
     current
       ? "border-white bg-orange-500 text-white"
       : "border-white bg-blue-500 text-white",
-    order === null ? "h-4 w-4 text-[11px]" : "h-6 w-6 text-[13px]",
+    /* 24px for a place, 32px once it carries its visit number — and a number (or the page's own place)
+       grows by a quarter again, which is what keeps a stop apart from the places around it */
+    order === null ? "h-6 w-6 text-[12px]" : "h-8 w-8 text-[14px]",
     order !== null || highlighted ? "scale-125" : "",
   ].join(" ");
 

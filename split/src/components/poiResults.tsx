@@ -8,14 +8,20 @@ import Container from "./container.tsx";
 import SectionHeading from "./sectionHeading.tsx";
 import Icon from "./icon.tsx";
 import { formatDistance, formatRating } from "../format.ts";
-import { builderPath } from "../data/navigation.ts";
+import {
+  builderPath,
+  pointOfInterestAnchor,
+} from "../data/navigation.ts";
 import { poiCategoryIcon } from "../data/pointsOfInterest.ts";
+import { PLACE_IMAGES } from "../data/placeImages.ts";
 import type { PointOfInterest } from "../types.ts";
 
 interface PoiResultsProps {
   points: PointOfInterest[];
   /* the page owns it: the map above and these cards have to agree */
   selectedId: string | null;
+  /* the place a url named, while nobody has picked on this page: that card flashes its own edge instead of wearing the tone — the tone is the page's own background colour, so it is what a reader's *pick* reads as, not where a link landed them (DESIGN.md §10) */
+  flashId: string | null;
   onSelect: (id: string) => void;
   /* the empty state's way out, which only the page can define */
   onReset: () => void;
@@ -24,6 +30,7 @@ interface PoiResultsProps {
 export default function PoiResults({
   points,
   selectedId,
+  flashId,
   onSelect,
   onReset,
 }: PoiResultsProps) {
@@ -47,15 +54,35 @@ export default function PoiResults({
           <div className="mt-10 grid gap-6">
             {points.map((point) => {
               const selected = point.id === selectedId;
+              const flashing = point.id === flashId;
+              const image = point.image ?? PLACE_IMAGES[point.id];
 
               return (
                 <article
                   key={point.id}
-                  className={`s12 m6 l4 no-padding flex flex-col transition-colors ${
-                    selected ? "secondary-container" : ""
+                  /* the id a place's url names, so the home tiles can land on this card; scroll-mt clears the sticky bar the way an anchored section does (index.css) */
+                  id={pointOfInterestAnchor(point.id)}
+                  /* the tone is the reader's own pick; a card the url named lights its edge instead, and the outline it animates is transparent at rest, so a card that is not flashing is untouched. colour-only feedback, so never `motion-safe:` — the reduced-motion block re-applies the keyframe rather than dropping it (index.css, DESIGN.md §11) */
+                  className={`s12 m6 l4 no-padding flex scroll-mt-20 flex-col overflow-hidden transition-colors ${
+                    selected && !flashing ? "secondary-container" : ""
+                  } ${
+                    flashing
+                      ? "outline-2 -outline-offset-2 outline-transparent animate-flash"
+                      : ""
                   }`}
                 >
-                  <div className="flex flex-1 flex-col gap-3 p-5">
+                  {/* the place's own picture, in the same wide band the map's preview card uses; square, so it butts the card body and the panel's own clip draws the top corners (DESIGN.md §5) */}
+                  {image && (
+                    <img
+                      src={image}
+                      alt=""
+                      aria-hidden="true"
+                      className="aspect-[2/1] w-full rounded-none object-cover"
+                      loading="lazy"
+                    />
+                  )}
+
+                  <div className="flex flex-1 flex-col gap-3 rounded-none p-5">
                     <div className="flex items-center gap-3">
                       <span className="chip flex-none">
                         <Icon

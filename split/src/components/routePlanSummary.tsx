@@ -17,7 +17,11 @@ export default function RoutePlanSummary({
 }: RoutePlanSummaryProps) {
   if (plan.points.length < 2) {
     return (
-      <p className="surface-container-low mt-6 flex items-start gap-2 rounded-box border-2 border-line p-4 text-sm text-ink-muted">
+      /* a thin, long bar — the hint a reader sees before the route exists — so it is a pill: 48px tall,
+         where the one corner is exactly half the box (§5). `min-h-12` and not a fixed `h-12`: the sentence
+         wraps to two lines in a phone's column, and the bar should grow with it rather than let the words
+         spill past its own boundary */
+      <p className="surface-container-low mt-6 flex min-h-12 items-center gap-2 rounded-box border-2 border-line px-4 text-sm text-ink-muted">
         <Icon name="route" className="text-base" />
         {plan.points.length === 0
           ? "Kies twee of meer plekken om een route te maken."

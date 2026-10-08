@@ -61,7 +61,9 @@ export default function RouteShareButton({ placeIds }: RouteShareButtonProps) {
   }
 
   return (
-    <div className="flex flex-col items-end gap-2">
+    /* reverse: the column is anchored by its *bottom* in the map's corner, so a note that appears after a copy
+       grows upwards over the map and the button stays where the reader's thumb left it (§7) */
+    <div className="flex flex-col-reverse items-end gap-2">
       <div ref={wrapper} className="relative">
         <button
           type="button"
@@ -76,11 +78,11 @@ export default function RouteShareButton({ placeIds }: RouteShareButtonProps) {
           <Icon name="share" />
         </button>
 
-        {/* a small popup, not a modal: the map stays visible and usable behind it */}
+        {/* a small popup, not a modal: the map stays visible and usable behind it; it opens *above* the button, because the button stands in the map's bottom-right corner (§7) */}
         {showHint && (
           <div
             role="alert"
-            className="surface-container-highest absolute right-0 top-full z-30 mt-2 w-64 rounded-box border-2 border-line p-4 text-left"
+            className="surface-container-highest absolute right-0 bottom-full z-30 mb-2 w-64 rounded-box border-2 border-line p-4 text-left"
           >
             <p className="text-sm text-ink">
               Kies eerst twee plekken op de kaart. Een route heeft minstens

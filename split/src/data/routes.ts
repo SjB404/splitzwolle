@@ -18,7 +18,6 @@ export const ROUTE_THEMES: RouteTheme[] = [
   "Wandel",
   "Kunst",
   "Fiets",
-  "Natuur",
   "Culinair",
 ];
 
@@ -31,7 +30,6 @@ export const ROUTE_THEME_ICONS: Record<RouteTheme, string> = {
   Wandel: "directions_walk",
   Kunst: "museum",
   Fiets: "directions_bike",
-  Natuur: "park",
   Culinair: "restaurant",
 };
 
@@ -53,8 +51,8 @@ export const ROUTES: Route[] = [
     reviews: 203,
     popular: true,
     description:
-      "De klassiekers op een rij: van de Sassenpoort via de Grote Kerk en de Peperbus naar de Melkmarkt.",
-    poiIds: ["sassenpoort", "grote-kerk", "peperbus", "melkmarkt"],
+      "De klassiekers op een rij: van de Sassenpoort via de Grote Kerk en de Peperbus naar het Vrouwenhuis.",
+    poiIds: ["sassenpoort", "grote-kerk", "peperbus", "vrouwenhuis"],
   },
   {
     id: "hanzekwartier-peperbus",
@@ -69,8 +67,8 @@ export const ROUTES: Route[] = [
     reviews: 128,
     popular: true,
     description:
-      "Langs de oude pakhuizen van het Hanzekwartier en de Thorbeckegracht, via de Melkmarkt naar de Peperbus.",
-    poiIds: ["thorbeckegracht", "melkmarkt", "peperbus"],
+      "Langs de oude pakhuizen van het Hanzekwartier en de Thorbeckegracht, via het Vrouwenhuis naar de Peperbus.",
+    poiIds: ["thorbeckegracht", "vrouwenhuis", "peperbus"],
   },
   {
     id: "musea-in-het-centrum",
@@ -85,8 +83,8 @@ export const ROUTES: Route[] = [
     reviews: 76,
     popular: false,
     description:
-      "Twee musea op een steenworp afstand: de Fundatie aan het Blijmarkt en het ANNO Stadsmuseum, met de Melkmarkt als pauze.",
-    poiIds: ["museum-de-fundatie", "anno-stadsmuseum", "melkmarkt"],
+      "Drie musea op een steenworp afstand: de Fundatie aan het Blijmarkt, het ANNO Stadsmuseum en het Vrouwenhuis aan de Voorstraat.",
+    poiIds: ["museum-de-fundatie", "anno-stadsmuseum", "vrouwenhuis"],
   },
   {
     id: "culinair-centrum",
@@ -101,14 +99,14 @@ export const ROUTES: Route[] = [
     reviews: 119,
     popular: true,
     description:
-      "Van de terrassen op de Melkmarkt langs de Thorbeckegracht naar de Librije: eten en drinken in de binnenstad.",
-    poiIds: ["melkmarkt", "thorbeckegracht", "restaurant-de-librije"],
+      "Van de Zwolse balletjes op het Grote Kerkplein naar de terrassen aan de Thorbeckegracht: eten en drinken in de binnenstad.",
+    poiIds: ["balletjeshuis", "thorbeckegracht"],
   },
   {
     id: "park-en-gracht",
-    title: "Park & gracht",
+    title: "Fundatie & gracht",
     area: "Buitensingel",
-    theme: "Natuur",
+    theme: "Kunst",
     difficulty: "Makkelijk",
     distanceKm: 1.8,
     durationMinutes: 30,
@@ -117,8 +115,8 @@ export const ROUTES: Route[] = [
     reviews: 88,
     popular: false,
     description:
-      "Van Park Eekhout langs de Fundatie naar de Thorbeckegracht: het groen van de stad en het water in één ronde.",
-    poiIds: ["park-eekhout", "museum-de-fundatie", "thorbeckegracht"],
+      "Van Museum de Fundatie naar de Thorbeckegracht: kunst binnen en het water buiten.",
+    poiIds: ["museum-de-fundatie", "thorbeckegracht"],
   },
   {
     id: "rondje-stadsgracht",
@@ -133,12 +131,11 @@ export const ROUTES: Route[] = [
     reviews: 94,
     popular: false,
     description:
-      "Een ronde over de wallen die Zwolle ooit verdedigden: de Sassenpoort, de Thorbeckegracht, de Fundatie en Park Eekhout.",
+      "Een ronde over de wallen die Zwolle ooit verdedigden: de Sassenpoort, de Thorbeckegracht en de Fundatie.",
     poiIds: [
       "sassenpoort",
       "thorbeckegracht",
       "museum-de-fundatie",
-      "park-eekhout",
     ],
   },
   {

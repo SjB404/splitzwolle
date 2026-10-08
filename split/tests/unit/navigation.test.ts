@@ -10,6 +10,9 @@ import {
   builderPath,
   isActiveLink,
   parsePlaceIds,
+  parsePointOfInterestAnchor,
+  pointOfInterestAnchor,
+  pointOfInterestPath,
   publicRoutePath,
 } from "../../src/data/navigation.ts";
 import { NAV_LINKS } from "../../src/components/navbar.tsx";
@@ -75,6 +78,28 @@ describe("parsePlaceIds", () => {
       "peperbus",
       "melkmarkt",
     ]);
+  });
+});
+
+describe("pointOfInterestPath", () => {
+  it("anchors a place's card on the places page", () => {
+    expect(pointOfInterestPath("sassenpoort")).toBe(
+      `${POI_PATH}#poi-sassenpoort`,
+    );
+    expect(pointOfInterestAnchor("sassenpoort")).toBe("poi-sassenpoort");
+  });
+
+  it("reads back the place its fragment names", () => {
+    const path = pointOfInterestPath("grote-kerk");
+
+    expect(parsePointOfInterestAnchor(path.slice(path.indexOf("#")))).toBe(
+      "grote-kerk",
+    );
+  });
+
+  it("answers nothing for a fragment that names no place", () => {
+    expect(parsePointOfInterestAnchor("")).toBeNull();
+    expect(parsePointOfInterestAnchor("#registreren")).toBeNull();
   });
 });
 

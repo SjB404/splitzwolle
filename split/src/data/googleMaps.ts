@@ -94,6 +94,10 @@ export function mapOptions(): google.maps.MapOptions {
     mapId: CLOUD_MAP_ID.length > 0 ? CLOUD_MAP_ID : "DEMO_MAP_ID",
     disableDefaultUI: true,
     zoomControl: true,
+    /* the zoom control is the one piece of the api's own chrome the map keeps, and it moves to the top-right: the bottom-right corner is the share button's (§7), and a control that a reader has to hit should never share its corner */
+    zoomControlOptions: {
+      position: google.maps.ControlPosition.RIGHT_TOP,
+    },
     clickableIcons: false,
     gestureHandling: "cooperative",
     minZoom: 13,

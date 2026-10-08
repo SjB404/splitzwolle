@@ -56,9 +56,13 @@ describe("RouteShareButton", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Deel deze route" }));
 
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      "Kies eerst twee plekken op de kaart.",
-    );
+    const bubble = screen.getByRole("alert");
+
+    expect(bubble).toHaveTextContent("Kies eerst twee plekken op de kaart.");
+
+    /* the button stands in the map's bottom-right corner, so the bubble opens *upwards*: under the
+       button it would land outside the map, over the legend (DESIGN.md §7) */
+    expect(bubble.className).toContain("bottom-full");
   });
 
   it("closes the popup with its own action", () => {

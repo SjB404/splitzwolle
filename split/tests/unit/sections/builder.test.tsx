@@ -174,7 +174,7 @@ describe("RoutePlanSummary", () => {
   });
 
   it("lists the stops in visit order, with each one's era", () => {
-    const points = [stop("sassenpoort"), stop("peperbus"), stop("melkmarkt")];
+    const points = [stop("sassenpoort"), stop("peperbus"), stop("vrouwenhuis")];
     renderWithRouter(
       <RoutePlanSummary plan={plan(points)} onReset={() => {}} />,
     );
@@ -182,14 +182,14 @@ describe("RoutePlanSummary", () => {
     expect(screen.getAllByRole("listitem")).toHaveLength(3);
     expect(screen.getByText("Sassenpoort")).toBeInTheDocument();
     expect(screen.getByText("De Peperbus")).toBeInTheDocument();
-    expect(screen.getByText("Melkmarkt")).toBeInTheDocument();
+    expect(screen.getByText("Het Vrouwenhuis")).toBeInTheDocument();
     expect(screen.getAllByText("Toen")).toHaveLength(3);
   });
 
   it("counts the stops and names the way of travelling", () => {
     renderWithRouter(
       <RoutePlanSummary
-        plan={plan([stop("peperbus"), stop("melkmarkt")])}
+        plan={plan([stop("peperbus"), stop("vrouwenhuis")])}
         onReset={() => {}}
       />,
     );
@@ -201,7 +201,7 @@ describe("RoutePlanSummary", () => {
   it("names the bicycle when the plan is a bicycle ride", () => {
     renderWithRouter(
       <RoutePlanSummary
-        plan={plan([stop("peperbus"), stop("melkmarkt")], {
+        plan={plan([stop("peperbus"), stop("vrouwenhuis")], {
           mode: "bicycling",
         })}
         onReset={() => {}}
@@ -219,7 +219,7 @@ describe("RoutePlanSummary", () => {
   it("prints the distance and the duration in dutch", () => {
     renderWithRouter(
       <RoutePlanSummary
-        plan={plan([stop("peperbus"), stop("melkmarkt")])}
+        plan={plan([stop("peperbus"), stop("vrouwenhuis")])}
         onReset={() => {}}
       />,
     );
@@ -233,7 +233,7 @@ describe("RoutePlanSummary", () => {
   it("says the route is still being worked out while it waits for the api", () => {
     renderWithRouter(
       <RoutePlanSummary
-        plan={plan([stop("peperbus"), stop("melkmarkt")], { pending: true })}
+        plan={plan([stop("peperbus"), stop("vrouwenhuis")], { pending: true })}
         onReset={() => {}}
       />,
     );
@@ -247,7 +247,7 @@ describe("RoutePlanSummary", () => {
   it("says when the numbers came from the streets", () => {
     renderWithRouter(
       <RoutePlanSummary
-        plan={plan([stop("peperbus"), stop("melkmarkt")], {
+        plan={plan([stop("peperbus"), stop("vrouwenhuis")], {
           followsStreets: true,
         })}
         onReset={() => {}}
@@ -264,7 +264,7 @@ describe("RoutePlanSummary", () => {
   it("says when the numbers are only a straight-line estimate", () => {
     renderWithRouter(
       <RoutePlanSummary
-        plan={plan([stop("peperbus"), stop("melkmarkt")])}
+        plan={plan([stop("peperbus"), stop("vrouwenhuis")])}
         onReset={() => {}}
       />,
     );
@@ -279,7 +279,7 @@ describe("RoutePlanSummary", () => {
   it("offers the way out to a real navigation app", () => {
     renderWithRouter(
       <RoutePlanSummary
-        plan={plan([stop("peperbus"), stop("melkmarkt")])}
+        plan={plan([stop("peperbus"), stop("vrouwenhuis")])}
         onReset={() => {}}
       />,
     );
@@ -297,7 +297,7 @@ describe("RoutePlanSummary", () => {
     const onReset = vi.fn();
     renderWithRouter(
       <RoutePlanSummary
-        plan={plan([stop("peperbus"), stop("melkmarkt")])}
+        plan={plan([stop("peperbus"), stop("vrouwenhuis")])}
         onReset={onReset}
       />,
     );

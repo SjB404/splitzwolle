@@ -12,7 +12,6 @@ import {
   filterRoutes,
   pointsInArea,
   publicRoutePath,
-  routePoints,
 } from "./app";
 import type { Route, RouteFilterState } from "./app";
 
@@ -401,29 +400,62 @@ test.describe("the ready-made routes", { tag: "@list" }, () => {
 });
 
 test.describe("a route's card", { tag: "@list" }, () => {
-  test("loads its places into the builder when its title is clicked", async ({
+  test("opens its route from anywhere on the card", async ({ page }) => {
+    const route = ROUTES[0];
+    const card = page.locator("article", {
+      has: page.getByRole("link", { name: `${PREFIX}${route.title}` }),
+    });
+
+    await page.goto(ROUTES_PATH);
+    await expect(card).toBeVisible();
+    await card.scrollIntoViewIfNeeded();
+
+    /* the bottom of the card is the description, so this is the whole-card target and not the title */
+    const box = await card.boundingBox();
+
+    await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height * 0.8);
+
+    await expect(page).toHaveURL(publicRoutePath(route.id));
+    await expect(
+      page.getByRole("heading", { level: 1, name: route.title }),
+    ).toBeVisible();
+  });
+
+  test("saves its route from the button riding on the card, and answers with a notice", async ({
     page,
   }) => {
     const route = ROUTES[0];
-    const places = routePoints(route);
 
     await page.goto(ROUTES_PATH);
-    await page.getByRole("button", { name: route.title, exact: true }).click();
+    await page
+      .getByRole("button", {
+        name: `Bewaar ${route.title} bij je opgeslagen routes`,
+      })
+      .click();
 
+    /* saving is not opening: the card's own target stays where it was */
+    await expect(page).toHaveURL(ROUTES_PATH);
+    await expect(page.getByRole("status")).toHaveText(
+      "Toegevoegd aan je opgeslagen routes.",
+    );
     await expect(
-      page.getByRole("heading", {
-        level: 3,
-        name: `${places.length} stopplaatsen, lopen`,
+      page.getByRole("button", {
+        name: `Haal ${route.title} uit je opgeslagen routes`,
       }),
-    ).toBeVisible();
-    await expect(
-      page.getByText(`${places.length} van ${AREA_POINTS.length} plekken`),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: `1. ${places[0].name}` }),
-    ).toBeVisible();
-    /* the url follows, so the built route can be handed to someone else */
-    await expect(page).toHaveURL(builderPath(route.poiIds));
+    ).toHaveAttribute("aria-pressed", "true");
+
+    /* no button to dismiss and no backdrop: the notice goes on its own */
+    await expect(page.getByRole("status")).toBeEmpty({ timeout: 6000 });
+
+    await page
+      .getByRole("button", {
+        name: `Haal ${route.title} uit je opgeslagen routes`,
+      })
+      .click();
+
+    await expect(page.getByRole("status")).toHaveText(
+      "Uit je opgeslagen routes gehaald.",
+    );
   });
 
   test("opens the route in the builder, under its own title", async ({

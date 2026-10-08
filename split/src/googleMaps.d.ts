@@ -7,6 +7,22 @@ declare namespace google.maps {
     lng: number;
   }
 
+  /* the corners a control can be pinned to. the api's own enum cannot be declared here — tsconfig's `erasableSyntaxOnly` refuses enums — so it is the api's const object, named member for named member; the numbers are the api's own */
+  const ControlPosition: {
+    TOP_LEFT: 1;
+    TOP_CENTER: 2;
+    TOP_RIGHT: 3;
+    LEFT_CENTER: 4;
+    LEFT_TOP: 5;
+    LEFT_BOTTOM: 6;
+    RIGHT_TOP: 7;
+    RIGHT_CENTER: 8;
+    RIGHT_BOTTOM: 9;
+    BOTTOM_LEFT: 10;
+    BOTTOM_CENTER: 11;
+    BOTTOM_RIGHT: 12;
+  };
+
   class LatLng {
     constructor(lat: number, lng: number);
     lat(): number;
@@ -37,6 +53,10 @@ declare namespace google.maps {
     colorScheme?: "LIGHT" | "DARK";
     disableDefaultUI?: boolean;
     zoomControl?: boolean;
+    /* the api's own control corners; the site moves the zoom control out of the bottom-right, which is the share button's (§7, §8) */
+    zoomControlOptions?: {
+      position: (typeof ControlPosition)[keyof typeof ControlPosition];
+    };
     clickableIcons?: boolean;
     /* cooperative keeps the page scrollable: the map zooms on ctrl/cmd + scroll or a pinch, never on a plain wheel */
     gestureHandling?: "cooperative" | "greedy" | "none" | "auto";

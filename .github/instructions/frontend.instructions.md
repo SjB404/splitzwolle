@@ -48,16 +48,40 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   `.transparent` on a control whose ink has to change — it is `color: inherit !important`; use the
   `bg-transparent` _utility_.
 - **A `border-t` divider needs `rounded-none`.** BeerCSS gives every element
-  `border-radius: inherit`, so a divider inside a 2rem card is painted as the top edge of a rounded
+  `border-radius: inherit`, so a divider inside a 1.5rem card is painted as the top edge of a rounded
   box and curves away from the card's edges.
+- **A child that butts inside a clipped panel is square too.** Where a panel clips its own corner
+  (`overflow-hidden` + `rounded-box`) and holds two boxes that meet — the hero's picture and its rail,
+  a card's media band on its body, the map's hover preview picture on its text — the child takes
+  `rounded-none` as well: the panel draws the outer corners, and an inherited corner would curve the
+  seam and split the panel into two cards. It is the only place a box is square, and the token rule in
+  `@layer overrides` excludes `rounded-none` so the utility wins even on a `<button>` row; a chip or a
+  button beside the picture still takes `--radius-box`.
+- **A whole-card link is an overlay, not a stretched pseudo-element.** BeerCSS's reset puts
+  `position: relative` on *every* element, so `after:absolute after:inset-0` on a card's title fills
+  the heading and never the card. The card carries an empty `<Link className="absolute inset-0 z-0">`
+  as its **last** child (last, so it paints over the picture and the body; `z-0`, so a control on the
+  card keeps its `z-10` above it), and it takes `rounded-none` like every other full-bleed child. Its
+  own ring would be clipped by the card, so the **card** draws the focus ring:
+  `has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-(--primary)`.
+- **`tap-target` cannot be positioned itself.** Its `position: relative` lives in unlayered CSS, so it
+  beats a Tailwind `absolute` on the same element and `top`/`right` then shift the control instead of
+  placing it. Put the position on a wrapper `div` and the `tap-target` on the button.
 - **Both themes are supported.** The palette is chosen by the `light`/`dark` class on `<body>`
   (see `src/components/navbar.tsx`); components never branch on the theme, they just read
   roles. Anything hardcoded to the light palette will break dark mode.
 - **Text on the brand orange is white; text on a light orange tint is blue.** White goes **only** on
-  `orange-500` itself — the bar, the selected segment, a filled action, the artwork badge — never on
+  `orange-500` itself — the bar, a filled action, a selected chip, the artwork badge — never on
   the `orange-100` tints (`--primary-container`), which carry `blue-900`. This is the one deliberate
   contrast trade: white on `#f68221` is **2.6:1** (blue on the same orange is 7.8:1), documented in
   DESIGN.md §3/§11/§16 — don't "fix" it, and don't extend white onto a tint.
+- **A selected chip is a full fill, never a tint.** It takes `bg-selected text-on-selected` — the
+  `--selected` / `--on-selected` roles: the true seed under white, `orange-500` in light mode and
+  `blue-500` in dark. `secondary-container` is the role for selected _surfaces_ (the place card that
+  follows the map), not for controls, and a container tone on a control reads as a hover. A card a
+  **url** named never takes that tone — the tone is the page's own background colour, so it is what a
+  reader's own pick reads as; the landing card flashes its edge instead (`animate-flash`, DESIGN.md
+  §6/§10).
 - **Typography:** `font-display` (Montserrat) for headings — already applied to `h1`–`h6` in
   `@layer base` — and `font-sans` (Inter) for everything else. Never Tailwind's `font-serif`.
   **Headings and the page rhythm are fluid**: `text-display` (hero `h1`), `text-headline` (page
@@ -73,7 +97,7 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   the navy bar. The active nav link is marked with weight + underline — never by dimming the others;
   the active _mobile_ row is a translucent state layer over the bar (`bg-on-bar/20 text-on-bar`), not
   an inverted pill.
-- **Balance the two brand colours:** light mode is **orange-filled** (bar, selected segment, light
+- **Balance the two brand colours:** light mode is **orange-filled** (bar, selected chip, light
   tints, route lines) with blue as the _ink_ — every heading, accent and body string; dark mode is
   **blue-built** (desaturated navy surfaces, the bar, _every button_) with orange as the _ink_ —
   headings, the eyebrow, the avatar, route lines. Never give both equal weight in one theme, and
@@ -93,13 +117,21 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   filled track stops short of the handle, and the handle narrows to a hairline while focused)
   (DESIGN.md §2, §5, §7).
   Anywhere else, a needed `!important` means the framework is being fought instead of used.
+- **Google's own dom inherits our stylesheet, so the map corrects it in `areaMap.css`** (the same
+  layer, with the flag) — never in the global sheet: our `border-radius: inherit` rounded 168
+  elements inside one map, and our justified `p` reached the api's "Gebruik Ctrl + scrollen …" hint
+  and left it hard against the map's left edge. A third-party surface gets its own correction file
+  (DESIGN.md §8).
 - **Light mode must separate, not just contrast.** A white page hides white cards: the bands are
   white, the canvas is warm paper (`sand-200`) and cards are white again, so the sections read as
   bands. When you add a surface, check it against its _parent_ in both themes, not only its text
   contrast.
 - **Layout:** `max-w-[100rem]` container with the fluid `px-gutter`, sections `py-band`; the hero
   band trades that for `py-hero`, because it is one screen tall and the map is what the room is for
-  (DESIGN.md §5, §7). The hero
+  (DESIGN.md §5, §7). The hero's **panel** is `mx-auto w-fit` with `w-auto max-w-full object-contain`
+  pictures inside: it shrinks around a picture shown whole instead of cropping the map to fill the
+  band, and neither the panel nor the rule knows the picture's size — another file at another ratio
+  lands correctly by itself. The hero
   and footer bands use `inverse-surface` (white in light mode, deep blue in dark): never paint a band
   with a fixed dark colour, and let its contents use the normal ink utilities. `index.css` already
   handles `scroll-margin-block-start` for anchored sections.
@@ -113,10 +145,16 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   the classic offender: it is `content-box`, so 100% used to mean 100% _plus_ its own padding.
 - **Material 3 metrics to keep:** the app bar is the brand orange (`bg-bar text-on-bar`), flat at
   rest, **64px** — Material 3's own top-app-bar height, with no bottom hairline (DESIGN.md §6);
-  **every box shares one corner** — `--radius-box` (2rem / 32px), set once in `@layer overrides`, so
-  `article`, a field, a chip and an action are the same shape (a hand-built panel wears `rounded-box`,
-  never a one-off radius). A radius is clamped to half a box, so one token renders as **two** corners:
-  a 48px control is a pill (24px), a surface is the full 32px — that is the system, not drift.
+  **one corner on every box** — `--radius-box` (**1.5rem** / 24px), set once in `@layer overrides`, so
+  `article`, a field, a chip, an action and a menu all share it (a hand-built panel wears
+  `rounded-box`, never a one-off radius). A radius is clamped to half a box, so the one value renders
+  as the right shape at every height — a 48px control is a **24px pill** (exactly half its height),
+  40px → 20px, 32px → 16px — while a card draws the full 24px: the corner a card wears is the corner
+  the action on it renders. That is the system, not drift.
+  **A thin, long element is a pill, and a pill is 48px tall** — a full-width field, a submit, an
+  accordion row. Prefer the pill whenever a box is much wider than it is tall; only a block (a
+  textarea, a panel) gets the 24px corner on a bigger box. BeerCSS's `large`/`extra` (**56px**) on a
+  bar is a rounded rectangle, not a pill — never put it on a thin element.
   **Every control resolves to one of two heights**: a **field is 48px** (its inner control; the
   wrapper carries no border — the 1px Tailwind leaves on `.field` is taken to 0 in the override
   layer) and so is **an action standing beside a field** (`h-12`), which is what makes a row of
@@ -126,11 +164,20 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   48px only on a control that is **at least 40px tall**. A 32px chip that is a `<button>` therefore
   needs `chip medium` (40px) *and* `tap-target`; a 32px chip that is only a `<span>` label needs
   neither. Section rhythm 32–64px on the 4px grid. Full metrics table: DESIGN.md §5.
+- **A page that imports `beercss/scoped` is a special case.** `contactPage` (and `loginPage`) wrap
+  their sections in `div.beer`, and beerCSS's `* { all: revert }` inside that wrapper is *unlayered*,
+  so it throws Tailwind's normal utilities away — `h-12` or `p-5` written in there does nothing.
+  Use beerCSS's own classes, or the `!` modifier (`h-12!`), which is layered and important and
+  therefore wins. The override layer still lands (the 2px boundary, the one corner): those rules
+  carry the flag.
 - **Motion is wanted here — but restrained.** Every interactive control carries BeerCSS's built-in
   `ripple` (Material 3 press feedback + 10% hover/focus state layer). Tailwind transitions are
   already 200ms on the M3 standard curve (`--ease-standard`, set as the default in `index.css`) —
-  don't name a duration or a curve again. Animate `transform` and `opacity` only, and put
-  `motion-safe:` on anything that _moves_ (lifts, entrances).
+  don't name a duration or a curve again. Animate `transform` and `opacity` only — the sole
+  exception is the landing card's `outline-color` (the flash, §10), because `border` and
+  `box-shadow` are pinned on every `article` and that flash is feedback rather than movement. Put
+  `motion-safe:` on anything that _moves_ (lifts, entrances) — never on the flash: colour-only
+  feedback stays for reduced-motion readers, and the block in `index.css` re-applies it (§11).
 - **`motion` is for enter/exit and list changes only** — `m.*` components (never `motion.*`, the
   root `LazyMotion` is `strict`), with `AnimatePresence`, and curves taken from `MOTION_TRANSITION`
   in `src/motion.ts`. One-shot entrances stay CSS keyframes. **Never add scroll animations**
@@ -208,7 +255,9 @@ The look is **Material 3, implemented with BeerCSS**, wearing the Deltion palett
   (and holds the bar / `main` / footer shell).
 - **Routing:** paths live in `src/data/navigation.ts` and are used with `<Link to={…}>`. A link that
   has to look like a button carries BeerCSS's `.button` (`className="button border text-ink ripple"`)
-  — a bare `<a>` has no height, padding or fill, so `ripple` alone renders a text link. The bar,
+  — a bare `<a>` has no height, padding or fill, so `ripple` alone renders a text link. A link that
+  lands on **a place inside a page** uses that module's anchor (`pointOfInterestPath`), not a path of
+  its own: the page is the same page, and `ScrollToTop` already follows a fragment. The bar,
   `main` and footer are the `AppLayout` inside `src/App.tsx`; a content page starts with `<PageHeader>`
   (band + title, and it sets the document title).
 

@@ -9,19 +9,13 @@ const POPULAR = ROUTES.find((route) => route.popular)!;
 const QUIET = ROUTES.find((route) => !route.popular)!;
 
 /* the wide card is written out in RouteResults, so the list is what renders it */
-const render = (
-  route = POPULAR,
-  onBuild = () => {},
-  saved = false,
-  onToggleSave = () => {},
-) =>
+const render = (route = POPULAR, saved = false, onToggleSave = () => {}) =>
   renderWithRouter(
     <RouteResults
       routes={[route]}
       showAll
       onShowAll={() => {}}
       onReset={() => {}}
-      onBuild={onBuild}
       savedIds={saved ? [route.id] : []}
       onToggleSave={onToggleSave}
     />,
@@ -31,9 +25,10 @@ describe("RouteResults' cards", () => {
   it("names the route and tells it in a line", () => {
     render();
 
-    expect(
-      screen.getByRole("heading", { level: 3, name: POPULAR.title }),
-    ).toBeInTheDocument();
+    /* the heading's name comes from the card's link, which carries the action too ("Open de route …") */
+    expect(screen.getByRole("heading", { level: 3 })).toHaveTextContent(
+      POPULAR.title,
+    );
     expect(screen.getByText(POPULAR.description)).toBeInTheDocument();
   });
 
@@ -74,26 +69,22 @@ describe("RouteResults' cards", () => {
     expect(container.querySelector("polyline")).toBeInTheDocument();
   });
 
-  it("loads the route into the builder from its title", () => {
-    const onBuild = vi.fn();
-    render(POPULAR, onBuild);
+  it("makes the whole card the way to the route's own page", () => {
+    const { container } = render();
 
-    fireEvent.click(screen.getByRole("button", { name: POPULAR.title }));
+    const card = screen.getByRole("link", {
+      name: `Open de route ${POPULAR.title}`,
+    });
 
-    expect(onBuild).toHaveBeenCalledWith(POPULAR);
-  });
-
-  it("opens the route's own page from the arrow in the bottom corner", () => {
-    render();
-
-    expect(
-      screen.getByRole("link", { name: `Open de route ${POPULAR.title}` }),
-    ).toHaveAttribute("href", publicRoutePath(POPULAR.id));
+    expect(card).toHaveAttribute("href", publicRoutePath(POPULAR.id));
+    /* the link is laid over the card, which is what turns the whole card into the target */
+    expect(card).toHaveClass("absolute", "inset-0");
+    expect(container.querySelectorAll("a")).toHaveLength(1);
   });
 
   it("saves the route from the bookmark, and says which state that is", () => {
     const onToggleSave = vi.fn();
-    render(POPULAR, () => {}, false, onToggleSave);
+    render(POPULAR, false, onToggleSave);
 
     const bookmark = screen.getByRole("button", {
       name: `Bewaar ${POPULAR.title} bij je opgeslagen routes`,
@@ -108,7 +99,7 @@ describe("RouteResults' cards", () => {
   });
 
   it("marks a route the reader saved, and offers to take it back", () => {
-    render(POPULAR, () => {}, true);
+    render(POPULAR, true);
 
     expect(screen.getByText("Opgeslagen")).toBeInTheDocument();
     expect(
@@ -118,13 +109,42 @@ describe("RouteResults' cards", () => {
     ).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("keeps the arrow out of the title button, because a control inside a control is not html", () => {
+  it("answers a save with a notice, and says which way it went", () => {
+    const { unmount } = render();
+
+    expect(screen.getByRole("status")).toBeEmptyDOMElement();
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: `Bewaar ${POPULAR.title} bij je opgeslagen routes`,
+      }),
+    );
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Toegevoegd aan je opgeslagen routes.",
+    );
+
+    unmount();
+    render(POPULAR, true);
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: `Haal ${POPULAR.title} uit je opgeslagen routes`,
+      }),
+    );
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Uit je opgeslagen routes gehaald.",
+    );
+  });
+
+  it("keeps the save button out of the card's own link, because a control inside a control is not html", () => {
     const { container } = render();
 
-    expect(container.querySelectorAll("button button")).toHaveLength(0);
     expect(container.querySelectorAll("a button")).toHaveLength(0);
-    /* the title and the bookmark are the card's two buttons; the arrow is a link of its own */
-    expect(container.querySelectorAll("button")).toHaveLength(2);
+    expect(container.querySelectorAll("button button")).toHaveLength(0);
+    /* the card is one link and one button: the whole card opens the route, the bookmark rides on it */
+    expect(container.querySelectorAll("button")).toHaveLength(1);
     expect(container.querySelectorAll("a")).toHaveLength(1);
   });
 });

@@ -36,7 +36,6 @@ import { useSavedRouteIds, toggleSavedRoute } from "../data/savedRoutes.ts";
 import { formatRating } from "../format.ts";
 import type {
   PointOfInterest,
-  Route,
   RouteFilterState,
   TravelMode,
 } from "../types.ts";
@@ -115,11 +114,6 @@ export default function RoutesPage() {
         ? pickedIds.filter((item) => item !== id)
         : [...pickedIds, id],
     );
-  }
-
-  /* a ready-made route goes into the builder as a custom one: its places, in visit order */
-  function buildFromRoute(route: Route) {
-    setPicked(route.poiIds);
   }
 
   /* a filter change collapses the list, so "Toon meer" cannot leave the reader on a list nobody asked for */
@@ -231,8 +225,10 @@ export default function RoutesPage() {
                 description={`Kaart van ${AREA_NAME} met ${AREA_POINTS.length} plekken. De gekozen plekken en hun volgorde staan in de lijst naast de kaart.`}
               />
 
-              {/* the map's own street-view control lives in its bottom-right corner, so the share action takes the corner above the chip instead */}
-              <div className="absolute right-4 top-4 z-20">
+              {/* the corner a thumb reaches on a phone, and the one the share action belongs in: the map's own
+                  zoom control is moved to the top-right in `mapOptions` (§8) so the two can never stack, and the
+                  chip at the top-left still names the map */}
+              <div className="absolute bottom-4 right-4 z-20">
                 <RouteShareButton placeIds={pickedIds} />
               </div>
             </div>
@@ -249,7 +245,7 @@ export default function RoutesPage() {
           <SectionHeading
             eyebrow="Kant-en-klaar"
             title="Routes door de binnenstad"
-            description="Rondjes die anderen al liepen of fietsten, met dezelfde plekken als hierboven. Klik een titel om hem in de bouwer te zetten, of het pijltje voor de hele route."
+            description="Rondjes die anderen al liepen of fietsten, met dezelfde plekken als hierboven. Klik een kaart om de route te openen, of het bookmark om hem te bewaren."
           />
 
           {/* the search box first, then the four filters beside it: one row, so the list below is what the eye lands on */}
@@ -266,7 +262,6 @@ export default function RoutesPage() {
             showAll={showAll}
             onShowAll={() => setShowAll(true)}
             onReset={resetFilters}
-            onBuild={buildFromRoute}
             savedIds={savedIds}
             onToggleSave={(route) => {
               toggleSavedRoute(route.id);

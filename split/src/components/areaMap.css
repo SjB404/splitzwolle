@@ -1,0 +1,14 @@
+/* the map's own correction to our own stylesheet, which the rest of the page never needs: google's dom is
+   built inside the page, so it inherits every rule we write — a surface's corner, and our justified body
+   copy along with it (DESIGN.md §8) */
+@layer overrides {
+  /* beerCSS resets every element to `border-radius: inherit`, which leaks our card corner into google's own dom: 168 elements inside one map were rounded (measured), so the map canvas was a rounded rectangle sitting inside our rounded frame and the tiles read as a card in a card. our own dots are excluded, they are the one thing that has to stay round */
+  .gm-style *:not(gmp-advanced-marker, gmp-advanced-marker *) {
+    border-radius: 0 !important;
+  }
+
+  /* google's "Gebruik Ctrl + scrollen om in- en uit te zoomen" hint is a plain <p>, and our justified body copy (`p` in the components layer, index.css) outranks the `text-align: center` it inherits from its own veil — the sentence sat against the map's left edge with a ragged right one, instead of across its middle. A notice is not body copy: it follows its wrapper like every other centred <p> on the site (§7) */
+  .gm-style-mot {
+    text-align: inherit !important;
+  }
+}

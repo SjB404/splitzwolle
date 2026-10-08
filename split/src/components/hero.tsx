@@ -12,6 +12,7 @@
 
 import { memo, useState } from "react";
 import type { CSSProperties } from "react";
+import "./hero.css";
 import Container from "./container.tsx";
 import { MAP_IMAGES, MAP_SIZE } from "../data/maps.ts";
 import type { MapPicture } from "../types.ts";
@@ -88,24 +89,26 @@ export default function Hero() {
 
         <div
           /* contain keeps a resize of the map inside the panel instead of invalidating the page around it, and the two stacked pictures are the heaviest thing on the page to re-raster while a window is dragged */
-          className="surface [contain:layout_paint] mt-6 flex flex-col overflow-hidden rounded-box border-2 border-line motion-safe:animate-rise sm:mt-8 sm:flex-row"
+          /* w-fit + mx-auto: the panel is only as wide as the picture it can show in full, so a short window shrinks the panel instead of cropping the map — the band around it is the wallpaper, not the frame */
+          className="surface [contain:layout_paint] mx-auto mt-6 flex w-fit flex-col overflow-hidden rounded-box border-2 border-line motion-safe:animate-rise sm:mt-8 sm:flex-row"
           style={fadeStyle}
         >
-          {/* the current map sets the frame and the historic one is stacked on top of it; the frame is as tall as the band can afford, so the picture keeps the height the rail no longer costs it */}
-          <div className="relative w-full flex-none sm:min-w-0 sm:flex-1">
+          {/* the current map sets the frame and the historic one is stacked on top of it. The frame takes the picture's own ratio and the band's one ceiling, so both are always shown whole and the panel is exactly that big — and none of it is written down, so another picture, at another ratio, needs no change here (DESIGN.md §7) */}
+          {/* rounded-none: the panel already clips its own corner, so a child that butts against its neighbour stays square and the two read as one panel instead of two cards (DESIGN.md §5) */}
+          <div className="relative rounded-none sm:min-w-0">
             <MapImage
               image={MAP_IMAGES.satellite}
-              className="h-auto max-h-[calc(100svh-14rem)] w-full object-cover"
+              className="mx-auto h-auto max-h-[calc(100svh-14rem)] w-auto max-w-full object-contain"
               priority
             />
             <MapImage
               image={MAP_IMAGES.historic}
-              className="historic-layer absolute inset-0 h-full w-full object-cover"
+              className="historic-layer absolute inset-0 h-full w-full object-contain"
             />
           </div>
 
           {/* the rail: the words are the track's two ends, so picking a side and dragging to it are the same action */}
-          <div className="flex w-full items-center gap-3 border-t-2 border-line px-gutter py-3 sm:w-16 sm:flex-none sm:flex-col sm:gap-1 sm:border-t-0 sm:border-l-2 sm:px-2">
+          <div className="flex w-full items-center gap-3 rounded-none border-t-2 border-line px-gutter py-3 sm:w-16 sm:flex-none sm:flex-col sm:gap-1 sm:border-t-0 sm:border-l-2 sm:px-2">
             {RAIL_ENDS.map((id, index) => (
               <button
                 key={id}

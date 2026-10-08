@@ -55,7 +55,7 @@ export default function RouteReviewsPanel({ route }: RouteReviewsPanelProps) {
           initial={{ height: 0, opacity: 0 }}
           animate={{ height: "auto", opacity: 1 }}
           transition={MOTION_TRANSITION}
-          className="overflow-hidden"
+          className="overflow-hidden rounded-none"
         >
           <div className="border-t-2 border-line rounded-none p-4">
             <h2 className="mb-4 text-lg font-bold">

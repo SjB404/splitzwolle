@@ -1,5 +1,6 @@
 /* a beerCSS select with a floating label and a chevron — the chevron lands in the field's trailing slot because it is not the first child, and suffix reserves its room */
 
+import "./filterSelect.css";
 import type { SelectOption } from "../types.ts";
 import Icon from "./icon.tsx";
 

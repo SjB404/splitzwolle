@@ -13,6 +13,7 @@ import {
   POI_PATH,
   ROUTES_PATH,
   builderPath,
+  pointOfInterestPath,
   publicRoutePath,
 } from "../../src/data/navigation.ts";
 
@@ -48,12 +49,14 @@ export {
   ROUTES_PATH,
   PLANNING_PATH,
   POI_PATH,
+  CONTACT_PATH,
   LOGIN_PATH,
   CUSTOM_ROUTE_PATH,
   PUBLIC_ROUTE_PATH,
   isActiveLink,
   builderPath,
   publicRoutePath,
+  pointOfInterestPath,
   parsePlaceIds,
 } from "../../src/data/navigation.ts";
 
@@ -122,6 +125,12 @@ export const BUILT_ROUTE_PATH = builderPath(
 export const PAGES: Page[] = [
   ...STATIC_PAGES,
   ...ROUTE_PAGES,
+  /* a place's own url: what a home tile links to, so the landing is overflow-checked and audited too */
+  {
+    path: pointOfInterestPath(POINTS_OF_INTEREST[0].id),
+    title: "Bezienswaardigheden in Zwolle · Zwolle Routes",
+    heading: /Bezienswaardigheden in Zwolle/,
+  },
   {
     path: BUILT_ROUTE_PATH,
     title: "Stel je route samen · Zwolle Routes",

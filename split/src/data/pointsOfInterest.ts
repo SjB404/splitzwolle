@@ -1,6 +1,6 @@
 /* the places the site knows about — every one of them is inside the area it covers (data/area.ts), and every coordinate, address and place id comes from google's places api rather than from anyone's memory */
 /* how the list was resolved, and how to resolve it again after adding a place, is written down in docs/DESIGN.md §8; the ratings, review counts and descriptions are still placeholder content for the collaborator's api */
-/* `image` is where a picture of a place goes once there is one; the preview card and the home strip show a plain card without it */
+/* `image` is optional and comes from the collaborator's api; the pictures shipped with the site are matched to a place by its id in data/placeImages.ts, because this module is read by the e2e suite (docs/place-images.md) */
 
 import { haversineKm, STREET_FACTOR } from "./routeGeometry.ts";
 import type {
@@ -16,7 +16,6 @@ import type {
 export const CATEGORIES: PoiCategory[] = [
   { id: "Monumenten", icon: "account_balance" },
   { id: "Musea", icon: "museum" },
-  { id: "Parken", icon: "park" },
   { id: "Culinair", icon: "restaurant" },
 ];
 
@@ -82,7 +81,7 @@ const RESOLVED_PLACES: Omit<PointOfInterest, "distanceKm">[] = [
   },
   {
     id: "grote-kerk",
-    name: "Grote Kerk (Academiehuis)",
+    name: "Academiehuis de Grote Kerk",
     category: "Monumenten",
     era: "Toen",
     area: "Binnenstad",
@@ -93,6 +92,20 @@ const RESOLVED_PLACES: Omit<PointOfInterest, "distanceKm">[] = [
     placeId: "ChIJqZQ6pC_fx0cRQUcrDmBkiho",
     address: "Grote Markt 18, 8011 LW Zwolle",
     coordinates: { lat: 52.5118557, lng: 6.0922375 },
+  },
+  {
+    id: "balletjeshuis",
+    name: "Het Zwolse Balletjeshuis",
+    category: "Culinair",
+    era: "Nu",
+    area: "Binnenstad",
+    description:
+      "De snoepwinkel aan het Grote Kerkplein waar de Zwolse balletjes nog altijd worden gemaakt.",
+    rating: 4.4,
+    reviews: 146,
+    placeId: "ChIJq4LGCy_fx0cRSVfXheD08ic",
+    address: "Grote Kerkplein 13, 8011 PK Zwolle",
+    coordinates: { lat: 52.511179, lng: 6.0922176 },
   },
   {
     id: "museum-de-fundatie",
@@ -123,41 +136,13 @@ const RESOLVED_PLACES: Omit<PointOfInterest, "distanceKm">[] = [
     coordinates: { lat: 52.5129789, lng: 6.0905366 },
   },
   {
-    id: "park-eekhout",
-    name: "Park Eekhout",
-    category: "Parken",
-    era: "Nu",
-    area: "Binnenstad",
-    description:
-      "Het oudste park van Zwolle, een rustige groene long tussen de singel en het station.",
-    rating: 4.5,
-    reviews: 96,
-    placeId: "ChIJm7WGti7fx0cRRbF2N7FHpoI",
-    address: "Burgemeester van Roijensingel 4, 8011 CH Zwolle",
-    coordinates: { lat: 52.5091092, lng: 6.0889634 },
-  },
-  {
-    id: "restaurant-de-librije",
-    name: "De Librije",
-    category: "Culinair",
-    era: "Nu",
-    area: "Noordereiland",
-    description:
-      "Het beroemdste restaurant van de stad, gevestigd in een oude gevangenis aan het Spinhuisplein.",
-    rating: 4.8,
-    reviews: 512,
-    placeId: "ChIJZTzQ4y_fx0cR4m292pUWJyM",
-    address: "Spinhuisplein 1, 8011 ZZ Zwolle",
-    coordinates: { lat: 52.515378, lng: 6.0977888 },
-  },
-  {
     id: "thorbeckegracht",
-    name: "Thorbeckegracht",
+    name: "Thorbeckegracht & Stadsmuren",
     category: "Culinair",
     era: "Nu",
     area: "Binnenstad",
     description:
-      "De gracht met de terrassen: aan het water eten met de boten en de oude pakhuizen op de achtergrond.",
+      "De gracht met de terrassen én de oude stadsmuur: aan het water eten met de boten en de pakhuizen op de achtergrond.",
     rating: 4.6,
     reviews: 187,
     placeId: "ChIJ5UcPBjDfx0cRIOYsWSZBdac",
@@ -165,18 +150,32 @@ const RESOLVED_PLACES: Omit<PointOfInterest, "distanceKm">[] = [
     coordinates: { lat: 52.5147059, lng: 6.0950191 },
   },
   {
-    id: "melkmarkt",
-    name: "Melkmarkt",
-    category: "Culinair",
+    id: "vrouwenhuis",
+    name: "Het Vrouwenhuis",
+    category: "Musea",
     era: "Toen",
     area: "Binnenstad",
     description:
-      "Het gezelligste plein van de binnenstad, vol terrassen en kleine lunchzaken.",
-    rating: 4.4,
-    reviews: 264,
-    placeId: "ChIJ-S5tNS7fx0cRlm2tsYMtJc4",
-    address: "Melkmarkt, 8011 MB Zwolle",
-    coordinates: { lat: 52.5129579, lng: 6.0912076 },
+      "Het zeventiende-eeuwse vrouwenhofje aan de Voorstraat, met een interieur dat al eeuwen intact is.",
+    rating: 4.1,
+    reviews: 31,
+    placeId: "ChIJ6b4TQC7fx0cRYdBotZ6rUsc",
+    address: "Voorstraat 46, 8011 ML Zwolle",
+    coordinates: { lat: 52.5129419, lng: 6.0896251 },
+  },
+  {
+    id: "van-der-velde-in-de-broeren",
+    name: "Van der Velde in de Broeren",
+    category: "Monumenten",
+    era: "Nu",
+    area: "Binnenstad",
+    description:
+      "De boekhandel in de Broerenkerk, met de boeken tussen de hoge gewelven van de oude kerk.",
+    rating: 4.6,
+    reviews: 6359,
+    placeId: "ChIJ3fBwNSXfx0cRngG_gUnrhtU",
+    address: "Achter de Broeren 1-3, 8011 VA Zwolle",
+    coordinates: { lat: 52.5137755, lng: 6.0954399 },
   },
 ];
 

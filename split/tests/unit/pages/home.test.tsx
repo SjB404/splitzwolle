@@ -2,6 +2,11 @@ import { fireEvent, screen, waitFor } from "@testing-library/react";
 import HomePage from "../../../src/pages/homePage.tsx";
 import { ROUTE_PREVIEW_COUNT } from "../../../src/data/routes.ts";
 import { MAP_IMAGES } from "../../../src/data/maps.ts";
+import {
+  INITIAL_POI_FILTERS,
+  filterPointsOfInterest,
+} from "../../../src/data/pointsOfInterest.ts";
+import { pointOfInterestPath } from "../../../src/data/navigation.ts";
 import { renderWithRouter } from "../helpers.tsx";
 
 const POI_PREVIEW_COUNT = 5;
@@ -186,6 +191,27 @@ describe("HomePage", () => {
       }),
     ).toBeInTheDocument();
     expect(screen.getByText("0 bezienswaardigheden")).toBeInTheDocument();
+  });
+
+  it("links every place tile at the card the places page opens on", () => {
+    const { container } = renderWithRouter(<HomePage />);
+
+    /* the strip is the resting sort, and each tile links at its own place's card (§6) */
+    const shown = filterPointsOfInterest(INITIAL_POI_FILTERS).slice(
+      0,
+      POI_PREVIEW_COUNT,
+    );
+
+    expect(shown).toHaveLength(POI_PREVIEW_COUNT);
+
+    for (const point of shown) {
+      const tile = container.querySelector(
+        `a[href="${pointOfInterestPath(point.id)}"]`,
+      );
+
+      expect(tile, point.name).toBeInTheDocument();
+      expect(tile).toHaveTextContent(point.name);
+    }
   });
 
   it("links both strips at their own page", () => {

@@ -1,6 +1,7 @@
-/* the routes the filters matched — two per row, because each card carries a description and three actions; plus the empty state and the paging rule (how many is a page lives in data/routes.ts) */
+/* the routes the filters matched — two per row, because each card carries a description and two actions; plus the empty state, the paging rule (how many is a page lives in data/routes.ts) and the notice a save answers with */
 /* the card is written out in the map below and not as a component of its own: this list is its only caller */
 
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { AnimatePresence, m } from "motion/react";
 import EmptyState from "./emptyState.tsx";
@@ -22,29 +23,67 @@ interface RouteResultsProps {
   onShowAll: () => void;
   /* the empty state's way out, which only the page can define */
   onReset: () => void;
-  onBuild: (route: Route) => void;
   /* the routes the reader saved, read from the browser by the page and handed down as facts */
   savedIds: string[];
   onToggleSave: (route: Route) => void;
 }
+
+/* how long the saved-route notice stays: long enough to read twice, short enough to ignore */
+const NOTICE_MS = 4000;
 
 export default function RouteResults({
   routes,
   showAll,
   onShowAll,
   onReset,
-  onBuild,
   savedIds,
   onToggleSave,
 }: RouteResultsProps) {
+  /* the notice the save button answers with, and the one piece of state this list owns */
+  const [notice, setNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!notice) return;
+
+    const timer = setTimeout(() => setNotice(null), NOTICE_MS);
+
+    return () => clearTimeout(timer);
+  }, [notice]);
+
+  /* the notice lives in a live region that is always in the tree, so a screen reader reads it the moment the text arrives; the pill itself is what animates in and out */
+  const noticeElement = (
+    <div
+      role="status"
+      aria-live="polite"
+      className="pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2"
+    >
+      <AnimatePresence>
+        {notice && (
+          <m.p
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={MOTION_TRANSITION}
+            className="surface-container-highest min-h-12 content-center rounded-box border-2 border-line px-5 text-sm font-semibold text-ink"
+          >
+            {notice}
+          </m.p>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+
   if (routes.length === 0) {
     return (
-      <EmptyState
-        icon="search"
-        title="Geen routes gevonden"
-        description="Pas de filters aan of zoek op een andere wijk, titel of thema."
-        action={<ClearFiltersButton onClick={onReset} className="mt-2" />}
-      />
+      <>
+        <EmptyState
+          icon="search"
+          title="Geen routes gevonden"
+          description="Pas de filters aan of zoek op een andere wijk, titel of thema."
+          action={<ClearFiltersButton onClick={onReset} className="mt-2" />}
+        />
+        {noticeElement}
+      </>
     );
   }
 
@@ -65,10 +104,10 @@ export default function RouteResults({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={MOTION_TRANSITION}
-                className="s12 m6 no-padding group relative flex flex-col overflow-hidden transition-transform motion-safe:hover:-translate-y-1"
+                className="s12 m6 no-padding group relative flex flex-col overflow-hidden transition-transform motion-safe:hover:-translate-y-1 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-(--primary)"
               >
-                {/* the frame keeps a wide card's ratio: a 2-up card is ~760px at 1600, so the 16:10 of the small card would be 475px tall */}
-                <div className="relative aspect-[21/9] overflow-hidden surface-container">
+                {/* the frame keeps a wide card's ratio: a 2-up card is ~760px at 1600, so the 16:10 of the small card would be 475px tall; square, so it butts the card body and the panel's own clip draws the top corners (DESIGN.md §5) */}
+                <div className="relative aspect-[21/9] overflow-hidden rounded-none surface-container">
                   <MapSnapshot
                     points={routeCoordinates(route)}
                     alt={`Kaart met de route ${route.title}`}
@@ -92,26 +131,50 @@ export default function RouteResults({
                     )}
                   </div>
 
-                  <span className="chip surface-container-lowest absolute right-4 top-4 text-[11px] font-semibold">
+                  <span className="chip surface-container-lowest absolute bottom-4 right-4 text-[11px] font-semibold">
                     {route.area}
                   </span>
 
                   <span className="chip surface-container-lowest absolute bottom-4 left-4 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-muted">
                     {route.theme}
                   </span>
-                </div>
 
-                <div className="flex flex-1 flex-col p-4">
-                  {/* one stretched button makes the whole card load the route into the builder; content-[''] matters because BeerCSS's reset clears both pseudo-elements */}
-                  <h3 className="text-xl font-bold">
+                  {/* the save button rides *on* the card, in the corner the drawn notes live in: the wrapper positions
+                      it (a `.tap-target` cannot be absolute itself — its own unlayered `position: relative` wins,
+                      the same reason the share button is wrapped), it is a sibling of the card's own link and lifted
+                      above it with `z-10`, so a tap saves without opening the route (DESIGN.md §7). A control that is
+                      *on* fills with the seed and needs no boundary, which is why `border` is only in the off state */}
+                  <div className="absolute right-4 top-4 z-10">
                     <button
                       type="button"
-                      onClick={() => onBuild(route)}
-                      className="text-left after:absolute after:inset-0 after:content-['']"
+                      aria-pressed={saved}
+                      aria-label={
+                        saved
+                          ? `Haal ${route.title} uit je opgeslagen routes`
+                          : `Bewaar ${route.title} bij je opgeslagen routes`
+                      }
+                      onClick={() => {
+                        onToggleSave(route);
+
+                        setNotice(
+                          saved
+                            ? "Uit je opgeslagen routes gehaald."
+                            : "Toegevoegd aan je opgeslagen routes.",
+                        );
+                      }}
+                      className={`button circle ripple tap-target ${
+                        saved
+                          ? "bg-selected text-on-selected"
+                          : "surface-container-lowest border"
+                      }`}
                     >
-                      {route.title}
+                      <Icon name={saved ? "bookmark" : "bookmark_border"} />
                     </button>
-                  </h3>
+                  </div>
+                </div>
+
+                <div className="flex flex-1 flex-col rounded-none p-4">
+                  <h3 className="text-xl font-bold">{route.title}</h3>
 
                   <p className="mt-2 line-clamp-2 text-sm text-ink-muted">
                     {route.description}
@@ -125,33 +188,19 @@ export default function RouteResults({
                     <span className="text-xs text-ink-muted">
                       ({route.reviews} beoordelingen)
                     </span>
-
-                    {/* both controls are relative z-10 siblings of the stretched button, never children of it: a control inside a control is not html */}
-                    <div className="relative z-10 ml-auto flex items-center gap-1">
-                      <button
-                        type="button"
-                        aria-pressed={saved}
-                        aria-label={
-                          saved
-                            ? `Haal ${route.title} uit je opgeslagen routes`
-                            : `Bewaar ${route.title} bij je opgeslagen routes`
-                        }
-                        onClick={() => onToggleSave(route)}
-                        className="button circle transparent ripple tap-target text-ink"
-                      >
-                        <Icon name={saved ? "bookmark" : "bookmark_border"} />
-                      </button>
-
-                      <Link
-                        to={publicRoutePath(route.id)}
-                        aria-label={`Open de route ${route.title}`}
-                        className="button circle transparent ripple tap-target text-ink"
-                      >
-                        <Icon name="arrow_forward" />
-                      </Link>
-                    </div>
                   </div>
                 </div>
+
+                {/* the whole card is the way to the route's own page: an empty link laid over it, last so it
+                    paints above the picture and the body, and under the save button's z-10. A stretched
+                    `::after` on the title cannot do this — beerCSS's reset makes every element relative, so
+                    inset-0 would stop at the heading instead of reaching the card. It stays square (§5) and
+                    hands the focus ring to the card, which draws it outside its own clip */}
+                <Link
+                  to={publicRoutePath(route.id)}
+                  aria-label={`Open de route ${route.title}`}
+                  className="absolute inset-0 z-0 rounded-none focus-visible:outline-none"
+                />
               </m.article>
             );
           })}
@@ -174,6 +223,8 @@ export default function RouteResults({
           </p>
         </div>
       )}
+
+      {noticeElement}
     </>
   );
 }

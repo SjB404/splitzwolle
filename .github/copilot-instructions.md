@@ -12,6 +12,12 @@ with a historic map layer beside the present-day map.
 - No narration of your own process ("I'll now…", "Let me check…", "Here's what I did").
 - Long explanations belong in `docs/DESIGN.md`, where the next reader looks for them.
 
+## Version control
+
+**Never commit or push anything.** Leave every change uncommitted and unstaged in the working tree,
+so the user reviews it and lands it themselves. Read-only git is fine (`status`, `diff`, `log`,
+`show`); writing commands are not (`commit`, `push`, `add`, `stash`, `reset`, switching branches).
+
 ## Design & UI
 
 The design language is **Material 3 (Material You)**, implemented with **BeerCSS**, wearing the
@@ -39,14 +45,17 @@ Vite 8 + React 19 + TypeScript, Tailwind CSS v4 via `@tailwindcss/vite`, **BeerC
 **`motion`** for enter/exit animation, oxlint.
 **Google Maps** (the JavaScript API, loaded as a script by `src/data/googleMaps.ts`) draws every
 map except the hero's — see `docs/DESIGN.md` §8. The key is `VITE_GOOGLE_MAPS_API_KEY` in
-`split/.env.local`; without it every map falls back to the map artwork.
+`split/.env.local`; without it every map falls back to the map artwork. What that key is allowed to
+cost — free caps, prices, the SKUs to avoid — is in `docs/maps-costs.md`.
 Express is a declared dependency for the (currently minimal) `split/backend/` folder.
 
 ## Project Layout
 
 - **The Vite project root is `split/`**, not the repo root. The short `src/…` paths below
   are relative to **`split/`**; a path written out in full starts at the repo root.
-- `src/index.css` — Tailwind import + all `@theme` design tokens
+- `src/index.css` — Tailwind import + all `@theme` design tokens, the colour roles and the rules every
+  component shares. CSS that only draws one component lives with it (`src/components/hero.css`,
+  `areaMap.css`, `filterSelect.css`), imported by that component — see DESIGN.md §2
 - `src/main.tsx` — entry, mounts `<App />`
 - `src/App.tsx` — the router plus the shell: it maps paths → pages, and the bar / `main` / footer
   around them and the scroll-to-top effect are written out in this file, because nothing else uses
@@ -69,7 +78,9 @@ Express is a declared dependency for the (currently minimal) `split/backend/` fo
   url, and `/planning` redirects to the builder. The link *lists* are not here: the bar's are in
   `components/navbar.tsx`, the footer's in `components/footer.tsx`.
 - `src/data/` — the content and the logic the pages share (`routes.ts`, `pointsOfInterest.ts`,
-  `area.ts`, `maps.ts`, `routeGeometry.ts`, `directions.ts`, `navigation.ts`, `savedRoutes.ts`,
+  `placeImages.ts` — the place pictures, kept out of `pointsOfInterest.ts` so the e2e suite can read
+  the data with plain node — `area.ts`, `maps.ts`, `routeGeometry.ts`, `directions.ts`,
+  `navigation.ts`, `savedRoutes.ts`,
   `googleMaps.ts` — the loader, the options, the colours, the Places/Routes calls — and
   `usePlannedRoute.ts`, the route between the picked places); `src/format.ts`
   formats the Dutch `nl-NL` values. `savedRoutes.ts` is the reader's own list in `localStorage`,

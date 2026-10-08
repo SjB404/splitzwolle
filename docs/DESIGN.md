@@ -53,11 +53,18 @@ represents the present. They are placed adjacently (map layers, route artwork) t
 
 Three pieces, and the order between them matters:
 
-| Piece              | Where                                        | Owns                                                                                                                 |
-| ------------------ | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Deltion palette    | `src/index.css` → `@theme static`            | Two seeds (`--seed-orange`, `--seed-blue`) and the ramps derived from them: `orange-*`, `blue-*`, `sand-*`, `haze-*` |
-| Material 3 roles   | `src/index.css` → `:root, body.light`        | `--primary`, `--surface`, `--outline`, … that BeerCSS reads                                                          |
-| BeerCSS components | `src/index.css` → `@import … layer(beercss)` | Buttons, fields, cards, chips, grid, slider, icons                                                                   |
+| Piece              | Where                                                          | Owns                                                                                                                 |
+| ------------------ | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Deltion palette    | `src/index.css` → `@theme static`                              | Two seeds (`--seed-orange`, `--seed-blue`) and the ramps derived from them: `orange-*`, `blue-*`, `sand-*`, `haze-*` |
+| Material 3 roles   | `src/index.css` → `:root, body.light`                          | `--primary`, `--surface`, `--outline`, … that BeerCSS reads                                                          |
+| BeerCSS components | `src/index.css` → `@import … layer(beercss)`                   | Buttons, fields, cards, chips, grid, slider, icons                                                                   |
+| One component      | `src/components/<component>.css`, imported by that component   | what only that component draws — today the hero's layer fade (`hero.css`), the fix for Google's own DOM inside a map (`areaMap.css`) and the chosen filter's brand fill (`filterSelect.css`) |
+
+**Where CSS lives.** `index.css` holds what the whole page needs: the tokens, the colour roles, the
+typography rules, and the corrections every `beercss` component shares. A rule that only ever draws
+**one component** goes in that component's own stylesheet next to it, imported by it (the same
+`@layer overrides` when it is taking something back from the framework) — a component is a file in
+this repo, and its style is part of it.
 
 ### Cascade layers
 
@@ -72,15 +79,16 @@ Three pieces, and the order between them matters:
 - `beercss` sits **below** the utilities — Tailwind layout and spacing classes still win.
 - `overrides` sits **first**, which for `!important` declarations means **last word** (the cascade
   inverts for important rules). It is the one place a framework rule is taken back, and every rule
-  in it carries the flag — a normal declaration there would be the weakest in the file. Today it
-  holds seven things: **the 2px boundary** (§5, §7) — every outlined control, every card and panel,
-  and the floating label's notch, all widened from BeerCSS's 1px _without moving the text_; **the one
-  corner** — `--radius-box` on every box, because beerCSS ships four radii (§5); the three
-  rules that make a **chosen filter's brand fill readable** (§7); the rule that keeps a long
-  **`<select>` value on one line** (BeerCSS's `all: unset` drops the browser's own `white-space`), plus
+  in it carries the flag — a normal declaration there would be the weakest in the file. `index.css`
+  keeps six things in it: **the 2px boundary** (§5, §7) — every outlined control, every card and
+  panel, and the floating label's notch, all widened from BeerCSS's 1px _without moving the text_;
+  **the one corner** — `--radius-box` on every box, because beerCSS ships four radii of its own (§5); the rule that keeps a long **`<select>` value on one
+  line** (BeerCSS's `all: unset` drops the browser's own `white-space`), plus
   the trimmed trailing slot that makes room for it; the two things BeerCSS gets wrong in the **map
   slider**; **a button is a border box** — beerCSS draws it `content-box`, so a full-width row used to
   measure 100% of its column _plus_ its own padding (§6); and the framework-wide **shadow switch-off**.
+  A component's own file adds to the same layer, so it is read the same way (see the `filterSelect`
+  and `areaMap` stylesheets).
 
 Practical consequences:
 
@@ -94,6 +102,13 @@ Practical consequences:
 4. To beat a BeerCSS `!important` you cannot simply out-`!important` it from an unlayered rule —
    layered important always wins over unlayered important. Put the override in `@layer overrides`
    instead.
+5. Two pages (`contactPage`, `loginPage`) import **`beercss/scoped`** and wrap their sections in a
+   `div.beer`. Inside that wrapper beerCSS carries `* { all: revert }`, and because that rule is
+   unlayered it throws Tailwind's *normal* utilities away: an `h-12` or a `p-5` written in there does
+   nothing. Those pages use beerCSS's own classes, or a utility with the **`!`** modifier (`h-12!` —
+   layered *and* important, so it wins). Everything the design system imposes still arrives, because
+   `@layer overrides` carries the flag: the 2px boundary and the one corner land on a scoped page
+   exactly as they do elsewhere.
 
 ### Class-name collisions to respect
 
@@ -118,9 +133,15 @@ Tailwind utility of the same name:
   (a Tailwind utility, so it wins) takes it back.
 - `nav > :is(ol, ul) > li` also `all: unset`s the items, so a list that _is_ meant to be a nav
   menu never inherits anything by accident.
-- `* { border-radius: inherit }` is on **every element**, so a `border-t` divider inside a 2rem
+- `* { border-radius: inherit }` is on **every element**, so a `border-t` divider inside a 1rem
   card is painted as the top edge of a rounded box and curves away from the card's straight edges.
-  A divider is a line: give it `rounded-none` (§7).
+  A divider is a line: give it `rounded-none` (§7). The same inheritance curves the seam between two
+  children of a clipped panel — the hero's picture and its rail — so anything that butts against its
+  neighbour or the panel's own edge is squared too (§5).
+- `* { position: relative }` is on **every element too** — the trap a "stretched link" walks into. A
+  link whose `::after` is `absolute inset-0` to make a whole card clickable fills the link's own box
+  (or its nearest positioned parent), never the card, because every ancestor already establishes a
+  containing block. A whole-card target is an **overlay link** as a direct child instead (§7).
 
 ### Icons
 
@@ -237,8 +258,8 @@ Five rules make that work — each exists because ignoring it produced a colour 
 
 | Shade                       | Value                 | The job it does                                                                                                                     |
 | --------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `orange-500`                | `#f68221`             | The brand orange itself: the light bar, the selected segment, route lines, map pins — **and every heading and accent in dark mode** |
-| `orange-100`                | `#ffede2`             | **Light orange** — the light tint: unselected buttons, selected chips, quiet fills                                                  |
+| `orange-500`                | `#f68221`             | The brand orange itself: the light bar, a selected chip, route lines, map pins — **and every heading and accent in dark mode** |
+| `orange-100`                | `#ffede2`             | **Light orange** — the light tint: text selection, quiet fills, the selected card                                                     |
 | `orange-50`                 | `#fff6f1`             | The faintest tint, for rows and hover states                                                                                        |
 | `orange-200` … `orange-400` | lighter and lighter   | Decoration only: map water, artwork tints                                                                                           |
 | `blue-500`                  | `#282c6d`             | The brand blue itself — **every heading and accent in light mode** (12.6:1 on white)                                                |
@@ -254,7 +275,7 @@ and they trade roles when the theme flips:
 
 |                   | Light                                                                                 | Dark                                                                                |
 | ----------------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Leading colour    | **Orange, as fill** — the bar, the selected segment, the light tints, the route lines | **Blue, as surface** — every canvas, card, band and button, desaturated toward grey |
+| Leading colour    | **Orange, as fill** — the bar, a selected chip, the light tints, the route lines     | **Blue, as surface** — every canvas, card, band and button, desaturated toward grey, with the selected chip the one full-strength blue |
 | Supporting colour | Blue is the _ink_: every heading, every accent, body copy, icons, hairlines           | Orange is the _ink and highlight_: headings, the eyebrow, the avatar, route lines   |
 | Never             | Orange text — it would have to be brown to be legible                                 | Orange over large areas — an orange button fill, an orange panel, orange body copy  |
 
@@ -267,7 +288,8 @@ and they trade roles when the theme flips:
 | `--primary-container` / `--on-primary-container`     | light `orange-100` / `blue-900`, dark `blue-800` / `blue-100`                                                                | The **quiet** fill next to a primary one: light orange tint in light mode, deep blue in dark     |
 | `--inverse-primary`                                  | light `orange-500`, dark `orange-500`                                                                                        | Orange on the bands                                                                              |
 | `--secondary` / `--on-secondary`                     | light `blue-500` / white, dark `blue-300` / `blue-950`                                                                       | Deltion blue                                                                                     |
-| `--secondary-container` / `--on-secondary-container` | light `orange-100` / `blue-900`, dark `blue-800` / `blue-100`                                                                | Selected chip, active nav row                                                                    |
+| `--secondary-container` / `--on-secondary-container` | light `orange-100` / `blue-900`, dark `blue-800` / `blue-100`                                                                | Selected **surfaces** (the place card that follows the map) and beerCSS's own containers         |
+| `--selected` / `--on-selected`                       | light `orange-500` / **white**, dark `blue-500` / **white**                                                                  | The fill of a **selected control** — a chip that is on: the full brand seed, never a tint of it  |
 | `--tertiary` / `--tertiary-container`                | `sand-300` / `sand-200`                                                                                                      | Historic paper                                                                                   |
 | `--surface` / `--on-surface`                         | light `sand-200` / `blue-900`, dark `navy-900` / `blue-50`                                                                   | Canvas + body text                                                                               |
 | `--surface-variant` / `--on-surface-variant`         | light `haze-200` / blue at 72% on white (5.5:1), dark `navy-800` / `blue-200`                                                | Map water, muted text                                                                            |
@@ -307,7 +329,8 @@ a dark surface, and containers step **up** in lightness instead of down.
 | `--on-primary`                                       | `blue-950`                                        | Deep navy on the light blue fill (8.1:1)                                                                             |
 | `--primary-container` / `--on-primary-container`     | `blue-800` / `blue-100`                           | The unselected / quiet fill — a step of blue, not of orange                                                          |
 | `--secondary` / `--on-secondary`                     | `blue-300` / `blue-950`                           | Deltion blue lifted to a light tone                                                                                  |
-| `--secondary-container` / `--on-secondary-container` | `blue-800` / `blue-100`                           | The `.fill` selected state                                                                                           |
+| `--secondary-container` / `--on-secondary-container` | `blue-800` / `blue-100`                           | The selected **surface** and beerCSS's own containers                                                                |
+| `--selected` / `--on-selected`                       | `blue-500` (`#282c6d`) / **white**                | The selected **control**: the true Deltion blue, the mirror of light mode's orange, under white                      |
 | `--surface` / `--on-surface`                         | `navy-900` (`#0d0f21`) / `blue-50`                | The dark canvas — the brand navy with a third of its chroma removed                                                  |
 | `--surface-container-*`                              | `navy-950` → `navy-800` → `navy-700` → `navy-600` | Cards and panels step **up** out of the canvas                                                                       |
 | `--inverse-surface` / `--inverse-on-surface`         | `navy-950` / `haze-100`                           | The band is one step _deeper_ than the canvas, so hero and footer still read as bands                                |
@@ -335,16 +358,16 @@ carries or describes it uses roles.
 ### Color rules
 
 1. **Orange is a fill in light mode and ink in dark mode — never the other way round.** Light mode
-   leads with orange as the bar, the selected segment and the warm tints, and writes in blue, because
+   leads with orange as the bar, a selected chip and the warm tints, and writes in blue, because
    every orange dark enough to read on paper has already turned brown and stopped being the brand
    colour (rule 1 of the ramp). Dark mode fills in blue and writes in the true `#f68221`, which
    measures 7.4:1 on the navy.
 2. **Text _on_ the brand orange is white; text on a light orange tint is blue.** White is only ever
-   placed on `orange-500` itself — the bar, the selected segment, a filled action, the artwork badge —
+   placed on `orange-500` itself — the bar, a selected chip, a filled action, the artwork badge —
    and never on the `orange-100` tints (`--primary-container`), where it would be invisible; those
    carry `blue-900`. **This is the one deliberate contrast trade in the system:** white on `#f68221`
-   measures **2.6:1** (blue on the same orange measures 7.8:1), so the light-mode bar and the selected
-   segment are below WCAG AA. It buys the brand's own pairing and a bar that does not read as a
+   measures **2.6:1** (blue on the same orange measures 7.8:1), so the light-mode bar and a selected
+   chip are below WCAG AA. It buys the brand's own pairing and a bar that does not read as a
    different palette. Every alternative was worse — a darkened orange is brown — so if the bar is ever
    re-examined, the fix is to darken the _fill_, not to move the text. Until then this is documented
    rather than silently allowed (§11, §16).
@@ -419,36 +442,55 @@ their own edges, and a line that does not wrap is untouched by justification.
 | Card inner padding      | `p-5` (the `article` itself is `no-padding` so the artwork can bleed)                                                                                                                                                 |
 | Stacked element gap     | `gap-3` (buttons), `gap-6` (footer blocks)                                                                                                                                                                            |
 
-**Shape** — **one corner on every box.** BeerCSS ships four radii (a 2rem round field, a
+**Shape** — **one corner on every box: 24px.** BeerCSS ships four radii (a 2rem round field, a
 1.25rem button, a 0.75rem card, a 0.5rem chip), so a page carried four shape systems at once: a pill
-search bar directly above a rounded rectangle card. The corner is one token, `--radius-box` (2rem),
-applied once in `@layer overrides` (§2) the way the 2px boundary is — a hand-built panel reaches for
-`rounded-box` instead of a one-off utility. A radius wider than half a box is scaled down to half of
-it, which is why a short control still reads as a pill and `.circle` is still a circle:
+search bar directly above a rounded rectangle card. The corner is one token, `--radius-box`
+(**1.5rem**, 24px at the root size the app sets), applied once in `@layer overrides` (§2) the way the
+2px boundary is — and a hand-built panel reaches for it as `rounded-box` instead of a one-off utility:
 
-| Element                         | Source                                                                                                                           |
-| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Fields, buttons, chips, badges  | `--radius-box` (2rem) — a short box is a pill                                                                                    |
-| Cards, map panels               | `--radius-box` (2rem) — add `overflow-hidden` so artwork follows the radius; a hand-built panel uses `rounded-box` (2rem)        |
-| Icon buttons                    | BeerCSS `.circle` on a `<button>`                                                                                                |
-| Anything square                 | Never — nothing here is square                                                                                                   |
-Because the radius is *clamped to half a box*, one token still renders as two corners: a 48px control draws a **24px** corner — a true pill — while a surface draws the full **32px**. That is deliberate, not drift: the pill is the control family's shape and the 32px corner the surface family's, and it is what lets a search bar sit directly above a card without either reading as wrong.
+| Element                         | Source                                                                       |
+| ------------------------------- | ---------------------------------------------------------------------------- |
+| Fields, buttons, chips, badges  | `--radius-box` (1.5rem) — a 48px control clamps to exactly half: a true pill  |
+| Cards, map panels, menus        | `--radius-box` (1.5rem) — the full 24px, a corner rather than half a card     |
+| Icon buttons                    | BeerCSS `.circle` on a `<button>`                                             |
+| Anything square                 | Only a seam: a divider or a child butting inside a clipped panel (see below)   |
+24px is the value that works for the whole page at once. Because a radius is *clamped to half a box*, the one token renders as the right corner at every control height — a 48px field draws **24px**, a 40px action **20px**, a 32px chip **16px** — while a card simply draws the 24px it says: the corner a card wears is the corner the action on it renders. Anything larger would round the cards past their own controls, anything smaller would square the pills off, and it is what lets a search bar sit directly above a card without either reading as wrong.
 
 **Control metrics** — every single-line control resolves to the same handful of numbers, which is what makes a row of them read as one line instead of five boxes at four heights:
 
 | Control                         | Height                   | Corner             | Hit area                     |
 | ------------------------------- | ------------------------ | ------------------ | ---------------------------- |
-| Field (`.field`, its control)   | **48px**                 | 32px → 24px (pill) | the control itself           |
-| Action standing beside a field  | **48px** (`h-12`)        | 32px → 24px (pill) | the control itself           |
-| Filled / outlined action, alone | 40px (BeerCSS `--_size`) | 32px → 24px (pill) | `tap-target` → 48px          |
+| **Thin, long bar** (a full-width field, a submit, an accordion row) | **48px** | 1.5rem → **24px (pill)** | the bar itself          |
+| Field (`.field`, its control)   | **48px**                 | 1.5rem → 24px (pill) | the control itself           |
+| Action standing beside a field  | **48px** (`h-12`)        | 1.5rem → 24px (pill) | the control itself           |
+| Filled / outlined action, alone | 40px (BeerCSS `--_size`) | 1.5rem → 20px (pill) | `tap-target` → 48px          |
 | Icon button (`.button.circle`)  | 40px                     | circle             | `tap-target` → 48px          |
-| Chip, decorative (`<span>`)     | 32px                     | 32px → 16px        | none — it is not interactive |
-| Chip, interactive (`<button>`)  | 40px (`chip medium`)     | 32px → 20px        | `tap-target` → 48px          |
+| Chip, decorative (`<span>`)     | 32px                     | 1.5rem → 16px        | none — it is not interactive |
+| Chip, interactive (`<button>`)  | 40px (`chip medium`)     | 1.5rem → 20px        | `tap-target` → 48px          |
 
-Two rules fall out of that table and both are load-bearing:
+The rules that fall out of that table are all load-bearing:
 
 - **`tap-target` only reaches 48px on a control that is at least 40px tall** — it adds 4px a side. So an interactive chip is **`chip medium tap-target`** and never a bare `chip`, and a chip that is only ever a label (`<span>`) stays at BeerCSS's 32px. A 32px *button* has no compliant recipe at all; grow it to `medium` first.
+- **`tap-target` cannot be positioned itself.** Its rule (`index.css`) is unlayered — it has to outrank BeerCSS's own button declarations — so its `position: relative` beats any Tailwind `absolute` on the same element, and `top`/`right` then *shift* the control instead of placing it. A control that needs both carries `tap-target` on the button and the position on a **wrapper** (`<div className="absolute right-4 top-4 z-10">`), which is what the save button on a route card and the share button on the map do.
 - **An action beside a field takes `h-12`.** BeerCSS's button is 40px, a field is 48px, so without it the two boxes disagree by 8px and the row's right-hand action floats above the fields' baseline. At `h-12` both are 48px and share a top and a bottom (`responsive.spec.ts` pins it).
+- **A thin, long element is a pill — and a pill is 48px tall.** A box that is much wider than it is
+  tall reads as a bar, and a bar wants the stadium: **48px**, the height at which the one token's
+  24px is exactly half the box. It is what a full-width field, a submit action, an accordion row and
+  the builder's hint bar all are. Two ways to break it: a bar at BeerCSS's `large`/`extra` size
+  (**56px**) draws a 24px corner on a taller box — a rounded rectangle, not a pill, and the shape the
+  contact page used to carry — and a bar that has to be taller than 48px (a textarea, a panel) is
+  deliberately *not* a pill. Prefer the pill whenever an element is thin and long; only a block gets
+  the corner on a bigger box.
+- **A child that butts inside a clipped panel is square.** The panel clips its own corner
+  (`overflow-hidden` + the token above), so it already draws every outer corner of everything inside
+  it — and a child that fills it (the hero's picture and its rail, a card's media band, the map's
+  hover preview picture) takes **`rounded-none`**. Without it the child draws its own 24px on the
+  shared edge too, the seam curves away from its neighbour and the panel reads as two cards in a
+  frame instead of one component. This is the same reason a `border-t-2` divider carries
+  `rounded-none` (§7), and it is the one place a box is square. Controls inside the panel are
+  untouched: a chip or a button beside the picture still takes the full token. The rule in the override
+  layer excludes `rounded-none` (`:not(.rounded-none)`), so the utility really wins — without that, its
+  `!important` handed the corner back to anything in the list, a `<button>` row included.
 
 **The `.field` wrapper carries no border.** BeerCSS paints a field's boundary on the *control inside it* (`--outline` at rest, `--primary` at 2px on focus), so `@layer overrides` takes the 1px hairline Tailwind's `border` utility leaves on the wrapper down to **0**. A transparent border is still a border: it made every `.field` 50px tall around its own 48px control, which is the kind of 2px that makes an otherwise aligned row look subtly wrong.
 
@@ -603,6 +645,18 @@ url and written back to it. That is what makes a built route shareable, what mak
 work, and what lets the share action be a plain copy. An old `/routes/<route-id>` link redirects to
 the public url, and `/planning` to the builder. See §7.
 
+**The places page has one url and one anchor.** The home strip's tiles link at a **card**, not at the
+page: `/points-of-interest#poi-sassenpoort` (`pointOfInterestPath`). A fragment and not a path,
+because the page *is* the same page — the fragment names the card the page should open on, and
+`ScrollToTop` already knows how to follow a fragment (`#contact` lands from anywhere). The page reads
+it with `parsePointOfInterestAnchor`, so the landing has that place **chosen**: its button says *Op de
+kaart* and the map's chip names it. Its card does **not** take the `secondary-container` tone — that
+tone is the page's own background colour, so it marks a reader's own pick, which is what a pick looks
+like; a card a url named **flashes its own edge twice** in the brand seed instead (§3, §10). The reader's
+own picks afterwards stay **out** of the url — a pathname change would send them back to the top of
+the page (`ScrollToTop` fires on it), which on a page that *is* a list is losing their place; the
+shareable form is the tile's link.
+
 The shell is the only place `<main>` appears, and it carries `p-0`:
 
 ```jsx
@@ -661,25 +715,28 @@ components — `Container`, `SearchField`, `FilterSelect`, `ClearFiltersButton`,
 `AreaMap` — so look for one before writing the markup again (§13).
 
 ```jsx
-// The hero band — headline over the map panel, both as wide as the gutter allows. The band
-// is one screen tall: the picture's height is capped by the viewport (`100svh`, not `dvh`, so
-// a phone's URL bar cannot relayout it while you scroll) and object-cover centre-crops it
-// when the band is wider than the map's own 1520:984 ratio — the engraving's empty outer
-// fields go first, and the slider's rail (below) is what keeps that crop small: with the
-// controls beside the map instead of under it the crop is 19% at 1440x900 and 0% at 2560x1440,
-// where the bar version cost 35%. `py-hero` stands in for the section rhythm (§5). The
-// headline is one h1 in two spans: next to each other from `lg`, on top of each other below it.
+// The hero band — headline over the map panel. The band is one screen tall, and the panel is
+// exactly as big as the picture it can show *whole*: `w-fit` + `mx-auto` shrink the panel around
+// the image instead of cropping the map to fill the band, so no part of the map is ever off
+// screen and the controls the rail carries stay above the fold. The one number in it is the height
+// ceiling (`100svh`, not `dvh`, so a phone's URL bar cannot relayout it while you scroll); the
+// picture's own ratio comes from the file it came from, so another picture — at another ratio —
+// needs no change here at all. `py-hero` stands in for the section rhythm (§5). The headline is
+// one h1 in two spans: next to each other from `lg`, on top of each other below it.
 <section id="home" className="inverse-surface">
   <Container className="py-hero">
     <h1 className="text-display font-bold">
       <span className="block lg:inline">Ontdek Zwolle</span>{" "}
       <span className="block lg:inline">toen en nu</span>
     </h1>
-    <div className="surface [contain:layout_paint] …">…</div>
+    <div className="surface mx-auto w-fit …">…</div>
   </Container>
 </section>
-// The map panel itself (the stacked pictures, the cross-fade slider, the rail) is written out
-// in the same hero.tsx file — the hero is its only caller, so it is not a component of its own.
+// Both pictures are `w-auto max-w-full object-contain` inside that shell, so each is shown in full
+// and the stacked pair stays aligned; the frame's own size follows the *intrinsic* ratio, which
+// outranks the width/height attributes the pictures still carry (§8). The map panel itself (the
+// stacked pictures, the cross-fade slider, the rail) is written out in the same hero.tsx file —
+// the hero is its only caller, so it is not a component of its own.
 // Filled action — a bare <button> is already Deltion-orange with navy text.
 // `ripple` is BeerCSS's Material 3 press ripple + 10% hover/focus state layer,
 // and the JS for it is part of beer.min.js — no animation code of our own.
@@ -760,8 +817,18 @@ components — `Container`, `SearchField`, `FilterSelect`, `ClearFiltersButton`,
   action={<Link to={ROUTES_PATH} className="button border text-ink ripple h-12">Alle routes bekijken</Link>}
 />
 
+// A thin, long element is a pill — 48px tall, where the one corner (1.5rem) is exactly half
+// the box (§5). A full-width field, a submit action and an accordion row are the same bar:
+// a `.field` is 48px on its own, an action needs `h-12` (BeerCSS's button is 40px), and a
+// beerCSS row asks for the height and the token directly. BeerCSS's `large` / `extra` sizes
+// (56px) are the one thing not to put on a bar — 24px on a 56px box is a rounded rectangle.
+// On the contacts page the row is written `h-12! rounded-box! flex! items-center!`, because
+// that page wraps its sections in beerCSS's scoped `div.beer`, where plain utilities are
+// reverted away (§2).
+<summary className="none horizontal-padding h-12! rounded-box! flex! items-center!">…</summary>
+
 // Card — article is the Material 3 card; no-padding lets the artwork bleed.
-// Corner: `--radius-box` (2rem), like every other box (§5) — the `article` rule in the override
+// Corner: `--radius-box` (1.5rem), like every other box (§5) — the `article` rule in the override
 // layer gives it, so a card never names a radius of its own, and a hand-built panel reaches for
 // the same token as `rounded-box`. The lift is `motion-safe:` so it never fights a visitor who
 // asked for less motion.
@@ -769,13 +836,15 @@ components — `Container`, `SearchField`, `FilterSelect`, `ClearFiltersButton`,
 // them: 3 columns at 1600px produces ~500px cards, past Material 3's 400px ceiling
 // for multi-column cards, while 4 columns lands at ~380px.
 <article className="s12 m6 l4 xl:col-span-3 no-padding group relative flex flex-col overflow-hidden transition-transform motion-safe:hover:-translate-y-1">
-  <div className="relative aspect-[16/10] overflow-hidden surface-container">…artwork + chips…</div>
+  <div className="relative aspect-[16/10] overflow-hidden rounded-none surface-container">…artwork + chips…</div>
   <div className="flex flex-1 flex-col p-5">…title, meta, footer row…</div>
 </article>
 
 // A divider inside a card needs `rounded-none`: BeerCSS gives *every* element
-// `border-radius: inherit`, so a `border-t` inside a 2rem card is painted as the top edge
-// of a rounded box and peels away from the card's straight edges.
+// `border-radius: inherit`, so a `border-t` inside a 1.5rem card is painted as the top edge
+// of a rounded box and peels away from the card's straight edges. The same goes for a child
+// that butts against its neighbour inside a clipped panel — the card's media band, the hero's
+// picture and its rail — see §5.
 
 // Chips overlaying artwork
 <span className="chip primary absolute left-4 top-4 text-[11px] font-bold uppercase tracking-wide">…</span>
@@ -825,12 +894,14 @@ components — `Container`, `SearchField`, `FilterSelect`, `ClearFiltersButton`,
 // light mode and navy in dark mode. Its contents use the ink utilities like any other section.
 <section className="inverse-surface">…</section>
 
-// Filter chip — outlined when off, `--secondary-container` when on (the role §3 assigns to a
-// selected chip). `border-transparent` takes off the outline a filled chip should not have, and
-// `medium` (40px) + `tap-target` reach the 48px hit area without a bigger visual.
+// Filter chip — outlined when off, `--selected` when on: the full brand seed under white text
+// (§3), never a tint of it, because a control that is on has to read as on at a glance — a 15%
+// wash over white reads as a hover. `border-transparent` takes off the outline a filled chip
+// should not have, and `medium` (40px) + `tap-target` reach the 48px hit area without a bigger
+// visual. Its two colours are the roles `--selected` / `--on-selected`.
 <button type="button" aria-pressed={active}
-        className={`chip medium tap-target ripple ${active ? "secondary-container border-transparent" : ""}`}>
-  <Icon name="park" className="text-base" />Parken
+        className={`chip medium tap-target ripple ${active ? "bg-selected text-on-selected border-transparent" : ""}`}>
+  <Icon name="museum" className="text-base" />Musea
 </button>
 
 // Checkbox and switch — BeerCSS components (see §2 on selection.css). Both keep the real input
@@ -879,18 +950,31 @@ a 2-up card is ~760px at 1600, so the small card's `16/10` would be 475px tall a
 below the fold. Each card carries the theme, the area, the `Populair` chip, the title, a two-line
 `line-clamp-2` description and the score.
 
-It has **three actions, and they are siblings, never nested**:
+It has **two actions, and they are siblings, never nested**:
 
-- the **title** is a `<button>` with a stretched `after:absolute after:inset-0` pseudo-element, so the
-  whole card loads the route into the builder as a custom route (`/routes/custom/…`, in visit order)
-  — the same button-in-a-card trick the home strip's cards use with a link;
-- the **bookmark** saves the route to this browser (§7), with `aria-pressed` as its state and its
-  label naming the route (`Bewaar …` / `Haal … uit je opgeslagen routes`);
-- the **arrow** is a `<Link>` to the route's own page (`/routes/public/<id>`), bottom-right,
-  `button circle transparent ripple tap-target text-ink`.
+- the **card itself** opens the route's own page (`/routes/public/<id>`). It cannot be a link: the
+  boundary, the padding and the clip all come from the `article` (§5), so the card carries an **empty
+  `<Link className="absolute inset-0 z-0" aria-label="Open de route …">`** as its last child — last,
+  so it paints above the picture and the body, and `z-0` so the save button's `z-10` stays above *it*;
+- the **save button** rides *on* the card, in the picture's top-right corner (the area chip moved to
+  the bottom-right to make room): a 40px `button circle ripple tap-target` that is
+  `surface-container-lowest border` when it is off and `bg-selected text-on-selected` when it is on
+  (§3, §7), labelled `Bewaar …` / `Haal … uit je opgeslagen routes` with `aria-pressed` as its state.
+  Its position lives on a **wrapper** `div` (§5), because a `.tap-target` cannot be `absolute` itself.
 
-All three are `relative z-10` (lifted above the stretched pseudo-element) and none may be a child of
-another control: a `<button>` inside a `<button>` is not HTML.
+Two traps are written into that markup, and both cost a real bug when they are missed:
+
+- **A stretched pseudo-element does not work here.** The obvious trick — `after:absolute after:inset-0`
+  on the title — never reaches the card, because BeerCSS's reset makes **every** element
+  `position: relative` (`*{position:relative}`, §2), so `inset-0` fills the heading and nothing else.
+  The home strip's cards had the same dead markup; both are the overlay link now.
+- **The overlay link stays square and hands the focus ring over.** It is a full-bleed child of a
+  clipped panel, so it takes `rounded-none` (§5) — and that means it cannot draw its own ring: the
+  card does, with `has-[:focus-visible]:outline-2 …:outline-offset-2 …:outline-(--primary)`, which is
+  the same 2px `--primary` ring as everywhere else, drawn outside the card's own clip (§11).
+
+Every card also **answers a save with a notice** — a 48px pill, `role="status"`, bottom centre, gone
+after 4s (§7, §12, §16).
 
 ### A route's own page
 
@@ -924,17 +1008,30 @@ no state library, and the module is the single place that changes when the accou
 because a popular route can be one the reader saved too) and a filled bookmark. The `Van wie` filter
 sets the reader's own list against the community's.
 
+**A save answers with a notice.** `RouteResults` owns it: a `role="status"` region that sits in the
+tree from the start (so a screen reader reads the text the moment it arrives) holding one pill that
+motion fades in and out — `surface-container-highest`, the shared 2px `border-line` and `rounded-box`
+corner, `min-h-12` (48px — it wraps to two lines on a 320px phone rather than shrinking),
+`pointer-events-none`, `fixed bottom-6 left-1/2` so it never covers what was just
+tapped or the map beside it. It says **"Toegevoegd aan je opgeslagen routes."** or, on the way back,
+**"Uit je opgeslagen routes gehaald."** Both messages are the same sentence with the verb swapped.
+There is no dismiss button and no action: the notice is *feedback*, not a question, and it
+takes itself away after **4s** (`NOTICE_MS`) — the timer restarts on each save, because the message
+changes with the action. It is the app's only snackbar (§16).
+
 ### Sharing a route
 
-`RouteShareButton` sits in the map's **top-right** corner (a `relative` wrapper around `AreaMap`, the
-button at `absolute right-4 top-4 z-20`; the bottom-right corner belongs to Google's own street-view
-control). The route is already in the url, so sharing is copying it: the button copies
+`RouteShareButton` sits in the map's **bottom-right** corner — the corner a thumb reaches on a phone
+(a `relative` wrapper around `AreaMap`, the button at `absolute bottom-4 right-4 z-20`). It is the map's
+free corner because the api's own zoom control is moved to the **top-right** in `mapOptions` (§8), so
+the two can never stack, and the chip at the top-left still names the map. The route is already in the
+url, so sharing is copying it: the button copies
 `builderPath(placeIds)` to the clipboard and answers in an `aria-live` paragraph — the confirmation,
 or the link as text for a browser that will not hand over the clipboard.
 
 With fewer than two places there is nothing to share (one place is not a route), so the button is
 **not disabled** — a dead button leaves the reader guessing at a `title` tooltip. Clicking it opens a
-small **popup**: a `role="alert"` bubble under the button that says a route needs at least two stops,
+small **popup**: a `role="alert"` bubble **above** the button that says a route needs at least two stops,
 raised on the `surface-container-highest` step with the shared 2px boundary and corner, and dismissed
 by its own "Sluiten", by escape, by a click outside it, or by picking the second place. It is a
 **popup and not a modal**, so the map behind it stays visible and usable — which is what keeps this
@@ -1011,6 +1108,13 @@ taller map because there the map is the work surface.
   joined the route, its visit number. The two era fills are the brand's own two colours — today's
   places in `orange-500`, the ones van toen in `blue-500`, both with a white ring — so the legend's
   swatches (`mapLegend.tsx`) are the only place that repeats them.
+- **A dot is 24px, 32px once it carries its number, and a quarter bigger again when it is the place
+  the page is about** — and it always carries a **48px touch area**, a pseudo element that draws
+  nothing (`before:-inset-3.5`), because a marker is only as big as its dot and a 24px circle is not
+  a thumb target (§11). `-inset-3.5` rather than `-inset-3`, because an absolutely positioned box is
+  placed against the *padding* box: the dot's own 2px ring is not counted (measured: 44px, not 48).
+  Two dots closer than `DOT_GAP` (32px — the dot's diameter plus air) are pushed apart as the map
+  settles, up to `MAX_SHIFT` (14px), so every place keeps a spot of its own to be clicked.
 - **`DEMO_MAP_ID`** is the api's own development map id. Advanced markers need one, and a
   cloud-styled map id is not this app's to create. It is also a **demo tier with a daily cap**
   (measured 2026-09-28): a day of map loads ends in _"Maps Demo Key limit reached: Your daily quota
@@ -1020,6 +1124,21 @@ taller map because there the map is the work surface.
   `VITE_GOOGLE_MAPS_MAP_ID` is not only a styling nicety.
 - **`gestureHandling: "cooperative"`** keeps the page scrollable: the map zooms on ctrl/cmd + scroll
   or a pinch, never on a plain wheel.
+- **The zoom control is the one piece of the api's own chrome that stays**, and it is pinned to the
+  **top-right** (`zoomControlOptions: { position: RIGHT_TOP }`): the map's bottom-right corner is the
+  share button's (§7), and a control a reader has to hit should not share a corner with another. The
+  rest of the api's ui is off (`disableDefaultUI` plus `clickableIcons: false`).
+- **The api's own dom is corrected in `areaMap.css`**, because our stylesheet applies to it too. Two
+  rules, both in `@layer overrides` and both with the flag:
+  - **no corner** — beerCSS leaves `border-radius: inherit` on every element, which rounded 168
+    elements inside one map and made the canvas a rounded rectangle in a rounded frame;
+  - **the "Gebruik Ctrl + scrollen om in- en uit te zoomen" hint is centred**. It is a `<p>`, and our
+    justified body copy (`p` in the components layer) outranks the `text-align: center` Google's veil
+    hands down by inheritance — the sentence sat against the map's left edge with a ragged right one
+    (measured: the glyph run's centre stood at **33.2%** of the frame's width, its first glyph on the
+    frame's own inner edge). `.gm-style-mot { text-align: inherit }` puts it back on its wrapper's
+    centre (measured: **50.0% x, 50.0% y**), which is the same escape hatch a centred `<p>` of our own
+    takes (§7).
 - **The line is two polylines** — a white casing under the brand line, the same recipe the artwork
   uses — with the colours read off the design tokens at draw time, so javascript holds no palette.
 - **Nothing the map draws may throw.** The line and the drawn route shape are filtered down to real,
@@ -1053,8 +1172,17 @@ A card wants a picture, not a second map instance.
   the shape keeps its proportions, in the same casing-plus-orange recipe, with bigger dots at the two
   ends to show the direction of travel. It costs no request at all. (Stretching each axis was tried
   and rejected: a route with one far stop turned into an unreadable spike.)
-- **`PoiCrop`** (the artwork) is the round thumbnail a place uses, centred on the place's own 0–100
-  position.
+- **The round place thumbnail** is the home strip's own 80px frame: the place's picture inside it at
+  `h-full w-full object-cover`, or its category glyph until there is one. The files and the places
+  they belong to are in `data/placeImages.ts` (docs/place-images.md). **The whole tile is one link**
+  — picture, name and category — into that place's own card on the places page (`pointOfInterestPath`,
+  §6); its hover is the bar's recipe, the name underlining and the muted category coming up to full
+  ink, and the tile stays a `listitem` with the link inside it, so the strip is still a list.
+- **The hover card on the map** is drawn **outside** the map's frame — the frame clips its own
+  corners, and a card inside it was cut in half at the edges. It is nudged back inside the frame
+  sideways, and flips under the dot when the frame has no room above it, so the whole card, picture
+  included, is visible wherever the dot is. It takes no pointer events, so it can never steal the
+  hover from the dot it belongs to.
 
 **Where an image lives.** An asset a component imports belongs in `src/assets/…` and is _imported_,
 so Vite fingerprints the filename and a redeployed map can never be served from a stale cache.
@@ -1066,7 +1194,9 @@ are kebab-case and say what they contain: `zwolle-historic-1652.webp`, `zwolle-s
 **One coordinate system.** Overlay points are in 0–100 space and are scaled onto the imagery's own
 viewBox (`1520 × 984`). `object-cover` on the `<img>` and `preserveAspectRatio="xMidYMid slice"` on
 the overlay both centre-crop the same source aspect — that is what keeps the drawn route on the
-right rooftop when a card frame crops the picture.
+right rooftop when a card frame crops the picture. **The hero's pair is the one place that does not
+crop**: it hangs on a panel that shrinks to the picture (§7) and both layers are `object-contain` in
+the very same box, so the cross-fade still lines up pixel for pixel.
 
 ```jsx
 <MapImage image={MAP_IMAGES.roads} className="h-full w-full object-cover" decorative />
@@ -1093,8 +1223,8 @@ right rooftop when a card frame crops the picture.
   transition. Only CSS custom properties may be set inline. The panel **opens at 0**, i.e. the
   engraving at full strength with `Toen` pressed: the pairing is what the page is about, and the past
   is the half a reader has not seen.
-- **A round place thumbnail** is an SVG whose `viewBox` _is_ the crop window (`PoiCrop`) — no CSS
-  positioning maths, and the frame can stay a circle.
+- **A round place thumbnail** is a circle frame with `overflow-hidden` and the picture inside it at
+  `object-cover` — the crop is the frame's job, so there is no positioning maths anywhere.
 - **Controls over a map** get a solid `surface` panel or a chip (never a gradient scrim) — and a
   control placed _beside_ the picture beats one over or under it: the hero's slider is a rail on the
   map's trailing edge, so the whole map stays readable while you cross-fade it, and the picture keeps
@@ -1142,6 +1272,15 @@ below exist to keep that motion _coherent and cheap_, never to remove it.
 - Entrances come from `@theme`: `--animate-rise` → `animate-rise` (0.45s, standard curve, fill
   `both`). The hero's map panel uses it — a `transform` + `opacity` entrance and nothing else — so
   the fold assembles instead of blinking in.
+- **`--animate-flash` → `animate-flash`** (2s, standard curve) is the one *attention* animation: the
+  place card a url names lights its own edge (§5). One keyframe rule holds `outline-color` at the
+  brand seed for the first 250ms, drops it to `transparent` for the next 250ms, then holds the seed
+  again and fades that second flash out over the remaining 1.5s — two flashes, then a fade, with no
+  JavaScript. It animates `outline-color` and never `border` or `box-shadow`: both of those are
+  pinned on every `article` (§5), so an animation on them would be silently swallowed. It is
+  colour-only, so it is deliberately **not** gated behind `motion-safe:` — there is no movement for
+  a reduced-motion reader to lose, and it is the only thing that says which card a link named, so it
+  runs for them too (§11).
 
 ### What animates
 
@@ -1153,6 +1292,7 @@ below exist to keep that motion _coherent and cheap_, never to remove it.
 | Toggle the theme                 | The sun/moon icon spins out and in (Motion, 150ms, `mode="wait"`) + the ripple                                                             | the bar's theme switch (`navbar`)               |
 | Drag the map slider              | The historic layer's opacity fades over `--speed2` (200ms)                                                                                 | `.historic-layer`                               |
 | Load the page                    | The hero's map panel rises 12px and fades in                                                                                               | `animate-rise` (CSS)                            |
+| Land on a place from a home tile | The card's edge flashes twice in the brand seed, then fades out over 1.5s                                                                  | `animate-flash` (CSS)                           |
 | Open / close the mobile menu     | Height + opacity, 200ms, animates **out** as well as in; the rows fade in 30ms apart, and the burger's own glyph turns as it swaps (150ms) | `m` + `AnimatePresence` (Motion)                |
 | Open the reviews panel           | Height + opacity, 200ms, on the way **in**; closing is instant, so the fold is always the reader's to undo                                  | `RouteReviewsPanel` (Motion)                    |
 | Expand the route grid            | New cards fade in, removed ones fade out                                                                                                   | `m` + `AnimatePresence` (Motion)                |
@@ -1163,9 +1303,10 @@ below exist to keep that motion _coherent and cheap_, never to remove it.
   view: content that animates while you read it is noise, and it is the single most common way a
   site feels over-animated. Motion is used where it _explains state_ — a panel opening, a list
   growing — and nowhere else.
-- **Motion lives on `transform` and `opacity`.** The one exception is the mobile menu's `height`,
-  because a dropdown genuinely changes the page height and Motion interpolates it frame-accurately.
-  Do not add a second one without a reason as good as that.
+- **Motion lives on `transform` and `opacity`.** Two exceptions: the mobile menu's `height`, because
+  a dropdown genuinely changes the page height and Motion interpolates it frame-accurately; and the
+  landing card's `outline-color`, because that flash is feedback rather than movement (§5). Do not
+  add a third without a reason as good as those.
 - One motion per interaction: a lift **or** a fade, never both fighting for the same property.
 - `html { scroll-behavior: smooth }` is global — respect it, don't re-implement scrolling.
 - **Add motion freely, but gate the movement**: use `motion-safe:` (CSS) or `reducedMotion="user"`
@@ -1205,7 +1346,12 @@ stops, feedback stays**:
   height while its opacity still animates.
 
 Colour and opacity feedback **stays** in both — a hover highlight appearing instantly is calm,
-whereas a UI that goes completely inert reads as broken.
+whereas a UI that goes completely inert reads as broken. The landing flash is the loudest case of
+that rule and the one keyframe the block keeps: it is colour-only, so there is no movement to
+suppress, and it is the only thing that says which card a link named — a reader whose OS turns
+animations off still needs the card pointed out. So its class carries no `motion-safe:` and the
+media block re-applies `--animate-flash` to it outright; the reader's own pick still answers
+through the *Op de kaart* button and the map's chip as well.
 
 The CSS block is the one sanctioned `!important` outside `@layer overrides` (§2), because it has to
 outrank framework animations declared later in the cascade.
@@ -1248,9 +1394,16 @@ Smoothness is measured, not assumed:
 - **Tappable targets are at least 48×48px** (the Material 3 minimum). BeerCSS buttons are 40px
   tall, so a control smaller than 48px pairs with `.tap-target`, which extends the _hit_ area past
   the visual edge via `::before` (BeerCSS already owns `::after` for its state layer). Growing the
-  visible circle instead would overrun the bar at 320px.
+  visible circle instead would overrun the bar at 320px. A **map dot** is the other way round — its
+  visible circle grew (24px/32px, §8) *and* it still needs the area: it carries its own
+  `before:-inset-3.5`, because a marker is only as big as its content and 24px is not a thumb target.
 - Focus is a 2px `primary` outline **offset 2px** (`:focus-visible` in `@layer base`); BeerCSS
   draws the outline, the offset keeps it off the control's own edge.
+- **A whole-card link hands its ring to the card.** The route cards' link is an *overlay* covering the
+  `article` (§7): it is a full-bleed child of a clipped panel, so it is square and its own ring would
+  be cut off by that clip. The card draws it instead —
+  `has-[:focus-visible]:outline-2 …:outline-offset-2 …:outline-(--primary)` — so tabbing to a card
+  rings the **card**, in the same colour as every other control, outside its own clip.
 - `prefers-reduced-motion: reduce` stops movement — keyframes, the card lift and the hero
   entrance — while keeping hover/press feedback. Test it in the browser's rendering-emulation
   panel, not by eyeballing. §10 has the full description, including why the integrated browser
@@ -1258,8 +1411,8 @@ Smoothness is measured, not assumed:
 - Contrast is checked against the Deltion roles: `text-ink` on `--surface` ≈12.6:1, `text-heading`
   12.6:1 light / 7.4:1 dark, `text-accent` the same, muted ink ≈7:1 on the bands. **No text anywhere
   relies on opacity for restraint** — that was measured at 3.4:1 and removed. The audit reports
-  **0 failures in dark mode**, and in light mode **19 elements below AA, all of them white text on the
-  brand orange at 2.6:1** (the bar's logo, nav links, icons, the selected segment and the artwork
+  **0 failures in dark mode**; in light mode every element it flags is white text on the
+  brand orange at 2.6:1 (the bar's logo, nav links, icons, a selected chip and the artwork
   badge). That is the single, deliberate exception recorded in §3 and §16 — the 2.15:1 reading on the
   active mobile row comes from its 20% white state layer, which sits on top of the same orange.
 - The theme switch is a toggle button: `aria-pressed` for state, `aria-label` that names the
@@ -1279,6 +1432,9 @@ Smoothness is measured, not assumed:
   something a reader may already have written down, and a label is something they read. Never
   let one page's heading and its own nav entry disagree about what the page is called.
 - Sentence case in prose; labels and badges are short (`Populair`, `Bekijk`).
+- **A notice states the fact, in the past tense, and stops**: "Toegevoegd aan je opgeslagen routes."
+  / "Uit je opgeslagen routes gehaald." No "Succesvol!", no exclamation mark, no question — the reader
+  just tapped a button and wants to know what happened to their route, not to be congratulated.
 - Tone: inviting and place-specific — name real Zwolle areas (Binnenstad, Assendorp, Berkum).
 - The hero carries no prose: one headline in two spans, then the map. Section copy stays a line.
 
@@ -1300,7 +1456,7 @@ out "in case it is reused" is indirection, not structure.
 | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `src/pages/`             | one file per route, `<name>Page.tsx`, the default export `App.tsx` mounts                                                                                                                | resolves the route, owns the state its components share, and lists them in order. It owns a band only when that band holds more than one piece.                                                                                                                                     |
 | `src/components/`        | **every component, in one flat folder** — a band (a section, a list, a grid, a fold), a primitive (`Icon`, `StarRating`), a filter control, a map panel. One per camelCase file.          | **named exactly after the component**. A piece used once inside another component lives in that component's file; the moment a second file needs it, it moves out into a file of its own — never copied.                                                                            |
-| `src/data/`              | the content and the logic over it (`routes.ts`, `pointsOfInterest.ts`, `area.ts`, `maps.ts`, `routeGeometry.ts`, `directions.ts`, `navigation.ts`, `search.ts`, `savedRoutes.ts`, `googleMaps.ts`, `usePlannedRoute.ts`) | **content and logic only** — no components. `searchIndex.json` is the one data file that is not TypeScript, because it stands in for an api response (§15). `savedRoutes.ts` is the reader's own list in `localStorage`, which is why it also exports the one hook that watches it. |
+| `src/data/`              | the content and the logic over it (`routes.ts`, `pointsOfInterest.ts`, `placeImages.ts`, `area.ts`, `maps.ts`, `routeGeometry.ts`, `directions.ts`, `navigation.ts`, `search.ts`, `savedRoutes.ts`, `googleMaps.ts`, `usePlannedRoute.ts`) | **content and logic only** — no components. `searchIndex.json` is the one data file that is not TypeScript, because it stands in for an api response (§15). `savedRoutes.ts` is the reader's own list in `localStorage`, which is why it also exports the one hook that watches it. `placeImages.ts` is the one module that imports assets, kept apart from `pointsOfInterest.ts` so the e2e suite can read the place data with plain node. |
 | `src/types.ts`           | the shape of that content: `Route`, `PointOfInterest`, `MapPicture`, `RouteFilterState`                                                                                                  | **types only**, no runtime code. A component names the type it needs instead of repeating its fields.                                                                                                                                                                               |
 
 The test is the **caller count**. One caller: the piece is written out in the caller's file, private
@@ -1317,10 +1473,11 @@ file is more than about a hundred lines of markup, a band is still hiding inside
 | ------------------------ | ---------------------------------------------------------------------- | -------------------------------------------------------------- |
 | Page file                | **camelCase** + `Page`, in `src/pages/`                                | `homePage.tsx`, `routesPage.tsx`, `pointsOfInterestPage.tsx`   |
 | Component file           | **camelCase**, one component per file, named exactly for the component | `areaMap.tsx` → `AreaMap`, `poiResults.tsx` → `PoiResults`     |
+| Component stylesheet     | **camelCase** `.css`, next to the component, imported by it            | `components/hero.css`, `components/areaMap.css`                |
 | Domain type              | **PascalCase**, in `src/types.ts`                                      | `Route`, `StarBucket`, `MapPicture`, `PoiFilterState`          |
 | Content constants        | **SCREAMING_SNAKE_CASE**, declared above the component that uses them  | `NAV_LINKS`, `RAIL_ENDS`, `ROUTE_PREVIEW_COUNT`                |
 | Props, state, locals     | **camelCase**, no abbreviations                                        | `historicOpacity`, `visibleRoutes`, `menuOpen`                 |
-| Custom CSS class         | **kebab-case**, only in `index.css`                                    | `.historic-layer`                                              |
+| Custom CSS class         | **kebab-case**, in `index.css` or the component's own stylesheet      | `.historic-layer`                                              |
 | CSS variable             | **kebab-case** custom property                                         | `--surface-container-low`, `--historic-opacity`                |
 | Content module           | camelCase file, one topic per file, in `src/data/`                     | `routes.ts`, `pointsOfInterest.ts`, `navigation.ts`            |
 | `Poi`                    | the established short form for a point of interest                     | `PoiPicker`, `PoiFilters`, `POI_SORTS`, `filterPointsOfInterest` |
@@ -1631,6 +1788,9 @@ the app uses by hand, the same trade `beercss.d.ts` makes.
 - **The key lives in `split/.env.local`** (already gitignored by the `*.local` rule) as
   `VITE_GOOGLE_MAPS_API_KEY`; `.env.example` documents it. Without a key every map is replaced by a
   panel that says it could not load, and the rest of the app is unaffected.
+- **What that key costs** — the free monthly caps per service, the price of an event above them and
+  the SKUs this app must never ask for — is written down in
+  [`docs/maps-costs.md`](maps-costs.md).
 - **Required: Maps JavaScript API.** Two further services are optional and **off by default**,
   because each is a separate switch on the same key: the **Routes API** (`requestDirections` — with
   it the builder draws real street routes with real distances; it is on for the development key, and
@@ -1697,12 +1857,12 @@ item it **deviates** from is listed here with the reason, so nobody "fixes" it b
 | Two static schemes selected by a `<body>` class, no wallpaper extraction     | `navbar.tsx` (the bar's theme switch)                                                                                                                  |
 | Tonal steps + hairlines, no shadows at all                                   | §5 — BeerCSS elevation helpers are disabled in `@layer overrides`                                                                                      |
 | Top app bar: brand orange (`--bar`), full-width, 48px action targets         | `Navbar`, **64px** tall (flat, no bottom hairline), white text/icons at 6:1                                                                            |
-| Shape: one corner on every box                                               | `article`, hero panel `rounded-box`                                                                                                                   |
+| Shape: one corner on every box — `--radius-box` (1.5rem), a pill on a 48px control               | `@layer overrides` in `index.css` (`article`, `menu`, fields, buttons, chips)                                    |
 | Cards per breakpoint: 1 (mobile) / 2 / 3 (desktop), 4 when there is room     | BeerCSS `s12 m6 l4` + `xl:col-span-3`                                                                                                                  |
 | Section rhythm 32–64px, 4px spacing grid                                     | `py-band` (32–52px) and `px-gutter` (16–32px), both `clamp()`ed, on Tailwind's 4px scale; the page header band is tighter still (`pt-header`, 24–40px) |
 | Motion: 200ms standard curve, exit curve available, reduced-motion respected | §10, `--ease-standard` / `--ease-exit`                                                                                                                 |
 | Focus ring: 2px `primary` + 2px offset                                       | `@layer base` + BeerCSS                                                                                                                                |
-| Touch targets ≥ 48×48px                                                      | `.tap-target`, `min-h-12` on mobile nav rows                                                                                                           |
+| Touch targets ≥ 48×48px                                                      | `.tap-target`, `min-h-12` on mobile nav rows, the map dots' own `before:-inset-3.5`                                                                    |
 | Body vs. label type roles (Inter) and headings (Montserrat)                  | §4                                                                                                                                                     |
 | Contrast: 4.5:1 body, 3:1 large text                                         | §3; 0 failures in both themes                                                                                                                          |
 | One filled action per section, clear button hierarchy                        | §7, §14                                                                                                                                                |
@@ -1721,11 +1881,12 @@ item it **deviates** from is listed here with the reason, so nobody "fixes" it b
 | Body text ~35ch                                                                       | 45–65ch (`max-w-md`–`max-w-2xl`)                                                                                                                                 | The hero lead wraps to six lines at 35ch and reads as a paragraph, not a lead.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | Headings at weight 600                                                                | `font-bold` (700)                                                                                                                                                | Montserrat 700 holds its own next to the map artwork; 600 goes soft at display sizes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | Screen edge padding 16px mobile                                                       | `px-5` (20px)                                                                                                                                                    | Optical: the card artwork's own inset needs the extra 4px to look flush.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| Dialogs, bottom sheets, snackbars, FABs                                               | Only the share button's **non-modal popup** (§7)                                                                                                                                              | The app has no other transient layer; adopt the recipes from the reference (§7, §12) when one is needed rather than inventing a variant. There is deliberately **no modal anywhere**: a route's full view is a url (`/routes/public/<id>`), which can be linked to, shared and read by a screen reader, and the share popup leaves the map behind it usable.                                                                                                                                                                                                                                                                |
-| A selected control uses a container tone (`secondary-container`, 8% state layer)      | A **chosen filter** is filled with `primary` itself — orange with white text in light mode, `blue-300` with `blue-950` in dark — as is the active mobile nav row | The brief asks for the brand colours as fills, and a filter that has been set is the one control on the page worth spotting from across the room. In light mode this is the documented white-on-orange pairing (§3); in dark mode the fill is the pale blue, where the dark blue text measures well past 4.5:1.                                                                                                                                                                                                                                                  |
+| Dialogs, bottom sheets, snackbars, FABs                                               | The share button's **non-modal popup** (§7) and the saved-route **notice** (§7)                                                                              | Two transient layers, both small and non-blocking; adopt the recipes from the reference (§7, §12) when a third is needed rather than inventing a variant. The **snackbar** is the one M3 component this app now has: it keeps the pattern (bottom centre, `role="status"`, one line, 4s, gone on its own) and drops the rest — no shadow (there is no elevation, §5), no leading icon, **no action button** (a save needs no undo here; the bookmark itself is the undo), and the shared `--radius-box` corner + 2px `border-line` boundary + `surface-container-highest` step instead of M3's `inverse-surface` fill. There is deliberately **no modal anywhere**: a route's full view is a url (`/routes/public/<id>`), which can be linked to, shared and read by a screen reader, and the share popup leaves the map behind it usable. |
+| A selected control uses a container tone (`secondary-container`, 8% state layer)      | A **chosen chip** is filled with the brand seed itself — `--selected`: `#f68221` under white in light mode, `#282c6d` under white in dark | The brief asks for the brand colours as fills, and a control that is on is the one thing on a page worth spotting from across the room; a container tone reads as a hover, not as a state. In light mode this is the documented white-on-orange pairing (§3). In dark the fill is deliberately the seed at its own strength: it sits only ~1.2:1 against the card behind it, so the chip reads by its saturation rather than by its lightness — the opposite of Material 3's tonal logic, and the deliberate call (measured 2026-10-02). |
 | Top app bar is `surface`                                                              | The bar is the brand orange in light mode, the brand navy in dark                                                                                                | The bar is where the Deltion identity lives, and it carries no content — only a title, links and icon buttons. In light mode the true `#f68221` orange carries **white** text and icons, which is the brand's own pairing; blue on orange would measure 7.8:1 but reads as a different palette, so the accessible option was declined deliberately (white on `#f68221` is 2.6:1 — §3, §11). The alternative, a darker orange bar, is brown. In dark mode the bar is the desaturated brand navy, and the orange moves into the headings, the logo and the avatar. |
 | M3 expresses depth as tonal elevation **plus** a shadow, five levels deep             | No shadows at all                                                                                                                                                | A blurred offset edge reads as a smudge or a gradient, and the brief rules gradients out. Depth comes from surface steps and hairlines instead (§5).                                                                                                                                                                                                                                                                                                                                                                                                             |
 | State layers 8% hover / 12% press                                                     | BeerCSS's own values, `--active` retuned per theme                                                                                                               | BeerCSS owns the ripple and state layer; we only correct the _tint_ so it reads on dark.                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | Chips: outlined, transparent background                                               | Filled chips over artwork                                                                                                                                        | A transparent badge on a busy map disappears; artwork badges are not M3 chips (§7).                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| A hero is a full-width image band under the app bar                                   | Full width, one screen tall, centre cropped, controls in a rail beside the picture                                                                               | The band uses the page's whole width instead of a column, and the picture's height comes from the viewport — so it gives up its empty outer fields rather than pushing the map's own controls under the fold. The rail is what keeps that crop small: 19% at 1440x900 and none at all once the window is taller (§7).                                                                                                                                                                                                                                            |
+| Surface emphasis uses a container tone or state layer                                 | The card a url names flashes its own edge twice in the raw brand seed, then fades                                                                                   | The tone the spec reaches for is the page's own background colour here, so it cannot mark where a link landed — and a card that keeps a tone reads as hovered rather than as the place you came for. One 2s keyframe states it and leaves nothing behind; the reader's own pick still uses the tone (`secondary-container`), which is what a pick means on this page (§6, §10).                                                                                                                                                                                         |
+| A hero is a full-width image band under the app bar                                   | Full width band, one screen tall; the map **panel** inside it is only as big as the picture shown whole, and centred                                                                    | The band still uses the page's whole width, and the picture's height still comes from the viewport — but nothing is ever cropped to fit it. The panel (`w-fit`) shrinks around the picture instead, so the map is always shown in full: at 1440x900 the picture is 1044x676 inside a 1425-wide band, at 1280x620 it is 612x396, and 0% of any picture is ever cut (§7, `responsive.spec.ts`). The rail is what keeps that shrink small by taking the controls beside the picture instead of under it. |
 | Type and spacing are fixed steps (display 57, headline 32, title 22; 4/8/12… spacing) | `clamp()`ed display/headline/title type and gutter/band spacing                                                                                                  | Fixed steps re-wrap a headline mid-phrase at one width and waste room at another; a floor, a slope and a ceiling keep the same proportions at every window size (§4, §5).                                                                                                                                                                                                                                                                                                                                                                                        |

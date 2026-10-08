@@ -308,7 +308,7 @@ describe("RoutesPage, the ready-made routes", () => {
     await screen.findByRole("heading", { level: 1 });
 
     fireEvent.change(screen.getByLabelText("Type route"), {
-      target: { value: "Natuur" },
+      target: { value: "Fiets" },
     });
 
     await waitFor(() => expect(cards()).toHaveLength(1));
@@ -336,16 +336,19 @@ describe("RoutesPage, the ready-made routes", () => {
     ).toBeInTheDocument();
   });
 
-  it("loads a ready-made route into the builder from its title", async () => {
+  it("opens a ready-made route from anywhere on its card, with the builder already filled", async () => {
     const places = routePoints(ROUTE);
     renderAt(ROUTES_PATH);
     await screen.findByRole("heading", { level: 1 });
 
-    fireEvent.click(screen.getByRole("button", { name: ROUTE.title }));
+    fireEvent.click(
+      screen.getByRole("link", { name: `Open de route ${ROUTE.title}` }),
+    );
 
     expect(
-      await screen.findByText(pickedLine(places.length)),
+      await screen.findByRole("heading", { level: 1, name: ROUTE.title }),
     ).toBeInTheDocument();
+    expect(screen.getByText(pickedLine(places.length))).toBeInTheDocument();
   });
 
   it("saves a route, says so, and filters the list down to the saved ones", async () => {

@@ -147,7 +147,7 @@ function SubjectSelect({
   return (
     <div
       ref={ref}
-      className="field large label prefix suffix border round"
+      className="field label prefix suffix border round"
       style={{ margin: 0, cursor: "pointer" }}
     >
       <i>{selected.icon}</i>
@@ -306,7 +306,7 @@ function ContactForm() {
         }}
       >
         <div
-          className="field large label border round"
+          className="field label border round"
           style={{ margin: 0 }}
         >
           <input
@@ -322,7 +322,7 @@ function ContactForm() {
         </div>
 
         <div
-          className="field large label border round"
+          className="field label border round"
           style={{ margin: 0 }}
         >
           <input
@@ -380,7 +380,7 @@ function ContactForm() {
         <button
           type="submit"
           disabled={loading}
-          className="responsive large extra"
+          className="responsive large"
         >
           {loading ? (
             <>
@@ -481,7 +481,8 @@ function FAQAccordionItem({
     >
       <details open={isOpen}>
         <summary
-          className="none padding"
+          /* the row is a thin, long bar, so it is a pill: 48px tall, where the app's one corner (1.5rem) is exactly half its height. the `!` utilities are what the rest of this page needs too — it imports beerCSS's scoped build, whose `.beer * { all: revert }` throws tailwind's utilities away inside the wrapper (DESIGN.md §5) */
+          className="none horizontal-padding h-12! rounded-box! flex! items-center!"
           onClick={(e) => {
             e.preventDefault();
             onToggle();

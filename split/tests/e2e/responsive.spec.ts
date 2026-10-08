@@ -1,10 +1,18 @@
 import { expect, test, horizontalOverflow } from "./fixtures";
-import { ALL_PATHS, HOME_PATH, ROUTES_PATH, STATIC_PAGES } from "./app";
+import {
+  ALL_PATHS,
+  CONTACT_PATH,
+  HOME_PATH,
+  POI_PATH,
+  ROUTES_PATH,
+  ROUTE_PAGES,
+  STATIC_PAGES,
+} from "./app";
 
 const WIDTHS = [320, 390, 768, 1024, 1440, 1920];
 
-/* the one corner, `--radius-box: 2rem` at the root size the app sets */
-const TWO_REM = "32px";
+/* the one corner, `--radius-box: 1.5rem` at the root size the app sets */
+const CORNER = "24px";
 /* every box the override layer gives that corner to: a card, a chip, a badge, a field and the control
    inside it, an action, and a dropdown panel */
 const BOXES =
@@ -95,9 +103,11 @@ test.describe(
 
 test.describe("every box shares one shape", { tag: "@layout" }, () => {
   /* the corner is one token (`--radius-box`) set in `@layer overrides`, because beerCSS ships four radii
-     and a page carried all of them at once: a pill search bar directly above a rounded rectangle card.
-     A case per page, from the app's own list of urls, so a new page is covered without a test edit —
-     and a fresh page each time, because a page here starts its own navigation after the load event */
+     of its own and a page carried all of them at once: a pill search bar directly above a rounded
+     rectangle card. The token is what a 48px control clamps to exactly half its height with, so the same
+     number is a pill on a control and a corner on a card. A case per page, from the app's own list of
+     urls, so a new page is covered without a test edit — and a fresh page each time, because a page here
+     starts its own navigation after the load event */
   for (const path of ALL_PATHS) {
     test(`${path} draws one corner`, async ({ page }) => {
       await page.setViewportSize({ width: 1440, height: 900 });
@@ -116,10 +126,189 @@ test.describe("every box shares one shape", { tag: "@layout" }, () => {
       expect(boxes.length, `${path} draws no box at all`).toBeGreaterThan(0);
 
       for (const { tag, classes, radius } of boxes) {
-        expect.soft(radius, `<${tag} class="${classes}">`).toBe(TWO_REM);
+        expect.soft(radius, `<${tag} class="${classes}">`).toBe(CORNER);
       }
     });
   }
+
+  /* the contacts page's thin bars are pills: a field, a submit and an accordion row are each 48px tall,
+     where the corner token (1.5rem) is exactly half the box, and 56px — beerCSS's `large`/`extra` — would
+     draw a rounded rectangle instead. The page is not in ALL_PATHS' sweeps (a collaborator's page, with its
+     own scoped beerCSS), so its bars are checked here. It is also the case that proves the `!` utilities
+     land: inside beerCSS's scoped `div.beer` every plain Tailwind utility is reverted away (DESIGN.md §2) */
+  test("a thin bar is a 48px pill, even inside beerCSS's scoped wrapper", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(CONTACT_PATH);
+
+    const bars = [
+      { label: "the name field", selector: ".field:has(#naam)" },
+      { label: "the submit", selector: "form button[type='submit']" },
+      { label: "an accordion row", selector: "summary.none" },
+    ];
+
+    for (const { label, selector } of bars) {
+      const box = await page
+        .locator(selector)
+        .first()
+        .evaluate((element) => ({
+          height: element.getBoundingClientRect().height,
+          radius: getComputedStyle(element).borderTopLeftRadius,
+        }));
+
+      expect.soft(box.height, label).toBe(48);
+      expect.soft(box.radius, label).toBe(CORNER);
+    }
+  });
+
+  /* a panel that clips its own corner already draws every outer corner, so a child that fills it stays
+     square: with an inherited corner the seam between the two curved away from its neighbour and the
+     panel read as two cards in a frame instead of one component (DESIGN.md §5). one case per shape that
+     clips and holds more than one box — the hero's picture against its rail, a card's media band against
+     its body, the reviews panel's row against the list it opens */
+  test("a child inside a clipped panel is square", async ({ page }) => {
+    const panels = [
+      {
+        path: HOME_PATH,
+        label: "the hero panel",
+        panel: "#home div.surface.overflow-hidden",
+      },
+      { path: POI_PATH, label: "a place card", panel: "article.overflow-hidden" },
+      { path: POI_PATH, label: "the map frame", panel: "div.surface.overflow-hidden" },
+      {
+        path: ROUTES_PATH,
+        label: "a route card",
+        panel: "article.overflow-hidden",
+      },
+      {
+        path: ROUTE_PAGES[0].path,
+        label: "the reviews panel",
+        panel: "section.overflow-hidden",
+      },
+    ];
+
+    for (const { path, label, panel } of panels) {
+      await page.goto(path);
+
+      const children = await page.evaluate(
+        (selector) =>
+          [...document.querySelectorAll(selector)].map((box) =>
+            [...box.children].map((child) => ({
+              tag: child.tagName.toLowerCase(),
+              classes: child.className.toString(),
+              radius: getComputedStyle(child).borderTopLeftRadius,
+            })),
+          ),
+        panel,
+      );
+
+      expect(children.length, `${label} is not on ${path}`).toBeGreaterThan(0);
+
+      for (const boxes of children) {
+        expect(boxes.length, `${label} holds no child`).toBeGreaterThan(0);
+
+        for (const { tag, classes, radius } of boxes) {
+          expect.soft(radius, `${label}: <${tag} class="${classes}">`).toBe("0px");
+        }
+      }
+    }
+  });
+
+  /* the hero's panel shrinks around its picture instead of the picture being cropped into the band:
+     the band is one screen tall, and a picture made to fill it was cover-cropped, which took a big part
+     of the map off screen. the panel is `w-fit` and the pictures are `object-contain`, so the frame is
+     the picture's own size — and this measures the box each picture is drawn in against **the file that
+     arrived**, never against a number written down here, which is what keeps the rule true when the
+     artwork is swapped for another picture at another ratio */
+  test("the hero shows its pictures whole, and the panel shrinks to them", async ({
+    page,
+  }) => {
+    /* a tall window where the width binds, a short one where the ceiling does, and a phone */
+    for (const [width, height] of [
+      [1440, 900],
+      [1280, 620],
+      [390, 844],
+    ]) {
+      await page.setViewportSize({ width, height });
+      await page.goto(HOME_PATH);
+
+      /* the crop is read off the files that arrived, so they have to have arrived */
+      await page.waitForFunction(() =>
+        [...document.querySelectorAll<HTMLImageElement>("#home img")].every(
+          (image) => image.complete && image.naturalWidth > 0,
+        ),
+      );
+
+      const measure = await page.evaluate(() => {
+        const panel = document.querySelector(
+          "#home div.surface.overflow-hidden",
+        ) as HTMLElement;
+        const picture = panel.firstElementChild!.getBoundingClientRect();
+        const panelBox = panel.getBoundingClientRect();
+
+        return {
+          container: panel.parentElement!.getBoundingClientRect().width,
+          panel: panelBox.width,
+          slack: panelBox.width - picture.width,
+          pictures: [...panel.querySelectorAll<HTMLImageElement>("img")].map(
+            (image) => {
+              const box = image.getBoundingClientRect();
+              const natural = image.naturalWidth / image.naturalHeight;
+              const rendered = box.width / box.height;
+
+              return {
+                alt: image.alt,
+                /* 0 when every pixel of the file is inside the box it is drawn in */
+                crop: 1 - Math.min(rendered / natural, natural / rendered),
+                fit: getComputedStyle(image).objectFit,
+              };
+            },
+          ),
+        };
+      });
+
+      const at = `${width}x${height}`;
+
+      expect.soft(measure.pictures, at).toHaveLength(2);
+
+      for (const picture of measure.pictures) {
+        expect.soft(picture.fit, `${at}: ${picture.alt}`).toBe("contain");
+        expect
+          .soft(picture.crop, `${at}: ${picture.alt} is cropped`)
+          .toBeLessThan(0.001);
+      }
+
+      /* the panel adds nothing to the picture but its own 2px boundary — and, beside the picture
+         above `sm`, where the rail sits, its 64px */
+      expect
+        .soft(measure.slack, `${at}: the panel is not hugging the picture`)
+        .toBeGreaterThanOrEqual(4);
+      expect
+        .soft(measure.slack, `${at}: the panel is not hugging the picture`)
+        .toBeLessThanOrEqual(68);
+      expect
+        .soft(measure.panel, `${at}: the panel overruns its column`)
+        .toBeLessThanOrEqual(measure.container + 1);
+    }
+
+    /* and in the window that used to crop hardest, the panel really is narrower than its column */
+    await page.setViewportSize({ width: 1280, height: 620 });
+    await page.goto(HOME_PATH);
+
+    const short = await page.evaluate(() => {
+      const panel = document.querySelector(
+        "#home div.surface.overflow-hidden",
+      ) as HTMLElement;
+
+      return {
+        panel: panel.getBoundingClientRect().width,
+        container: panel.parentElement!.getBoundingClientRect().width,
+      };
+    });
+
+    expect(short.panel).toBeLessThan(short.container);
+  });
 
   /* the page that carries every family at once, so a renamed class cannot quietly empty the sweep */
   test("looks at the families the app really draws", async ({ page }) => {
