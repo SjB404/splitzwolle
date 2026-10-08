@@ -1,0 +1,18 @@
+/* the filter select's chosen state: a filled field wearing the brand colour. only this component ever sets
+   `fill primary` (DESIGN.md §7) */
+@layer overrides {
+  /* beerCSS's fill keeps its own surface tone for the control and then colours the label for that tone, so the tone is handed back to the role and the label is given the colour that belongs on the fill — the floating label sits inside a filled field, which is the only place a roled label can be read */
+  .field.fill.primary {
+    background: var(--primary) !important;
+  }
+
+  .field.fill.primary > :is(select, input) {
+    background: transparent !important;
+    /* the control's own text too: beerCSS leaves it --on-surface, which is nearly white in dark mode, on a fill that is pale there */
+    color: var(--on-primary) !important;
+  }
+
+  .field.fill.primary > label {
+    color: var(--on-primary) !important;
+  }
+}

@@ -1,0 +1,7 @@
+/* the hero's own layer switch — the only place on the site that cross-fades two map pictures */
+/* fades the historic map picture out as the slider moves to "Actueel"; the layer is an img stacked on the current map and its opacity is a custom property set by the React layer (DESIGN.md §8), so a drag patches one declaration instead of re-rendering the stack */
+
+.historic-layer {
+  opacity: var(--historic-opacity, 1);
+  transition: opacity var(--speed2, 0.2s) var(--ease-standard);
+}

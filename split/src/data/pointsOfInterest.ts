@@ -1,7 +1,10 @@
-/* the places the home page previews and the overview lists — positions are in 0-100 space and were placed by hand, so they are approximate until there is real geodata; distanceKm is the walk from the Grote Markt, which the overview sorts on */
-/* placeholder content for the collaborator's api, same as the routes */
+/* the places the site knows about — every one of them is inside the area it covers (data/area.ts), and every coordinate, address and place id comes from google's places api rather than from anyone's memory */
+/* how the list was resolved, and how to resolve it again after adding a place, is written down in docs/DESIGN.md §8; the ratings, review counts and descriptions are still placeholder content for the collaborator's api */
+/* `image` is optional and comes from the collaborator's api; the pictures shipped with the site are matched to a place by its id in data/placeImages.ts, because this module is read by the e2e suite (docs/place-images.md) */
 
+import { haversineKm, STREET_FACTOR } from "./routeGeometry.ts";
 import type {
+  LatLng,
   PoiCategory,
   PoiCategoryName,
   PoiFilterState,
@@ -13,7 +16,6 @@ import type {
 export const CATEGORIES: PoiCategory[] = [
   { id: "Monumenten", icon: "account_balance" },
   { id: "Musea", icon: "museum" },
-  { id: "Parken", icon: "park" },
   { id: "Culinair", icon: "restaurant" },
 ];
 
@@ -44,153 +46,150 @@ export function hasActivePoiFilters(filters: PoiFilterState): boolean {
   return restingKeys.some((key) => filters[key] !== INITIAL_POI_FILTERS[key]);
 }
 
-/* these come from the database later: this sample set stands in for it, and data/searchIndex.json points at these ids */
-export const POINTS_OF_INTEREST: PointOfInterest[] = [
+/* the square every distance on this site is measured from, resolved through the places api like the rest of them */
+const GROTE_MARKT: LatLng = { lat: 52.5122429, lng: 6.0927568 };
+
+/* the list before its distances are worked out; the walk is measured from the coordinates, so it cannot fall out of step with the pin */
+const RESOLVED_PLACES: Omit<PointOfInterest, "distanceKm">[] = [
   {
     id: "peperbus",
-    name: "Peperbus",
+    name: "De Peperbus",
     category: "Monumenten",
+    era: "Toen",
     area: "Binnenstad",
     description:
       "De 75 meter hoge toren van de basiliek, al eeuwen het herkenningspunt van de stad.",
     rating: 4.8,
     reviews: 312,
-    distanceKm: 1.2,
-    position: [62.5, 50.5],
+    placeId: "ChIJIS7KXC7fx0cRvWB4rIIhgMs",
+    address: "Ossenmarkt 40, 8011 MS Zwolle",
+    coordinates: { lat: 52.5121724, lng: 6.0898097 },
   },
   {
     id: "sassenpoort",
     name: "Sassenpoort",
     category: "Monumenten",
+    era: "Toen",
     area: "Binnenstad",
     description:
       "De middeleeuwse stadspoort uit 1409, het best bewaarde stukje stadsmuur van Zwolle.",
     rating: 4.9,
     reviews: 487,
-    distanceKm: 0.9,
-    position: [55.1, 25.3],
+    placeId: "ChIJZ835lCXfx0cRnFqiEL3qY84",
+    address: "Sassenstraat 53, 8011 PB Zwolle",
+    coordinates: { lat: 52.5099842, lng: 6.0955212 },
   },
   {
-    id: "grote-of-sint-michaelskerk",
-    name: "Grote of Sint-Michaëlskerk",
+    id: "grote-kerk",
+    name: "Academiehuis de Grote Kerk",
     category: "Monumenten",
+    era: "Toen",
     area: "Binnenstad",
     description:
-      "De gotische kerk aan de Grote Markt, met het beroemde orgel waarop Mozart speelde.",
+      "De gotische kerk aan de Grote Markt, met het beroemde orgel waarop Mozart speelde. Het gebouw is nu het Academiehuis.",
     rating: 4.7,
     reviews: 254,
-    distanceKm: 1.4,
-    position: [61, 55.5],
+    placeId: "ChIJqZQ6pC_fx0cRQUcrDmBkiho",
+    address: "Grote Markt 18, 8011 LW Zwolle",
+    coordinates: { lat: 52.5118557, lng: 6.0922375 },
+  },
+  {
+    id: "balletjeshuis",
+    name: "Het Zwolse Balletjeshuis",
+    category: "Culinair",
+    era: "Nu",
+    area: "Binnenstad",
+    description:
+      "De snoepwinkel aan het Grote Kerkplein waar de Zwolse balletjes nog altijd worden gemaakt.",
+    rating: 4.4,
+    reviews: 146,
+    placeId: "ChIJq4LGCy_fx0cRSVfXheD08ic",
+    address: "Grote Kerkplein 13, 8011 PK Zwolle",
+    coordinates: { lat: 52.511179, lng: 6.0922176 },
   },
   {
     id: "museum-de-fundatie",
     name: "Museum de Fundatie",
     category: "Musea",
+    era: "Nu",
     area: "Binnenstad",
     description:
       "Beeldende kunst in een paleis met een opvallende ei-vormige aanbouw op het dak.",
     rating: 4.6,
     reviews: 398,
-    distanceKm: 1.8,
-    position: [71.6, 49.1],
+    placeId: "ChIJsWzGGS_fx0cRktQ6qRlnZ0c",
+    address: "Blijmarkt 20, 8011 NE Zwolle",
+    coordinates: { lat: 52.5102639, lng: 6.0915627 },
   },
   {
-    id: "stedelijk-museum-zwolle",
-    name: "Stedelijk Museum Zwolle",
+    id: "anno-stadsmuseum",
+    name: "ANNO Stadsmuseum Zwolle",
     category: "Musea",
+    era: "Nu",
     area: "Binnenstad",
     description:
-      "De geschiedenis van Zwolle in één gebouw: van de Hanze tot het heden.",
+      "De geschiedenis van Zwolle in één gebouw: van de Hanze tot het heden. Voorheen het Stedelijk Museum.",
     rating: 4.5,
     reviews: 176,
-    distanceKm: 1.1,
-    position: [57.5, 43],
+    placeId: "ChIJZbvtYZzfx0cRdZR2UoXA4hk",
+    address: "Melkmarkt 41, 8011 MB Zwolle",
+    coordinates: { lat: 52.5129789, lng: 6.0905366 },
   },
   {
-    id: "bonami-spelcomputer-museum",
-    name: "Bonami SpelComputer Museum",
-    category: "Musea",
-    area: "Assendorp",
-    description:
-      "Duizenden computerspellen en consoles, van de eerste Pong tot nu — en je mag alles spelen.",
-    rating: 4.4,
-    reviews: 231,
-    distanceKm: 4.2,
-    position: [72, 72],
-  },
-  {
-    id: "het-engelse-werk",
-    name: "Het Engelse Werk",
-    category: "Parken",
-    area: "Westenholte",
-    description:
-      "Een negentiende-eeuws landschapspark aan de IJssel, met oude lanen en een theekoepel.",
-    rating: 4.7,
-    reviews: 145,
-    distanceKm: 2.6,
-    position: [16, 70],
-  },
-  {
-    id: "park-de-wezenlanden",
-    name: "Park de Wezenlanden",
-    category: "Parken",
-    area: "Wezenlanden",
-    description:
-      "Het grote stadspark met de vijver, de speeltuin en het beste hardlooprondje van de stad.",
-    rating: 4.6,
-    reviews: 208,
-    distanceKm: 1.9,
-    position: [44, 78],
-  },
-  {
-    id: "rijsterborgherpark",
-    name: "Rijsterborgherpark",
-    category: "Parken",
-    area: "Centrum",
-    description:
-      "Het oudste park van Zwolle, een rustige groene long vlak bij het station.",
-    rating: 4.5,
-    reviews: 96,
-    distanceKm: 1.3,
-    position: [30, 20],
-  },
-  {
-    id: "restaurant-de-librije",
-    name: "Restaurant De Librije",
+    id: "thorbeckegracht",
+    name: "Thorbeckegracht & Stadsmuren",
     category: "Culinair",
+    era: "Nu",
     area: "Binnenstad",
     description:
-      "Het beroemdste restaurant van de stad, gevestigd in een oude gevangenis aan de Spinhuisplein.",
-    rating: 4.9,
-    reviews: 512,
-    distanceKm: 1.6,
-    position: [25.4, 43],
-  },
-  {
-    id: "ijsselkade",
-    name: "IJsselkade",
-    category: "Culinair",
-    area: "Binnenstad",
-    description:
-      "Langs het water eet je hier met uitzicht op de schepen en de IJsselbrug.",
+      "De gracht met de terrassen én de oude stadsmuur: aan het water eten met de boten en de pakhuizen op de achtergrond.",
     rating: 4.6,
     reviews: 187,
-    distanceKm: 2.1,
-    position: [40, 58],
+    placeId: "ChIJ5UcPBjDfx0cRIOYsWSZBdac",
+    address: "Thorbeckegracht, 8011 Zwolle",
+    coordinates: { lat: 52.5147059, lng: 6.0950191 },
   },
   {
-    id: "melkmarkt",
-    name: "Melkmarkt",
-    category: "Culinair",
+    id: "vrouwenhuis",
+    name: "Het Vrouwenhuis",
+    category: "Musea",
+    era: "Toen",
     area: "Binnenstad",
     description:
-      "Het gezelligste plein van de binnenstad, vol terrassen en kleine lunchzaken.",
-    rating: 4.4,
-    reviews: 264,
-    distanceKm: 1,
-    position: [56.5, 47],
+      "Het zeventiende-eeuwse vrouwenhofje aan de Voorstraat, met een interieur dat al eeuwen intact is.",
+    rating: 4.1,
+    reviews: 31,
+    placeId: "ChIJ6b4TQC7fx0cRYdBotZ6rUsc",
+    address: "Voorstraat 46, 8011 ML Zwolle",
+    coordinates: { lat: 52.5129419, lng: 6.0896251 },
+  },
+  {
+    id: "van-der-velde-in-de-broeren",
+    name: "Van der Velde in de Broeren",
+    category: "Monumenten",
+    era: "Nu",
+    area: "Binnenstad",
+    description:
+      "De boekhandel in de Broerenkerk, met de boeken tussen de hoge gewelven van de oude kerk.",
+    rating: 4.6,
+    reviews: 6359,
+    placeId: "ChIJ3fBwNSXfx0cRngG_gUnrhtU",
+    address: "Achter de Broeren 1-3, 8011 VA Zwolle",
+    coordinates: { lat: 52.5137755, lng: 6.0954399 },
   },
 ];
+
+export const POINTS_OF_INTEREST: PointOfInterest[] = RESOLVED_PLACES.map(
+  (place) => ({
+    ...place,
+    distanceKm: haversineKm(place.coordinates, GROTE_MARKT) * STREET_FACTOR,
+  }),
+);
+
+/** one place by its id — a route stores ids, so this is the one lookup between a route and the places it visits */
+export function getPointOfInterest(id: string): PointOfInterest | undefined {
+  return POINTS_OF_INTEREST.find((point) => point.id === id);
+}
 
 /** the overview's filter + sort logic, next to the data it works on */
 export function filterPointsOfInterest(
@@ -199,9 +198,6 @@ export function filterPointsOfInterest(
   const needle = filters.query.trim().toLowerCase();
 
   const matches = POINTS_OF_INTEREST.filter((point) => {
-    /* the chip row rests on "all", which stands for "no category chosen" and so matches every place */
-    if (filters.category !== "all" && point.category !== filters.category)
-      return false;
     if (
       needle &&
       !`${point.name} ${point.area} ${point.category}`
@@ -210,12 +206,17 @@ export function filterPointsOfInterest(
     ) {
       return false;
     }
+    if (filters.category !== "all" && point.category !== filters.category) {
+      return false;
+    }
+
     return true;
   });
 
   return matches.sort((a, b) => {
     if (filters.sort === "name") return a.name.localeCompare(b.name, "nl");
     if (filters.sort === "distance") return a.distanceKm - b.distanceKm;
+
     return b.rating - a.rating;
   });
 }

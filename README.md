@@ -16,13 +16,13 @@ spacing, component recipes, motion, accessibility, and copy. Update it there fir
 
 ## Quick start
 
-The Vite project lives in the nested `split/split/` folder, so run commands from the repo root
+The Vite project lives in the `split/` folder, so run commands from the repo root
 with `--prefix`:
 
 ```bash
-npm --prefix split/split install
-npm --prefix split/split run dev      # http://localhost:5173
-npm --prefix split/split run build
-npm --prefix split/split run lint
+npm --prefix split install
+npm --prefix split run dev      # http://localhost:5173
+npm --prefix split run build
+npm --prefix split run lint
 ```
 

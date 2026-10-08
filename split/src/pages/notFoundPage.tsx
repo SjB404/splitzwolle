@@ -1,7 +1,8 @@
 /* the catch all page — a normal page inside the shell, also rendered by a route page whose :routeId matches nothing */
 
 import { Link } from "react-router-dom";
-import PageHeader from "../shared/layout/pageHeader.tsx";
+import PageHeader from "../components/pageHeader.tsx";
+import Container from "../components/container.tsx";
 import { HOME_PATH, ROUTES_PATH } from "../data/navigation.ts";
 
 /* both props are optional: the route page caller passes wording of its own */
@@ -19,14 +20,17 @@ export default function NotFoundPage({
       <PageHeader eyebrow="404" title={title} description={description} />
 
       <section className="py-band">
-        <div className="mx-auto flex max-w-[100rem] flex-wrap gap-3 px-gutter">
-          <Link to={HOME_PATH} className="button ripple">
+        <Container className="flex flex-wrap gap-3">
+          <Link to={HOME_PATH} className="button ripple tap-target">
             Terug naar home
           </Link>
-          <Link to={ROUTES_PATH} className="button border text-ink ripple">
+          <Link
+            to={ROUTES_PATH}
+            className="button border text-ink ripple tap-target"
+          >
             Alle routes bekijken
           </Link>
-        </div>
+        </Container>
       </section>
     </>
   );

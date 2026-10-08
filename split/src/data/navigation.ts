@@ -1,24 +1,15 @@
-/* the paths, the bar's links and the footer's groups — one module, so renaming a path re-points every link at once */
+/* the paths the router, the bar and the footer all share — one module, so renaming a path re-points every link at once */
+/* the links themselves live with the component that renders them: the bar's in components/navbar.tsx, the footer's in components/footer.tsx */
 
-import type { ContactDetails, FooterColumn, NavLink } from "../types.ts";
 export const LOGIN_PATH = "/login";
 export const HOME_PATH = "/";
 export const ROUTES_PATH = "/routes";
+/* the planner was folded into the builder: this path only exists so an old link still lands somewhere */
 export const PLANNING_PATH = "/planning";
 export const POI_PATH = "/points-of-interest";
 export const REGISTER_PATH = "/inloggen#registreren";
 export const CONTACT_PATH = "/contact"
 /** the login page opens its registration form when the url carries this hash */
-
-/* Contact is not a page: it points at the footer band, the contact block on every page (shared/layout/footer.tsx) */
-export const NAV_LINKS: NavLink[] = [
-  { label: "Home", to: HOME_PATH },
-  { label: "Routes", to: ROUTES_PATH },
-  { label: "Planning", to: PLANNING_PATH },
-  { label: "Points of Interest", to: POI_PATH },
-  { label: "Contact", to: CONTACT_PATH },
-
-];
 
 /* whether a nav link is the page you are on — the hash is ignored, and a sub page keeps its parent link active */
 export function isActiveLink(pathname: string, to: string): boolean {
@@ -28,30 +19,51 @@ export function isActiveLink(pathname: string, to: string): boolean {
   return pathname === path || pathname.startsWith(`${path}/`);
 }
 
-/* the footer's link groups; contact details are placeholders until the collaborator's api is wired up (DESIGN.md §15) */
-export const FOOTER_COLUMNS: FooterColumn[] = [
-  {
-    title: "Navigatie",
-    links: [
-      { label: "Home", to: HOME_PATH },
-      { label: "Routes", to: ROUTES_PATH },
-      { label: "Planning", to: PLANNING_PATH },
-      { label: "Points of Interest", to: POI_PATH },
-    ],
-  },
-  {
-    title: "Account",
-    links: [
-      { label: "Inloggen", to: LOGIN_PATH },
-      { label: "Registreren", to: REGISTER_PATH },
-      { label: "Mijn planning", to: PLANNING_PATH },
-    ],
-  },
-];
+/* the two urls the routes page answers: a built route is its places in visit order, a ready-made one is its id */
+export const CUSTOM_ROUTE_PATH = `${ROUTES_PATH}/custom`;
+export const PUBLIC_ROUTE_PATH = `${ROUTES_PATH}/public`;
 
-export const CONTACT_DETAILS: ContactDetails = {
-  email: "info@zwolleroutes.nl",
-  phone: "+31 38 123 45 67",
-  phoneHref: "+31381234567",
-  address: "Grote Markt 1, 8011 PK Zwolle",
-};
+/* the builder, pre-loaded with these places: /routes/custom/peperbus,vrouwenhuis — the shortest thing that can be shared */
+export function builderPath(placeIds: string[]): string {
+  if (placeIds.length === 0) return ROUTES_PATH;
+
+  return `${CUSTOM_ROUTE_PATH}/${placeIds.map((id) => encodeURIComponent(id)).join(",")}`;
+}
+
+/* a ready-made route's own page: /routes/public/binnenstad-highlights */
+export function publicRoutePath(routeId: string): string {
+  return `${PUBLIC_ROUTE_PATH}/${encodeURIComponent(routeId)}`;
+}
+
+/* a place on the places page: /points-of-interest#poi-sassenpoort — a **hash** and not a path, because the
+   page is the same page: the fragment names the card, and `ScrollToTop` already knows how to follow a
+   fragment (`#contact` lands from anywhere). The place ids are ascii slugs, so the fragment is the
+   element's own id verbatim — no escaping on either side, which is what the lookup needs */
+export const POI_ANCHOR_PREFIX = "poi-";
+
+export function pointOfInterestAnchor(poiId: string): string {
+  return `${POI_ANCHOR_PREFIX}${poiId}`;
+}
+
+export function pointOfInterestPath(poiId: string): string {
+  return `${POI_PATH}#${pointOfInterestAnchor(poiId)}`;
+}
+
+/* the place a url's hash names; whether it exists is the page's business, not the url's */
+export function parsePointOfInterestAnchor(hash: string): string | null {
+  const anchor = hash.replace(/^#/, "");
+
+  return anchor.startsWith(POI_ANCHOR_PREFIX)
+    ? anchor.slice(POI_ANCHOR_PREFIX.length)
+    : null;
+}
+
+/* the places out of a custom segment; whether they exist is the page's business, not the url's */
+export function parsePlaceIds(segment: string | undefined): string[] {
+  if (!segment) return [];
+
+  return segment
+    .split(",")
+    .map((id) => decodeURIComponent(id.trim()))
+    .filter((id) => id.length > 0);
+}
