@@ -1,14 +1,8 @@
-/*
-  The e2e specs read the app's own data and the app's own filter functions, so the suite grows with the
-  content instead of being pinned to today's numbers: no route id, place name or "how many are there"
-  is written down twice. Adding a route or a place adds coverage; changing a filter bucket changes the
-  expectation with it.
-*/
-
 import { ROUTES } from "../../src/data/routes.ts";
 import { POINTS_OF_INTEREST } from "../../src/data/pointsOfInterest.ts";
 import { pointsInArea } from "../../src/data/area.ts";
 import {
+  CONTACT_PATH,
   HOME_PATH,
   POI_PATH,
   ROUTES_PATH,
@@ -60,7 +54,6 @@ export {
   parsePlaceIds,
 } from "../../src/data/navigation.ts";
 
-/* the bar's and the footer's links are declared with the components that render them now */
 export { NAV_LINKS } from "../../src/components/navbar.tsx";
 export {
   FOOTER_COLUMNS,
@@ -74,7 +67,6 @@ export type {
   PoiFilterState,
 } from "../../src/types.ts";
 
-/* a url nothing serves, so the catch-all page has something to answer */
 export const UNKNOWN_PATH = "/dit-bestaat-niet";
 
 interface Page {
@@ -84,7 +76,6 @@ interface Page {
   heading: string | RegExp;
 }
 
-/* the pages whose wording is written into the page itself */
 export const STATIC_PAGES: Page[] = [
   {
     path: HOME_PATH,
@@ -102,20 +93,24 @@ export const STATIC_PAGES: Page[] = [
     heading: /Bezienswaardigheden in Zwolle/,
   },
   {
+    path: CONTACT_PATH,
+    title: "Neem contact met ons op · Zwolle Routes",
+    heading: "Neem contact met ons op",
+  },
+  {
     path: UNKNOWN_PATH,
     title: "Deze pagina bestaat niet · Zwolle Routes",
     heading: /Deze pagina bestaat niet/,
   },
 ];
 
-/* one page per route, derived from the content: a ready-made route has a url of its own */
 export const ROUTE_PAGES: Page[] = ROUTES.map((route) => ({
   path: publicRoutePath(route.id),
   title: `${route.title} · Zwolle Routes`,
   heading: route.title,
 }));
 
-/* a built route in the url: the densest the builder gets, and the state worth overflow-checking */
+/* the densest builder state, used for the overflow checks */
 export const BUILT_ROUTE_PATH = builderPath(
   pointsInArea(POINTS_OF_INTEREST)
     .slice(0, 2)
@@ -125,7 +120,6 @@ export const BUILT_ROUTE_PATH = builderPath(
 export const PAGES: Page[] = [
   ...STATIC_PAGES,
   ...ROUTE_PAGES,
-  /* a place's own url: what a home tile links to, so the landing is overflow-checked and audited too */
   {
     path: pointOfInterestPath(POINTS_OF_INTEREST[0].id),
     title: "Bezienswaardigheden in Zwolle · Zwolle Routes",
@@ -138,10 +132,8 @@ export const PAGES: Page[] = [
   },
 ];
 
-/* every url the site serves: a new route or page is overflow-checked and audited without a test edit */
 export const ALL_PATHS = PAGES.map((page) => page.path);
 
-/* the pages that draw the shared map, which falls back to its own panel without an api key */
 export const MAP_PATHS = [
   ROUTES_PATH,
   POI_PATH,

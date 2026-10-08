@@ -1,7 +1,9 @@
-import { Router, Request, Response } from "express";
+import { Router } from "express";
+import type { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import { verify } from "otplib";
-import mysql, { RowDataPacket } from "mysql2/promise";
+import type { RowDataPacket } from "mysql2/promise";
+import { pool } from "../../db.ts";
 import { signToken } from "./jwt.ts";
 
 interface UserRow extends RowDataPacket {
@@ -15,16 +17,6 @@ interface UserRow extends RowDataPacket {
 }
 
 const router = Router();
-
-const pool = mysql.createPool({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "swolla",
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
 
 router.post("/login", async (req: Request, res: Response) => {
   const { email, password, token } = req.body;
@@ -82,8 +74,7 @@ router.post("/login", async (req: Request, res: Response) => {
 
     const jwtToken = signToken({ id: user.id, email: user.email, role: user.role });
 
-    // httpOnly cookie so the browser sends it automatically on future
-    // requests (the frontend already fetches with credentials: "include").
+    // httpOnly; the frontend fetches with credentials: "include"
     res.cookie("token", jwtToken, {
       httpOnly: true,
       sameSite: "lax",
@@ -103,10 +94,7 @@ router.post("/login", async (req: Request, res: Response) => {
   } catch (err) {
     console.error("POST /login failed:", err);
 
-    return res.status(500).json({
-      error: "Login failed",
-      detail: err instanceof Error ? err.message : String(err),
-    });
+    return res.status(500).json({ error: "Login failed" });
   }
 });
 export default router;

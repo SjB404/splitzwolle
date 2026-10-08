@@ -1,30 +1,27 @@
-/* zwolle routes design tokens — deltion huisstijl (blue, orange, white); every colour is derived from the two seeds below, so re-branding is a two line edit */
-
-/* cascade order: overrides is declared first on purpose (the layer at the bottom of this file explains why), beerCSS has to sit above tailwind's preflight or the reset flattens every material 3 component, and below the utilities so tailwind's layout classes still win */
+/* layer order deliberate: beercss above tailwind's preflight, overrides first for !important */
 @layer overrides, theme, base, beercss, components, utilities;
 
 @import "tailwindcss";
 
-/* beerCSS, imported piece by piece: settings/font.css (1.4 mb of all three icon families) is skipped for the google fonts subset in index.html, and settings/dark.css for its own purple palette — beerCSS reads the light/dark class on <body> instead */
+/* font.css (1.4mb icon fonts) and dark.css skipped; theme is the light/dark class on <body> */
 @import "beercss/src/cdn/settings/reset.css" layer(beercss);
 @import "beercss/src/cdn/settings/global.css" layer(beercss);
 @import "beercss/src/cdn/settings/light.css" layer(beercss);
 @import "beercss/src/cdn/settings/theme.css" layer(beercss);
 @import "beercss/src/cdn/helpers/all.css" layer(beercss);
 @import "beercss/src/cdn/elements/all.css" layer(beercss);
-/* beerCSS 5's elements/all.css does not pull in selection.css, so checkbox, radio and switch fall back to the browser's own controls; same layer, so the cascade order is unchanged */
+/* beerCSS 5's elements/all.css omits selection.css, so checkbox/radio/switch need this import */
 @import "beercss/src/cdn/elements/selection.css" layer(beercss);
 
-/* static keeps every token in the built css, so the role block below can reference them with var() even when no utility uses them */
+/* static keeps every token in the built css, so var() references below always resolve */
 @theme static {
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-display: "Montserrat", ui-sans-serif, system-ui, -apple-system, sans-serif;
 
-  /* the two brand colours, and the whole palette with them; mixed in oklab, which is perceptually even and does not let the hue drift as a shade lightens — toward white for the light steps, toward black for the deep blue only, since orange toward black is brown */
   --seed-orange: #f68221;
   --seed-blue: #282c6d;
 
-  /* orange, the accent ramp, and only its light half: a darkened orange reads as brown, so it never goes below #f68221 — which also means orange is a fill on light surfaces and never text; 50-100 are tints, 200-400 decoration, 500 is the brand itself (the bar, filled actions, indicators) */
+  /* ramp stops at the seed: any darker orange reads as brown, and orange is never text */
   --color-orange-50: color-mix(in oklab, var(--seed-orange) 6%, white);
   --color-orange-100: color-mix(in oklab, var(--seed-orange) 15%, white);
   --color-orange-200: color-mix(in oklab, var(--seed-orange) 28%, white);
@@ -32,7 +29,6 @@
   --color-orange-400: color-mix(in oklab, var(--seed-orange) 72%, white);
   --color-orange-500: var(--seed-orange);
 
-  /* blue, the structure ramp: canvases, body text, dark surfaces */
   --color-blue-50: color-mix(in oklab, var(--seed-blue) 5%, white);
   --color-blue-100: color-mix(in oklab, var(--seed-blue) 12%, white);
   --color-blue-200: color-mix(in oklab, var(--seed-blue) 22%, white);
@@ -45,45 +41,33 @@
   --color-blue-900: color-mix(in oklab, var(--seed-blue) 54%, black);
   --color-blue-950: color-mix(in oklab, var(--seed-blue) 40%, black);
 
-  /* navy, the dark theme's surfaces: the deep blue steps with only the chroma scaled, because fading #282c6d toward black keeps its full chroma and reads as a vivid pure blue once it covers a whole screen; still derived from the two seeds */
+  /* chroma scaled to 0.62: fading blue toward black otherwise reads as a vivid blue full-screen */
   --color-navy-600: oklch(from var(--color-blue-600) l calc(c * 0.62) h);
   --color-navy-700: oklch(from var(--color-blue-700) l calc(c * 0.62) h);
   --color-navy-800: oklch(from var(--color-blue-800) l calc(c * 0.62) h);
   --color-navy-900: oklch(from var(--color-blue-900) l calc(c * 0.62) h);
   --color-navy-950: oklch(from var(--color-blue-950) l calc(c * 0.62) h);
 
-  /* paper, the warm neutrals behind the historic layer: orange at low strength over white, warm without adding a third hue */
-  --color-sand-50: color-mix(in oklab, var(--seed-orange) 4%, white);
   --color-sand-100: color-mix(in oklab, var(--seed-orange) 9%, white);
   --color-sand-200: color-mix(in oklab, var(--seed-orange) 15%, white);
   --color-sand-300: color-mix(in oklab, var(--seed-orange) 23%, white);
 
-  /* water, the cool neutrals behind the present-day layer, from the blue seed */
   --color-haze-100: color-mix(in oklab, var(--seed-blue) 8%, white);
   --color-haze-200: color-mix(in oklab, var(--seed-blue) 13%, white);
   --color-haze-300: color-mix(in oklab, var(--seed-blue) 20%, white);
 
-  /* the app's two motion curves, static so var(--ease-standard) always resolves in hand-written css; durations stay with beerCSS's --speed1/2/3 (100/200/300ms) */
+  /* static so var(--ease-standard) always resolves; durations come from beerCSS's --speed1/2/3 */
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
 
-  /* the one corner every box in the app shares: a field, a button, a chip, a card, a panel. 1.5rem is the
-     value that works for the whole page at once: a 48px control clamps to exactly half its height — 24px,
-     a true pill — and anything larger rounds the cards more than the controls they sit on, anything smaller
-     squares the pills off. the bigger boxes simply draw the 24px it says, which is a corner on a 320px card
-     and the same corner a 48px button renders, so a card and the action on it read as one family. beerCSS
-     ships four radii of its own (a 2rem round field, a 1.25rem button, a 0.75rem card, a 0.5rem chip),
-     which is why it is handed out in the override layer rather than per component; a hand-built panel (the
-     hero's map frame, the reviews panel) wears it as `rounded-box` */
+  /* 1.5rem: controls clamp to a 24px pill, cards draw 24px; handed out in @layer overrides */
   --radius-box: 1.5rem;
 }
 
-/* the default for every tailwind transition-* utility: 200ms, set once so no component has to name a duration or a curve */
 @theme {
   --default-transition-duration: 200ms;
   --default-transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
 
-  /* fluid type: a clamp carries a floor, a viewport-relative middle and a ceiling, so a heading fills the measure it is given instead of stepping at a breakpoint and re-wrapping; the three steps map to the hero h1 (display), a page h1 (headline) and a section h2 (title) — DESIGN.md §4 */
   --text-display: clamp(2rem, 4.4vw + 0.35rem, 4.5rem);
   --text-display--line-height: 1.08;
   --text-headline: clamp(1.875rem, 2.6vw + 0.9rem, 3.25rem);
@@ -91,13 +75,12 @@
   --text-title: clamp(1.625rem, 1.5vw + 1rem, 2.5rem);
   --text-title--line-height: 1.15;
 
-  /* fluid spacing, same idea: the page gutter, the section rhythm, the little the hero band keeps, and the page header's own tighter band; every number is deliberately on the compact side, because the content is what the room is for */
   --spacing-gutter: clamp(1rem, 2vw, 2rem);
   --spacing-band: clamp(2rem, 4vw, 3.25rem);
   --spacing-hero: clamp(0.5rem, 1.2vw, 1rem);
   --spacing-header: clamp(1.5rem, 2.6vw, 2.5rem);
 
-  /* the app's one entrance: the hero's map panel rises into place once on load; declared as a theme animation so motion-safe:animate-rise is a utility, and gated at the call site */
+  /* declared as a theme animation so motion-safe:animate-rise exists; gate it at the call site */
   --animate-rise: rise 0.45s var(--ease-standard) both;
 
   @keyframes rise {
@@ -107,13 +90,7 @@
     }
   }
 
-  /* and the app's one flash: the card whose url a reader arrived on lights its own edge twice, then lets the
-     second light fade out over the last 1.5s of the two (the print of the flash itself is `outline-2
-     -outline-offset-2 outline-transparent` where the card is drawn, because the outline is the one edge it
-     is free to animate — its border and its shadow are `!important` in `@layer overrides`). The colour is
-     `--selected`, the brand seed at full strength: orange under white in light mode, blue under white in
-     dark, which is exactly what a control that is *on* is filled with (§3). The stops sit a hair apart
-     because a flash has to cut and not blend, and a keyframe can only hold one value */
+  /* outline is the only animatable edge; border and shadow are !important in overrides */
   --animate-flash: flash 2s var(--ease-standard);
 
   @keyframes flash {
@@ -137,7 +114,7 @@
   }
 }
 
-/* semantic text and hairline utilities, aliased onto the roles below; inline makes tailwind emit color: var(--on-surface) instead of a copy of it, so text-ink follows whichever theme <body> carries */
+/* inline keeps the var() reference, so these follow the light/dark class on <body> */
 @theme inline {
   --color-ink: var(--on-surface);
   --color-ink-muted: var(--on-surface-variant);
@@ -152,48 +129,40 @@
   --color-on-selected: var(--on-selected);
 }
 
-/* material 3 colour roles — beerCSS reads these for every component, so this block decides how the app looks, not the components; the selector mirrors beerCSS's own :root, body.light, because beerCSS re-declares every role on body.light and its default purple would otherwise win */
+/* body.light repeated: beerCSS re-declares every role there and its purple would win */
 :root,
 body.light {
   color-scheme: light;
 
-  /* primary — deltion orange: fills, selection, indicators, route lines. text on it is white, and that is deliberately narrow: white only over orange-500 itself, deltion blue back on the tints, where white is unreadable. white on #f68221 is 2.6:1 and blue-950 on it is 7.8:1 — this is the one place the app picks the brand's own combination over the accessible one */
+  /* white on #f68221 is only 2.6:1; the tints take blue-900 instead (deliberate) */
   --primary: var(--color-orange-500);
   --on-primary: #ffffff;
   --primary-container: var(--color-orange-100);
   --on-primary-container: var(--color-blue-900);
   --inverse-primary: var(--color-orange-500);
 
-  /* secondary — deltion blue: structure and quiet surfaces; secondary-container is the tint a selected *surface* wears (the place card that follows the map), warm orange because light mode is orange led — a selected *control* fills with --selected instead, at the seed's full strength */
   --secondary: var(--color-blue-500);
   --on-secondary: #ffffff;
   --secondary-container: var(--color-orange-100);
   --on-secondary-container: var(--color-blue-900);
 
-  /* the selected control — a chip that is on (a filter, a way of travelling, a stop's order): the full brand
-     seed and never a tint of it, because a control that is on has to read as on at a glance, and a 15% wash
-     over white reads as a hover. light mode fills with the true orange under white, dark mode with the true
-     blue (DESIGN.md §3, §7) */
   --selected: var(--color-orange-500);
   --on-selected: #ffffff;
 
-  /* tertiary — the historic paper layer */
   --tertiary: var(--color-sand-300);
   --on-tertiary: var(--color-blue-900);
   --tertiary-container: var(--color-sand-200);
   --on-tertiary-container: var(--color-blue-900);
 
-  /* error — material 3 defaults, deliberately left alone */
+  /* error defaults from material 3, unchanged */
   --error: #ba1a1a;
   --on-error: #ffffff;
   --error-container: #ffdad6;
   --on-error-container: #410002;
 
-  /* headings and accents are the deep deltion blue: every orange dark enough to read on paper has already turned brown, so orange stays where it looks good, as a fill */
   --heading: var(--color-blue-500);
   --accent-text: var(--color-blue-500);
 
-  /* surfaces — white bands, cream canvas, white cards, so the page alternates; the canvas is a warm cream rather than the orange sand tint, so the alternation still exists without the page reading as orange */
   --background: #fffcf0;
   --on-background: var(--color-blue-900);
   --surface: #fffcf0;
@@ -208,20 +177,15 @@ body.light {
   --surface-container-high: var(--color-sand-200);
   --surface-container-highest: var(--color-sand-300);
 
-  /* lines — --outline-variant is every hairline in the ui (border-line), so it has to read on white and on paper */
   --outline: var(--color-blue-400);
   --outline-variant: var(--color-haze-300);
 
-  /* inverse — the full bleed bands (hero, footer). white in light mode. */
   --inverse-surface: #ffffff;
   --inverse-on-surface: var(--color-blue-900);
-  --inverse-primary: var(--accent-text);
 
-  /* the top bar wears the true deltion orange with white on it; blue on orange would be 7.8:1 but reads as a different palette, see --primary */
   --bar: var(--color-orange-500);
   --on-bar: #ffffff;
 
-  /* the avatar always wears the opposite brand colour to the bar it sits on */
   --avatar: var(--color-blue-500);
   --on-avatar: #ffffff;
 
@@ -231,44 +195,38 @@ body.light {
   --font: var(--font-sans);
 }
 
-/* the dark theme — material 3's tonal roles inverted: the accent lifts a step so it still reads, and the surfaces step up in lightness instead of down; the steps use the cool haze tone so they stay apart in a dark room */
 body.dark {
   color-scheme: dark;
 
-  /* primary — deltion blue: here the buttons, the selection and the state layers are all blue, and orange is what sits on top as an accent */
   --primary: var(--color-blue-300);
   --on-primary: var(--color-blue-950);
   --primary-container: var(--color-blue-800);
   --on-primary-container: var(--color-blue-100);
   --inverse-primary: var(--color-orange-500);
 
-  /* secondary — deltion blue, as a light cool tone */
   --secondary: var(--color-blue-300);
   --on-secondary: var(--color-blue-950);
   --secondary-container: var(--color-blue-800);
   --on-secondary-container: var(--color-blue-100);
 
-  /* the selected control, in the dark theme's own brand colour: the true deltion blue under white, the same way light mode fills with the true orange (DESIGN.md §3, §7) */
   --selected: var(--color-blue-500);
   --on-selected: #ffffff;
 
-  /* tertiary — the historic paper, inverted */
   --tertiary: var(--color-sand-300);
   --on-tertiary: var(--color-blue-950);
   --tertiary-container: var(--color-blue-800);
   --on-tertiary-container: var(--color-sand-200);
 
-  /* error — material 3 defaults, deliberately left alone */
+  /* error defaults from material 3, unchanged */
   --error: #ffb4ab;
   --on-error: #690005;
   --error-container: #93000a;
   --on-error-container: #ffdad6;
 
-  /* headings and accents are the true brand orange, undiluted: #f68221 on the deep navy is 7.4:1, where on paper the same orange is 2.6:1 and would have to be darkened until it went brown — dark mode is where the orange gets to be orange */
+  /* #f68221 on the navy is 7.4:1, where on paper it is 2.6:1 */
   --heading: var(--color-orange-500);
   --accent-text: var(--color-orange-500);
 
-  /* surfaces — the navy ramp, stepping up in lightness instead of down, with steps wide enough to stay visible where a shadow cannot help */
   --background: var(--color-navy-900);
   --on-background: var(--color-haze-100);
   --surface: var(--color-navy-900);
@@ -283,41 +241,34 @@ body.dark {
   --surface-container-high: var(--color-navy-600);
   --surface-container-highest: color-mix(in oklab, var(--color-navy-600) 80%, white);
 
-  /* lines — lifted off the surface so borders stay visible */
   --outline: var(--color-blue-400);
   --outline-variant: color-mix(in oklab, var(--color-haze-100) 20%, var(--color-navy-900));
 
-  /* inverse — the hero and footer bands, one step deeper than the canvas so they still read as bands; light mode is the other way round, its bands are the white ones */
   --inverse-surface: var(--color-navy-950);
   --inverse-on-surface: var(--color-haze-100);
-  --inverse-primary: var(--accent-text);
 
-  /* the bar flips to the brand's blue here, because dark mode is blue led; the orange moves into the logo, the active link and the avatar instead */
   --bar: var(--color-navy-950);
   --on-bar: var(--color-haze-100);
   --avatar: var(--color-orange-500);
   --on-avatar: var(--color-blue-950);
 
-  /* material 3 keeps scrim and shadow black in both themes, declared here too so every role exists in both blocks — a role missing from the dark block would silently inherit the light value */
+  /* declared in both blocks: a role missing from dark would inherit the light value */
   --shadow: #000000;
   --scrim: #000000;
 
-  /* beerCSS's neutral state layer and slider track: a light tint, since the default grey would read as brighter than the surface it sits on */
+  /* brand tint for beerCSS's state layer and slider track; the default grey reads too bright */
   --active: color-mix(in oklab, var(--color-haze-100) 14%, transparent);
 }
 
 @layer base {
   html {
     scroll-behavior: smooth;
-    /* the scrollbar's room is always reserved, so opening the mobile menu, changing the theme or moving between a short and a tall page never shifts the layout sideways */
     scrollbar-gutter: stable;
-    /* a tap paints no grey flash box: every control answers with its own ripple and state layer instead */
     -webkit-tap-highlight-color: transparent;
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
 
-  /* headings are montserrat and wrap in balance: a two line headline splits evenly instead of leaving one word on a line of its own */
   :is(h1, h2, h3, h4, h5, h6) {
     font-family: var(--font-display);
     text-wrap: balance;
@@ -327,119 +278,93 @@ body.dark {
     @apply font-sans antialiased;
   }
 
-  /* a selected run of text wears the brand's own container, never the browser's system blue */
   ::selection {
     background-color: var(--primary-container);
     color: var(--on-primary-container);
   }
 
-  /* a tap on a control is one immediate action: no double tap zoom and no 300ms wait before the response */
+  /* no double-tap zoom and no 300ms tap delay on controls */
   :is(a, button, .button, .chip, label, summary) {
     touch-action: manipulation;
   }
 
-  /* material 3 focus ring; beerCSS already draws the 2px primary outline, so this only adds the offset */
+  /* beerCSS already draws the 2px primary ring; this adds the offset */
   :focus-visible {
     outline-offset: 2px;
   }
 }
 
-/* our own component level overrides — components sits after beercss, so a normal declaration here beats the framework's own while tailwind utilities (a later layer) can still override it; reach for this before !important */
+/* sits after beercss, so these beat the framework; prefer it over !important */
 @layer components {
-  /* headings wear the accent colour; beerCSS paints h1 to h6 with --on-surface from a later layer than base, so this cannot be done from base */
+  /* must live here: beerCSS paints h1-h6 with --on-surface from a layer later than base */
   :is(h1, h2, h3, h4, h5, h6) {
     color: var(--heading);
   }
 
-  /* body copy is justified, so a paragraph fills the column instead of leaving a ragged right edge; hyphens carry it (the document is lang="nl"), and a line that does not wrap is untouched, which is why only the paragraph is asked — headings, labels and the words on controls keep their own edges */
   p {
     text-align: justify;
     hyphens: auto;
   }
 
-  /* a paragraph in a centred box follows that box: the empty states, the home tiles and the map's fallback panel are centred, and a justified two line note there reads as a mistake */
   :is(.text-center, .text-right) p {
     text-align: inherit;
   }
 }
 
-/* anchored sections have to clear the sticky header; the footer needs it because that is where the top bar's "Contact" link lands */
+/* anchored sections have to clear the 5rem sticky header */
 :is(section, footer)[id] {
   scroll-margin-block-start: 5rem;
 }
 
-/* framework overrides — declared before every other layer on purpose: for !important the cascade reverses, so an important rule in an earlier layer beats one in a later layer, which is the only way to take a property back from beerCSS; a normal declaration here would be the weakest in the file */
+/* first on purpose: for !important the cascade reverses, so an earlier layer wins */
 @layer overrides {
-  /* a field's own ring has to be *gone*, not merely invisible: beerCSS paints the boundary on the control inside it (--outline at rest, --primary at 2px on focus), so the hairline tailwind's `border` utility leaves on the wrapper — coloured currentColor, i.e. the ink — would draw a second, heavier ring outside it. it is set to 0 rather than to a transparent colour, because a transparent border is still a border: 1px on each edge made every .field 50px tall around its own 48px control, so the field's box and the 48px action standing beside it (`h-12`) had two different heights and could never share a top and a bottom. a `.field` is now exactly as tall as the control it holds — material 3's own 48px single-line field (beerCSS's `.field { --_input: 3rem }`), which is what every other control in a row is sized against */
+  /* 0, not transparent: a 1px border made .field 50px around its 48px control */
   .field.border {
     border: 0 !important;
   }
 
-  /* an outlined button takes the same --outline as a field: beerCSS gives it --outline-variant, which is the card hairline and reads as no border at all beside a field */
+  /* beerCSS gives it --outline-variant, which reads as no border beside a field */
   :is(.button, button).border {
     border-color: var(--outline) !important;
   }
 
-  /* an unselected filter chip — a <button>, unlike the badge <span>s that sit over artwork — takes the same --outline boundary as a field or an outlined button: beerCSS leaves it --outline-variant, which all but disappears beside them. The selected chip keeps its border-transparent, which is what stops it moving when it is picked */
+  /* unselected chips take --outline too; the selected chip must keep border-transparent */
   button.chip:not(.border-transparent) {
     border-color: var(--outline) !important;
   }
 
-  /* --- every boundary is 2px ---
-     material 3 draws a 1px boundary, but this project draws its lines one step heavier so a control reads
-     at a glance, on a phone and next to a field. each outlined control is widened here, once, instead of
-     in component after component. */
+  /* deliberate: 2px boundaries, where material 3 draws 1px */
   .border:not(table, .field, .list, menu, article),
   :is(.button, button).border,
   .chip {
     border-width: 2px !important;
   }
 
-  /* every card and panel wears the same boundary wherever it sits on the page, so a surface reads as a
-     surface everywhere: the lighter --outline-variant, the tone a container's edge takes rather than a
-     control's. */
   article {
     border: 2px solid var(--outline-variant) !important;
   }
 
-  /* a field paints its boundary on the control inside it, so that, and not the wrapper, is what widens */
   .field.border > :is(input, textarea, select) {
     border-width: 2px !important;
   }
 
-  /* the field's floating label draws the notch in its own outline, a second line: it has to match the
-     control's boundary or the outline reads as broken */
+  /* must match the control's 2px or the outline reads as broken */
   .field.label.border:not(.fill) > label::after {
     border-block-start-width: 2px !important;
   }
 
-  /* --- every box shares one corner ---
-     material 3 gives each family its own radius and beerCSS ships four of them, so a page carried four
-     systems at once: the home search bar was a pill, the card under it a rounded rectangle, the outlined
-     button beside it a third thing. the value lives in the tokens above (`--radius-box`) and is handed out
-     here, once, the way the 2px boundary is — and a hand-built panel reaches for it as `rounded-box`
-     instead of a one-off utility. a radius wider than half a box is scaled down to it, so the one value
-     renders as both shapes: a 48px field is a true pill, a card draws the full 24px.
-     `:not(.rounded-none)` is what gives the seam its way: a box that butts inside a clipped panel says so
-     with `rounded-none` (DESIGN.md §5), and without the exclusion this rule's `!important` would hand it
-     the corner back — the reviews panel's header row, a full width button, is exactly that case. */
+  /* :not(.rounded-none) is load-bearing: the !important would otherwise undo a flush seam */
   :is(.field, .button, button, article, .chip, .badge, menu):not(.rounded-none),
   .field > :is(input, textarea, select) {
     border-radius: var(--radius-box) !important;
   }
 
-  /* beerCSS draws a button as `box-sizing: content-box`, so a full width row came out at 100% of its
-     column *plus* the button's own 2rem of padding: the mobile menu's links measured 365px inside a 333px
-     column, 16px of that past the right edge of a 380px phone. no button in this app leans on padding
-     sitting outside a fixed size, so a button is a border box like every other element on the page. */
+  /* beerCSS buttons are content-box; full-width rows overflowed their column by 2rem */
   :is(.button, button) {
     box-sizing: border-box !important;
   }
 
-  /* a boundary a pixel wider would push the text inward, so the control keeps the room its 1px line left
-     (each resting padding takes the focus padding's value), and nothing moves when the reader focuses it.
-     one inset too: every field is a pill now, so the round field's inset is *the* field's
-     inset, and the review form's textarea starts its text where the search bar does. */
+  /* keeps the room the 1px line left, so text does not shift when focused */
   .field.border > :is(input, textarea, select) {
     padding-inline: 1.375rem !important;
   }
@@ -448,40 +373,36 @@ body.dark {
     padding-inline-start: 2.875rem !important;
   }
 
-  /* a field's trailing slot (the select's chevron) reserves a little less than beerCSS's 2.9375rem:
-     the icon is inset 1rem with a 1.5rem glyph, so 2.625rem already clears it, and the 5px it gives
-     back is what keeps "Iedereens routes" — the longest filter value — on one line */
+  /* 2.625rem, not beerCSS's 2.9375rem: keeps "Iedereens routes" on one line */
   .field.border.suffix > :is(input, textarea, select) {
     padding-inline-end: 2.625rem !important;
   }
 
-  /* a select's value never wraps: beerCSS's `all: unset` takes the browser's own `white-space: pre`
-     off a <select>, so a long option name ("Alle afstanden") broke onto a second line and made a one
-     line field twice as tall as its neighbours */
+  /* beerCSS's all:unset drops white-space:pre on selects; long options double the field height */
   .field > select {
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
   }
 
-  /* the map slider: beerCSS lands --_end on the handle's own centre and then insets the filled track 0.5rem further, which leaves a slot of bare track between the fill and the handle — it reads as a broken track rather than as a slider */
+  /* beercss insets the filled track 0.5rem past the handle's centre, leaving a gap */
   .slider > span:not([class]) {
     inset-inline-end: var(--_end) !important;
   }
 
-  /* and the handle narrows to a hairline while it has focus, which reads as a glitch; the focus itself stays visible through the track colour and the ring around the field */
+  /* beercss collapses the handle to a hairline while focused */
   .slider > input:not(:disabled):is(:focus)::-webkit-slider-thumb,
   .slider > input:not(:disabled):is(:focus)::-moz-range-thumb {
     transform: none !important;
   }
 
-  /* no elevation anywhere: surfaces are separated by tone and hairlines, and a 2px offset shadow on a 24px radius card reads as a smudged edge or, worse, a gradient; beerCSS puts one on every article */
+  /* beerCSS puts a shadow on every article; this design separates surfaces by tone only */
   article {
     box-shadow: none !important;
   }
 }
 
-/* material 3's minimum touch target is 48x48px and beerCSS draws icon buttons at 40px, so the hit area is extended past the visual edge instead of growing the button, which would overrun the 320px bar; ::before, because beerCSS already owns ::after on buttons for its state layer. it adds 4px on each side, so it only reaches 48px on a control that is at least 40px tall: a 32px chip needs `chip medium` (40px) first, which is what makes the small control the same recipe everywhere (poiFilters, poiPicker) */
+/* material 3 wants 48px targets; beerCSS draws 40px buttons and owns ::after, so ::before */
 .tap-target {
   position: relative;
 }
@@ -492,8 +413,8 @@ body.dark {
   border-radius: inherit;
 }
 
-/* material 3 asks for non essential motion to stop when the OS requests it: keyframes go (beerCSS's ripple), movement written as a utility is gated with motion-safe: at the call site, and colour and opacity feedback stays, because a ui that goes completely inert reads as broken — including the landing card's flash, the one keyframe put back below */
-/* !important is normally banned in this project; this is its one sanctioned use, since it has to outrank framework animations declared later in the cascade */
+/* non-essential motion stops; colour feedback stays (the flash is put back below) */
+/* the project's one sanctioned !important: it must outrank framework animations declared later */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -507,7 +428,7 @@ body.dark {
     transition-delay: 0s !important;
   }
 
-  /* the flash is colour-only feedback and the only thing that says which card a link named, so it survives the block above: the class is not motion-safe-gated and the keyframe is put back from its token (DESIGN.md §11) */
+  /* put back: colour-only feedback, and the only cue naming the linked card */
   .animate-flash {
     animation: var(--animate-flash) !important;
   }

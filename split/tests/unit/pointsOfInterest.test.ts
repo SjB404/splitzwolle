@@ -16,14 +16,12 @@ import type {
   PointOfInterest,
 } from "../../src/types.ts";
 
-/* the square every distance on the site is measured from */
 const GROTE_MARKT = { lat: 52.5122429, lng: 6.0927568 };
 
 function filters(patch: Partial<PoiFilterState> = {}): PoiFilterState {
   return { ...INITIAL_POI_FILTERS, ...patch };
 }
 
-/* the fields a search runs over, spelled once so the expectations cannot drift from the filter */
 const haystack = (point: PointOfInterest) =>
   `${point.name} ${point.area} ${point.category}`.toLowerCase();
 
@@ -33,7 +31,7 @@ const dataIds = (predicate: (point: PointOfInterest) => boolean) =>
   POINTS_OF_INTEREST.filter(predicate).map(idOf).sort();
 
 describe("the place data", () => {
-  /* the one place a content change has to be acknowledged by hand; everything below grows with the list */
+  /* this count has to be updated by hand when the dataset changes */
   it("holds the dataset this suite was written against", () => {
     expect(POINTS_OF_INTEREST).toHaveLength(9);
   });

@@ -1,6 +1,3 @@
-/* what the picked places add up to: the stops in visit order, the distance and the duration, and the way out to a real navigation app */
-/* the numbers are the directions api's when it answered and our own estimate when it did not — and the last line says which of the two it is */
-
 import Icon from "./icon.tsx";
 import { directionsUrl } from "../data/directions.ts";
 import { formatDistance, formatDuration } from "../format.ts";
@@ -17,10 +14,7 @@ export default function RoutePlanSummary({
 }: RoutePlanSummaryProps) {
   if (plan.points.length < 2) {
     return (
-      /* a thin, long bar — the hint a reader sees before the route exists — so it is a pill: 48px tall,
-         where the one corner is exactly half the box (§5). `min-h-12` and not a fixed `h-12`: the sentence
-         wraps to two lines in a phone's column, and the bar should grow with it rather than let the words
-         spill past its own boundary */
+      /* min-h-12 not h-12: the sentence wraps to two lines on a phone, so the bar must grow */
       <p className="surface-container-low mt-6 flex min-h-12 items-center gap-2 rounded-box border-2 border-line px-4 text-sm text-ink-muted">
         <Icon name="route" className="text-base" />
         {plan.points.length === 0
@@ -71,7 +65,6 @@ export default function RoutePlanSummary({
         </div>
       </dl>
 
-      {/* which of the two the numbers are: a real street route or a straight-line estimate */}
       <p className="mt-3 text-xs text-ink-muted" aria-live="polite">
         {plan.pending
           ? "De route wordt berekend…"

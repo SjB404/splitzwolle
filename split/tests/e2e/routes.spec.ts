@@ -17,12 +17,12 @@ import type { Route, RouteFilterState } from "./app";
 
 const AREA_POINTS = pointsInArea(POINTS_OF_INTEREST);
 
-/* every card carries one link to its own page, so that link is what a card looks like here */
+/* every card carries one per-card link, which is what identifies it here */
 const PREFIX = "Open de route ";
 
 const cardTitles = (page: Page) =>
   page.getByRole("link", { name: new RegExp(`^${PREFIX}`) }).evaluateAll(
-    /* the callback runs in the browser, so the prefix is handed over rather than closed over */
+    /* the evaluateAll callback runs in the browser, so the prefix comes in as an argument */
     (links, prefix) =>
       links.map((link) =>
         (link.getAttribute("aria-label") ?? "").replace(prefix, ""),
@@ -295,7 +295,6 @@ test.describe("the ready-made routes", { tag: "@list" }, () => {
 
     for (const [label, key] of facets) {
       const select = page.getByLabel(label);
-      /* the options come from the page, so a new theme or bucket is covered without a test edit */
       const values = await select
         .locator("option")
         .evaluateAll((options) =>
@@ -321,7 +320,6 @@ test.describe("the ready-made routes", { tag: "@list" }, () => {
           })
           .toEqual(visible);
 
-        /* the live count reports every match, not the page of them that is on screen */
         await expect
           .soft(page.getByText(new RegExp(`^${matching.length} route`)))
           .toBeVisible();
@@ -410,7 +408,7 @@ test.describe("a route's card", { tag: "@list" }, () => {
     await expect(card).toBeVisible();
     await card.scrollIntoViewIfNeeded();
 
-    /* the bottom of the card is the description, so this is the whole-card target and not the title */
+    /* clicked near the bottom, so the whole-card target is exercised, not the title link */
     const box = await card.boundingBox();
 
     await page.mouse.click(box!.x + box!.width / 2, box!.y + box!.height * 0.8);
@@ -433,7 +431,6 @@ test.describe("a route's card", { tag: "@list" }, () => {
       })
       .click();
 
-    /* saving is not opening: the card's own target stays where it was */
     await expect(page).toHaveURL(ROUTES_PATH);
     await expect(page.getByRole("status")).toHaveText(
       "Toegevoegd aan je opgeslagen routes.",
@@ -472,7 +469,6 @@ test.describe("a route's card", { tag: "@list" }, () => {
       page.getByRole("heading", { level: 1, name: route.title }),
     ).toBeVisible();
     await expect(page.getByRole("link", { name: "Alle routes" })).toBeVisible();
-    /* the route's own places are in the builder, so the map and the summary already agree */
     await expect(
       page.getByText(
         `${route.poiIds.length} van ${AREA_POINTS.length} plekken`,
@@ -528,7 +524,7 @@ test.describe("a route's card", { tag: "@list" }, () => {
     await page.goto(HOME_PATH);
 
     await page
-      .getByRole("link", { name: ROUTES[0].title, exact: true })
+      .getByRole("link", { name: `Open de route ${ROUTES[0].title}` })
       .click();
 
     await expect(page).toHaveURL(publicRoutePath(ROUTES[0].id));

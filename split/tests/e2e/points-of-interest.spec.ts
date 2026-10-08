@@ -12,10 +12,8 @@ import {
 
 const placeLinks = (page: Page) =>
   page.locator(`a[href^="${CUSTOM_ROUTE_PATH}/"]`);
-/* the map's corner chip is the only chip that carries one place's own name */
 const chipWith = (page: Page, text: string | RegExp) =>
   page.locator(".chip").filter({ hasText: text });
-/* one card, found by the heading it carries rather than by any word in its body */
 const cardOf = (page: Page, name: string) =>
   page.locator("article").filter({
     has: page.getByRole("heading", { level: 3, name, exact: true }),
@@ -24,18 +22,15 @@ const cardOf = (page: Page, name: string) =>
 const countLabel = (count: number) =>
   new RegExp(`^${count} bezienswaardig(heid|heden)$`);
 
-/* the true brand seeds, the fill of a chip that is on: deltion orange in light mode, deltion blue in dark
-   (index.css `--selected`, DESIGN.md §3) */
+/* the --selected token as computed rgb: orange in light, blue in dark */
 const SELECTED_LIGHT = "rgb(246, 130, 33)";
 const SELECTED_DARK = "rgb(40, 44, 109)";
 
-/* the flash paints the same seeds on the card's edge and keeps the colour while its alpha fades, so the
-   seed's own numbers are what to match, not a full-alpha value */
+/* the flash keeps the seed colour while its alpha fades, so match the seed's numbers */
 const flashSeed = (seed: string) =>
   new RegExp(`^rgba?\\(${seed.replace(/^rgb\(|\)$/g, "")}`);
 
-/* the bare utility token, never a `motion-safe:` variant — the flash is colour-only feedback and must run
-   for reduced-motion readers too (DESIGN.md §11) */
+/* bare animate-flash token, not a motion-safe variant: reduced motion keeps the flash */
 const FLASH_CLASS = /(^|\s)animate-flash(\s|$)/;
 
 test.describe("the places overview", { tag: "@poi" }, () => {
@@ -85,10 +80,7 @@ test.describe("the places overview", { tag: "@poi" }, () => {
     }
   });
 
-  /* a chip that is on fills with the brand seed itself, never a tint of it: a tint reads as a hover, and
-     this is the one control on the page a reader has to be able to spot from across the room. The two
-     values are `--selected` (DESIGN.md §3, §16) — orange under white in light mode, blue under white in
-     dark — read as computed colour so a recipe that drifts back to a container tone fails here */
+  /* computed colour, so a chip drifting back to a container tint fails here */
   test("fills a selected chip with the brand seed, in both themes", async ({
     page,
   }) => {
@@ -169,7 +161,6 @@ test.describe("the places overview", { tag: "@poi" }, () => {
     page,
   }) => {
     const place = POINTS_OF_INTEREST[0];
-    /* a category the place does not belong to, so filtering it away is a real change */
     const other = CATEGORIES.find(
       (category) => category.id !== place.category,
     )!;
@@ -218,23 +209,19 @@ test.describe("the places overview", { tag: "@poi" }, () => {
 
     const card = cardOf(page, place.name);
 
-    /* the landing is that place, chosen: the card is the marked one, the map calls it out, and it is
-       the card the reader sees rather than the top of the page */
     await expect(
       card.getByRole("button", { name: "Op de kaart" }),
     ).toHaveAttribute("aria-pressed", "true");
     await expect(chipWith(page, place.name)).toBeVisible();
     await expect(card).toBeInViewport();
 
-    /* the landing lights its own edge instead of wearing the tone the page's background already has,
-       and it is the only card that does */
+    /* only the landing card wears the flash, not the secondary-container tone */
     await expect(card).toHaveClass(FLASH_CLASS);
     await expect(card).not.toHaveClass(/secondary-container/);
     await expect(page.locator(".animate-flash")).toHaveCount(1);
 
     expect(errors).toEqual([]);
 
-    /* and a pick made on the page keeps the reader where they were, rather than jumping them to the top */
     const before = await page.evaluate(() => window.scrollY);
 
     await cardOf(page, POINTS_OF_INTEREST[1].name)
@@ -245,7 +232,6 @@ test.describe("the places overview", { tag: "@poi" }, () => {
       .poll(async () => Math.abs((await page.evaluate(() => window.scrollY)) - before))
       .toBeLessThan(40);
 
-    /* and the landing is a card like any other once the reader picks: the pick wears the tone */
     await expect(card).not.toHaveClass(FLASH_CLASS);
     await expect(cardOf(page, POINTS_OF_INTEREST[1].name)).toHaveClass(
       /secondary-container/,
@@ -257,8 +243,7 @@ test.describe("the places overview", { tag: "@poi" }, () => {
   }) => {
     const place = POINTS_OF_INTEREST[0];
     const url = pointOfInterestPath(place.id);
-    /* the flash starts with the card and is over after 2s, so the edge is read as soon as the card is
-       there — which is why the wait is for the commit, not for the load */
+    /* the flash starts on commit and is over in 2s, so wait for the commit, not the load */
     const outlineOf = () =>
       cardOf(page, place.name).evaluate(
         (el) => getComputedStyle(el).outlineColor,
@@ -279,8 +264,7 @@ test.describe("the places overview", { tag: "@poi" }, () => {
     page,
   }) => {
     const place = POINTS_OF_INTEREST[0];
-    /* colour-only feedback, so the preference has nothing to switch off: the outline is read hot rather
-       than the animation inspected, because the reduced-motion block collapses durations, not names */
+    /* reduced motion collapses durations, not names, so the outline is read, not the animation */
     const outlineOf = () =>
       cardOf(page, place.name).evaluate(
         (el) => getComputedStyle(el).outlineColor,

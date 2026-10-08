@@ -11,7 +11,7 @@ import { renderWithRouter } from "../helpers.tsx";
 
 const POI_PREVIEW_COUNT = 5;
 
-/* a card that leaves the grid keeps its place in the dom until motion's fade has run, so list counts are awaited */
+/* a leaving card stays in the dom until motion's fade ends; list counts are awaited */
 const cardCount = () => screen.getAllByRole("heading", { level: 3 }).length;
 
 describe("HomePage", () => {
@@ -81,7 +81,7 @@ describe("HomePage", () => {
       expect(image).toHaveAttribute("height", "984");
     }
 
-    /* the current map is the frame and loads eagerly; the historic layer sits on top of it and can wait */
+    /* [0] is the eager current-map frame; [1] the historic layer on top */
     expect(images[0]).toHaveAttribute("loading", "eager");
     expect(images[0].getAttribute("fetchpriority")).toBe("high");
     expect(images[1]).toHaveAttribute("loading", "lazy");
@@ -137,7 +137,7 @@ describe("HomePage", () => {
       name: "Zoek in de populaire routes",
     });
 
-    /* "singel" is in two titles and in the area Buitensingel of two more, so four match but three are shown */
+    /* "singel" matches four (two titles, two Buitensingel areas) but three show */
     fireEvent.change(search, { target: { value: "singel" } });
 
     expect(screen.getByText("4 routes")).toBeInTheDocument();
@@ -196,7 +196,7 @@ describe("HomePage", () => {
   it("links every place tile at the card the places page opens on", () => {
     const { container } = renderWithRouter(<HomePage />);
 
-    /* the strip is the resting sort, and each tile links at its own place's card (§6) */
+    /* the strip shows the places list in its default sort */
     const shown = filterPointsOfInterest(INITIAL_POI_FILTERS).slice(
       0,
       POI_PREVIEW_COUNT,

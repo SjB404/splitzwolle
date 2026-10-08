@@ -40,7 +40,7 @@ test.describe("the theme switch", () => {
 
     await page.reload({ waitUntil: "domcontentloaded" });
 
-    /* index.html's own script writes the class during the parse, so the dark palette is there before anything is painted */
+    /* index.html's inline script sets the class during parse, before first paint */
     expect(await page.evaluate(() => document.body.className)).toContain(
       "dark",
     );
@@ -79,7 +79,7 @@ test.describe("the theme switch", () => {
       .click();
 
     const darkBackground = await page.evaluate(() => {
-      /* transitions freeze mid flight in a throttled tab, so they are switched off before the colour is read */
+      /* transitions freeze mid-flight in a throttled tab, so disable them before reading */
       const style = document.createElement("style");
       style.textContent =
         "*{transition:none!important;animation:none!important}";

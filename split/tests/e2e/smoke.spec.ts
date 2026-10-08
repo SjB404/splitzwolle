@@ -2,7 +2,6 @@ import { expect, test, horizontalOverflow } from "./fixtures";
 import { MAP_PATHS, PAGES, UNKNOWN_PATH } from "./app";
 
 test.describe("every page", { tag: "@smoke" }, () => {
-  /* one case per page, derived from the content: a new route is checked here without a test edit */
   for (const { path, title, heading } of PAGES) {
     test(`${path} answers, heads itself and stays quiet`, async ({
       page,
@@ -84,7 +83,9 @@ test.describe("the shell", { tag: "@smoke" }, () => {
     await expect(page.locator("footer#contact")).toContainText(
       "info@zwolleroutes.nl",
     );
-    await expect(page.locator("footer#contact")).toContainText("Grote Markt 1");
+    await expect(page.locator("footer#contact")).toContainText(
+      "Grote Markt 20",
+    );
   });
 
   test("shows the brand's own assets, none of them broken", async ({

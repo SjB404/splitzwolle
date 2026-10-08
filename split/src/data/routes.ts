@@ -1,6 +1,3 @@
-/* route content — the data behind the home page, the overview, the detail page and the planner; a route is a walk from point to point, so it stores the places it visits and nothing else: the line on the map artwork and the line on the interactive map are both derived from those places */
-/* every route is inside the area the site covers (data/area.ts); distances are kilometres and durations minutes, numbers so they can be filtered and summed, and it is still placeholder content for the collaborator's api */
-
 import { getPointOfInterest } from "./pointsOfInterest.ts";
 import type {
   LatLng,
@@ -21,19 +18,8 @@ export const ROUTE_THEMES: RouteTheme[] = [
   "Culinair",
 ];
 
-/* two levels, not three: everything here is a walk through the centre, and a "uitdagend" route of 1.5 km would be a lie */
 export const ROUTE_DIFFICULTIES: RouteDifficulty[] = ["Makkelijk", "Gemiddeld"];
 
-/* one glyph per theme, so a card, a filter and a detail panel describe a route type the same way; every name is in the material symbols subset in index.html */
-export const ROUTE_THEME_ICONS: Record<RouteTheme, string> = {
-  Historisch: "account_balance",
-  Wandel: "directions_walk",
-  Kunst: "museum",
-  Fiets: "directions_bike",
-  Culinair: "restaurant",
-};
-
-/* how many cards the home page previews, and how many the overview shows before "Toon meer routes" */
 export const ROUTE_PREVIEW_COUNT = 3;
 export const ROUTE_PAGE_SIZE = 6;
 
@@ -46,7 +32,6 @@ export const ROUTES: Route[] = [
     difficulty: "Makkelijk",
     distanceKm: 1.1,
     durationMinutes: 20,
-    elevation: 3,
     rating: 4.9,
     reviews: 203,
     popular: true,
@@ -62,7 +47,6 @@ export const ROUTES: Route[] = [
     difficulty: "Makkelijk",
     distanceKm: 1.4,
     durationMinutes: 25,
-    elevation: 3,
     rating: 4.8,
     reviews: 128,
     popular: true,
@@ -78,7 +62,6 @@ export const ROUTES: Route[] = [
     difficulty: "Makkelijk",
     distanceKm: 1,
     durationMinutes: 20,
-    elevation: 2,
     rating: 4.6,
     reviews: 76,
     popular: false,
@@ -94,7 +77,6 @@ export const ROUTES: Route[] = [
     difficulty: "Makkelijk",
     distanceKm: 1.3,
     durationMinutes: 30,
-    elevation: 3,
     rating: 4.7,
     reviews: 119,
     popular: true,
@@ -110,7 +92,6 @@ export const ROUTES: Route[] = [
     difficulty: "Makkelijk",
     distanceKm: 1.8,
     durationMinutes: 30,
-    elevation: 5,
     rating: 4.6,
     reviews: 88,
     popular: false,
@@ -126,7 +107,6 @@ export const ROUTES: Route[] = [
     difficulty: "Gemiddeld",
     distanceKm: 2.6,
     durationMinutes: 45,
-    elevation: 6,
     rating: 4.7,
     reviews: 94,
     popular: false,
@@ -146,7 +126,6 @@ export const ROUTES: Route[] = [
     difficulty: "Gemiddeld",
     distanceKm: 2.4,
     durationMinutes: 25,
-    elevation: 6,
     rating: 4.5,
     reviews: 42,
     popular: false,
@@ -168,7 +147,6 @@ export const ROUTES: Route[] = [
     difficulty: "Gemiddeld",
     distanceKm: 1.6,
     durationMinutes: 30,
-    elevation: 4,
     rating: 4.8,
     reviews: 123,
     popular: true,
@@ -178,24 +156,16 @@ export const ROUTES: Route[] = [
   },
 ];
 
-/** the places a route visits, in order — an id that is not in the data is dropped rather than breaking the page it is drawn on */
 export function routePoints(route: Route): PointOfInterest[] {
   return route.poiIds
     .map((id) => getPointOfInterest(id))
     .filter((point): point is PointOfInterest => point !== undefined);
 }
 
-/** the same places as real coordinates, which is what the interactive map and the routes api are given */
 export function routeCoordinates(route: Route): LatLng[] {
   return routePoints(route).map((point) => point.coordinates);
 }
 
-/** where a route starts, printed by the cards and the detail page instead of a stored name */
-export function routeStart(route: Route): PointOfInterest | undefined {
-  return routePoints(route)[0];
-}
-
-/* the routes closest to route: same theme first, then the rest by rating; never route itself */
 export function getRelatedRoutes(route: Route, limit = 3): Route[] {
   return ROUTES.filter((candidate) => candidate.id !== route.id)
     .sort((a, b) => {
@@ -206,7 +176,6 @@ export function getRelatedRoutes(route: Route, limit = 3): Route[] {
     .slice(0, limit);
 }
 
-/* "all" is the resting state of every filter, which is why an untouched panel filters nothing out */
 export const INITIAL_ROUTE_FILTERS: RouteFilterState = {
   query: "",
   popularity: "all",
@@ -216,7 +185,6 @@ export const INITIAL_ROUTE_FILTERS: RouteFilterState = {
   ownership: "all",
 };
 
-/* true when a filter has left its resting value, which is what shows "Filters wissen"; the resting values are read from INITIAL_ROUTE_FILTERS, so a new filter cannot be left behind */
 export function hasActiveRouteFilters(filters: RouteFilterState): boolean {
   const restingKeys = Object.keys(
     INITIAL_ROUTE_FILTERS,
@@ -225,7 +193,6 @@ export function hasActiveRouteFilters(filters: RouteFilterState): boolean {
   return restingKeys.some((key) => filters[key] !== INITIAL_ROUTE_FILTERS[key]);
 }
 
-/** the overview's filter logic, kept next to the data it filters instead of in the page; the saved ids come from the reader's own browser, which is why they are handed in */
 export function filterRoutes(
   filters: RouteFilterState,
   savedIds: string[] = [],
@@ -234,7 +201,7 @@ export function filterRoutes(
 
   return ROUTES.filter((route) => {
     if (needle) {
-      /* the places count as searchable text: "peperbus" should find every route that visits it */
+      /* place names count as searchable text too */
       const haystack = [
         route.title,
         route.area,
@@ -247,12 +214,11 @@ export function filterRoutes(
       if (!haystack.includes(needle)) return false;
     }
     if (filters.popularity === "popular" && !route.popular) return false;
-    /* owned by the reader or by the community — neither is a property of the route, so the ids are handed in */
     if (filters.ownership === "saved" && !savedIds.includes(route.id))
       return false;
     if (filters.ownership === "community" && savedIds.includes(route.id))
       return false;
-    /* the buckets follow the scope: everything here is a walk in the centre, so "short" is under 1.5 km and "long" over 2.5 */
+    /* in the centre: short < 1.5 km, long > 2.5 km */
     if (filters.distance === "short" && route.distanceKm >= 1.5) return false;
     if (
       filters.distance === "medium" &&
@@ -268,9 +234,7 @@ export function filterRoutes(
   });
 }
 
-/* reviews: there is no api yet, so the written reviews are a fixed sample and the histogram is calculated from each route's own reviews total — that keeps the bars adding up to the number the header prints */
-
-/* how the review total is spread over 5 to 1 stars */
+/* no reviews api yet: the sample histogram is built from each route's own review total */
 const REVIEW_DISTRIBUTION = [0.71, 0.19, 0.06, 0.03, 0.01];
 
 export function buildReviewBreakdown(totalReviews: number): StarBucket[] {

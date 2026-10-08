@@ -1,5 +1,4 @@
-/* the band every content page opens with — the hero's shape without the artwork; it also sets the document title, so every page names itself in the tab */
-/* pt-header and not py-band: the title sits close to the top bar, the way the hero's headline does, and only the room under it follows the section rhythm */
+/* pt-header not py-band: only the space below the title follows the section rhythm */
 
 import type { ReactNode } from "react";
 import PageTitle from "./pageTitle.tsx";
@@ -8,11 +7,8 @@ import Container from "./container.tsx";
 interface PageHeaderProps {
   title: string;
   description?: string;
-  /* the small all-caps line above the title */
   eyebrow?: string;
-  /* a node and not data: each page owns how its own trail is built */
   breadcrumb?: ReactNode;
-  /* a lead row that belongs to the band rather than to a section below it */
   children?: ReactNode;
 }
 

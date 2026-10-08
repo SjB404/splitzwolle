@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import PageHeader from "../components/pageHeader.tsx";
 import Container from "../components/container.tsx";
+import { API_BASE, TEXT } from "../data/loginData.ts";
+import {
+  CONTACT_DETAILS,
+  CONTACT_ADDRESS_LINE,
+  CONTACT_CITY_LINE,
+} from "../data/contact.ts";
 import "beercss/scoped";
 
 const SUBJECT_OPTIONS = [
@@ -9,8 +15,6 @@ const SUBJECT_OPTIONS = [
   { value: "Samenwerking / pers", icon: "handshake" },
   { value: "Overig", icon: "more_horiz" },
 ];
-
-const API_BASE = "http://localhost:3000/api";
 
 async function apiPost(body: unknown) {
   try {
@@ -33,7 +37,7 @@ async function apiPost(body: unknown) {
     return {
       status: 0,
       body: {
-        error: err instanceof Error ? err.message : "cannot connect to server",
+        error: err instanceof Error ? err.message : TEXT.common.serverUnreachable,
       },
     };
   }
@@ -46,23 +50,23 @@ interface ContactDetail {
   sub: string;
 }
 
-const CONTACT_DETAILS: ContactDetail[] = [
+const CONTACT_ITEMS: ContactDetail[] = [
   {
     icon: "location_on",
     label: "Bezoekadres",
-    value: "Grote Markt 20",
-    sub: "8011 LV Zwolle, Nederland",
+    value: CONTACT_ADDRESS_LINE,
+    sub: CONTACT_CITY_LINE,
   },
   {
     icon: "mail",
     label: "E-mailadres",
-    value: "info@zwolleroutes.nl",
+    value: CONTACT_DETAILS.email,
     sub: "Binnen 24 uur antwoord",
   },
   {
     icon: "call",
     label: "Telefoonnummer",
-    value: "038 421 6200",
+    value: CONTACT_DETAILS.phone,
     sub: "Ma-Vr van 09:00 tot 17:00",
   },
   {
@@ -82,7 +86,7 @@ const FAQ_ITEMS: FAQItem[] = [
   {
     question: "Hoe kan ik zelf een route toevoegen?",
     answer:
-      "Log in op je account en ga naar het tabblad 'Planning'. Klik op de knop '+ Nieuwe route' om zelf een route op de kaart te tekenen. Na het opslaan kun je de route openbaar maken voor de community.",
+      "Kies op het tabblad 'Routes' twee of meer plekken op de kaart; de app plant de route voor je. Deel hem daarna met het deel-icoon of bewaar hem met het bookmark-icoon.",
   },
   {
     question: "Zijn de historische kaarten nauwkeurig?",
@@ -90,9 +94,9 @@ const FAQ_ITEMS: FAQItem[] = [
       "De historische kaarten zijn gedigitaliseerd op basis van originele archiefstukken van de gemeente Zwolle. Kleine afwijkingen zijn mogelijk doordat straten en gebouwen door de eeuwen heen zijn veranderd.",
   },
   {
-    question: "Kan ik de app offline gebruiken?",
+    question: "Kan ik een route bewaren?",
     answer:
-      "Ja, je kunt routes vooraf downloaden voor offline gebruik. Ga naar een route en tik op 'Beschikbaar offline' voordat je de deur uit gaat.",
+      "Ja, tik op het bookmark-icoon bij een route om hem op te slaan. Met de filteroptie 'Opgeslagen door jou' zie je daarna alleen nog je eigen routes.",
   },
   {
     question: "Is deze website gratis te gebruiken?",
@@ -100,12 +104,6 @@ const FAQ_ITEMS: FAQItem[] = [
       "Zwolle Routes is volledig gratis, inclusief het bekijken van historische kaarten en het aanmaken van je eigen routes.",
   },
 ];
-
-const COLUMN_STYLE: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  height: "100%",
-};
 
 function SubjectSelect({
   value,
@@ -147,8 +145,7 @@ function SubjectSelect({
   return (
     <div
       ref={ref}
-      className="field label prefix suffix border round"
-      style={{ margin: 0, cursor: "pointer" }}
+      className="field label prefix suffix border round m-0! cursor-pointer!"
     >
       <i>{selected.icon}</i>
       <input
@@ -161,10 +158,7 @@ function SubjectSelect({
         role="combobox"
         aria-haspopup="listbox"
         aria-expanded={open}
-        style={{
-          cursor: "pointer",
-          fontWeight: 500,
-        }}
+        className="cursor-pointer! font-medium!"
         onClick={() => setOpen((o) => !o)}
         onKeyDown={(e) => {
           if (
@@ -181,25 +175,13 @@ function SubjectSelect({
       <label htmlFor="onderwerp">Onderwerp</label>
 
       <i
-        style={{
-          transition: "transform 0.2s",
-          transform: open ? "rotate(180deg)" : "none",
-          pointerEvents: "none",
-        }}
+        className={`transition-transform! pointer-events-none! ${open ? "rotate-180!" : ""}`}
       >
         arrow_drop_down
       </i>
       <menu
-        className={`min${open ? " active" : ""}`}
+        className={`min${open ? " active" : ""} min-w-full! top-full! mt-1! p-2! max-h-56! overflow-y-auto!`}
         role="listbox"
-        style={{
-          minWidth: "100%",
-          top: "100%",
-          marginTop: "0.25rem",
-          padding: "0.5rem",
-          maxHeight: "14rem",
-          overflowY: "auto",
-        }}
       >
         {SUBJECT_OPTIONS.map((option) => {
           const isSelected = option.value === value;
@@ -209,12 +191,7 @@ function SubjectSelect({
               key={option.value}
               role="option"
               aria-selected={isSelected}
-              className={`round${isSelected ? " primary-container" : ""}`}
-              style={{
-                cursor: "pointer",
-                minHeight: "2.5rem",
-                paddingBlock: "0.25rem",
-              }}
+              className={`round${isSelected ? " primary-container" : ""} cursor-pointer! min-h-10! py-1!`}
               onClick={() => {
                 onChange(option.value);
                 setOpen(false);
@@ -257,8 +234,8 @@ function ContactForm() {
     const { status, body } = await apiPost({
       name: naam,
       email: email,
-      subject: `${onderwerp}`,
-      message: ` ${bericht}`,
+      subject: onderwerp,
+      message: bericht,
     });
 
     setLoading(false);
@@ -279,36 +256,17 @@ function ContactForm() {
   };
 
   return (
-    <article
-      className="border round"
-      style={{
-        flex: 1,
-        margin: 0,
-        padding: "2.5rem",
-      }}
-    >
-      <h5
-        className="font-heading!"
-        style={{
-          marginBottom: "1.5rem",
-        }}
-      >
+    <article className="border round flex-1! m-0! p-10!">
+      <h2 className="font-display! mb-6! text-xl!">
         Stuur een bericht
-      </h5>
+      </h2>
 
       <form
         onSubmit={handleSubmit}
         noValidate
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "1.5rem",
-        }}
+        className="flex! flex-col! gap-6!"
       >
-        <div
-          className="field label border round"
-          style={{ margin: 0 }}
-        >
+        <div className="field label border round m-0!">
           <input
             id="naam"
             name="naam"
@@ -321,10 +279,7 @@ function ContactForm() {
           <label htmlFor="naam">Naam</label>
         </div>
 
-        <div
-          className="field label border round"
-          style={{ margin: 0 }}
-        >
+        <div className="field label border round m-0!">
           <input
             id="email"
             name="email"
@@ -342,10 +297,7 @@ function ContactForm() {
           onChange={setOnderwerp}
         />
 
-        <div
-          className="field label textarea border round"
-          style={{ margin: 0 }}
-        >
+        <div className="field label textarea border round m-0!">
           <textarea
             id="bericht"
             name="bericht"
@@ -406,33 +358,10 @@ function ContactDetailCard({
   sub,
 }: ContactDetail) {
   return (
-    <article
-      className="border round"
-      style={{
-        flex: 1,
-        margin: 0,
-        display: "flex",
-        alignItems: "center",
-      }}
-    >
-      <div
-        className="row"
-        style={{
-          width: "100%",
-        }}
-      >
-        <div
-          className="circle primary-container"
-          style={{
-            width: "3.5rem",
-            height: "3.5rem",
-            minWidth: "3.5rem",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <i style={{ fontSize: "1.75rem" }}>{icon}</i>
+    <article className="border round flex! flex-1! m-0! items-center!">
+      <div className="row w-full!">
+        <div className="circle primary-container w-14! h-14! min-w-14! flex! items-center! justify-center!">
+          <i className="text-[1.75rem]!">{icon}</i>
         </div>
 
         <div className="max">
@@ -440,21 +369,11 @@ function ContactDetailCard({
             {label}
           </div>
 
-          <h6
-            className="no-margin"
-            style={{
-              fontSize: "1.1rem",
-            }}
-          >
+          <div className="no-margin text-[1.1rem]!">
             {value}
-          </h6>
+          </div>
 
-          <div
-            className="small-text secondary-text"
-            style={{
-              fontSize: "0.75rem",
-            }}
-          >
+          <div className="small-text secondary-text text-xs!">
             {sub}
           </div>
         </div>
@@ -473,15 +392,10 @@ function FAQAccordionItem({
   onToggle: () => void;
 }) {
   return (
-    <article
-      className="border round no-padding"
-      style={{
-        color: "inherit",
-      }}
-    >
+    <article className="border round no-padding text-inherit!">
       <details open={isOpen}>
         <summary
-          /* the row is a thin, long bar, so it is a pill: 48px tall, where the app's one corner (1.5rem) is exactly half its height. the `!` utilities are what the rest of this page needs too — it imports beerCSS's scoped build, whose `.beer * { all: revert }` throws tailwind's utilities away inside the wrapper (DESIGN.md §5) */
+          /* beercss scoped build applies .beer * { all: revert }; tailwind utilities inside need ! */
           className="none horizontal-padding h-12! rounded-box! flex! items-center!"
           onClick={(e) => {
             e.preventDefault();
@@ -490,12 +404,7 @@ function FAQAccordionItem({
           aria-expanded={isOpen}
         >
           <div className="row">
-            <div
-              className="max bold"
-              style={{
-                color: "inherit",
-              }}
-            >
+            <div className="max bold text-inherit!">
               {item.question}
             </div>
 
@@ -529,21 +438,12 @@ export default function ContactPage() {
       <section className="py-band">
         <Container>
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-            <div
-              className="beer lg:col-span-2"
-              style={COLUMN_STYLE}
-            >
+            <div className="beer lg:col-span-2 flex! flex-col! h-full!">
               <ContactForm />
             </div>
 
-            <div
-              className="beer"
-              style={{
-                ...COLUMN_STYLE,
-                gap: "1rem",
-              }}
-            >
-              {CONTACT_DETAILS.map((detail) => (
+            <div className="beer flex! flex-col! h-full! gap-4!">
+              {CONTACT_ITEMS.map((detail) => (
                 <ContactDetailCard
                   key={detail.label}
                   {...detail}
@@ -557,17 +457,12 @@ export default function ContactPage() {
       <section className="py-band">
         <Container>
           <h2
-            className="mb-6 font-heading text-2xl font-bold on-background"
+            className="mb-6 font-display text-2xl font-bold on-background"
           >
             Veelgestelde vragen
           </h2>
 
-          <div
-            className="beer"
-            style={{
-              color: "inherit",
-            }}
-          >
+          <div className="beer text-inherit!">
             {FAQ_ITEMS.map((item, index) => (
               <FAQAccordionItem
                 key={item.question}

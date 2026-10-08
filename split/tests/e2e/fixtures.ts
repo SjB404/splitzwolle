@@ -1,12 +1,7 @@
 import { test as base, expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 
-/*
-  Every test gets:
-  - the aborted-network tripwire out of the way: fonts and any google api call are answered locally, so a slow
-    or offline CDN can never make the suite flaky (the app hides its maps when the key is missing anyway);
-  - a list of console errors and uncaught page errors, so "the page is quiet" can be asserted instead of assumed.
-*/
+/* fonts and google api calls are stubbed locally so an offline cdn cannot make the suite flaky */
 export const test = base.extend<{ errors: string[] }>({
   errors: async ({ page }, provide) => {
     const errors: string[] = [];
@@ -36,7 +31,6 @@ export const test = base.extend<{ errors: string[] }>({
 
 export { expect };
 
-/** the app must never scroll sideways: the document's own width is the check */
 export async function horizontalOverflow(page: Page) {
   return page.evaluate(
     () =>

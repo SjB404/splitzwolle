@@ -1,5 +1,4 @@
-/* the filter card above the places — the card itself, the search box, the sort select and the category chips */
-/* "medium" makes the chips 40px, which lets tap-target reach the 48px minimum without growing the visual; the active chip changes fill and drops its border, so selecting never moves the layout */
+/* chip medium = 40px; tap-target gives the 48px minimum hit area without growing the visual */
 
 import ClearFiltersButton from "./clearFiltersButton.tsx";
 import FilterSelect from "./filterSelect.tsx";
@@ -12,7 +11,6 @@ import {
 } from "../data/pointsOfInterest.ts";
 import type { PoiCategoryFilter, PoiFilterState } from "../types.ts";
 
-/* the category chips: "Alles" first, then one per category — chips and not filters, because they are one tap on a value the sort select could also set */
 interface CategoryChip {
   id: PoiCategoryFilter;
   label: string;
@@ -31,9 +29,7 @@ const CATEGORY_CHIPS: CategoryChip[] = [
 interface PoiFiltersProps {
   filters: PoiFilterState;
   matchCount: number;
-  /* a patch and not a (key, value) pair, so the page always stores a whole, valid filter set */
   onFilterChange: (patch: Partial<PoiFilterState>) => void;
-  /* undefined while nothing is filtered, which is what keeps the panel's button away */
   onReset?: () => void;
 }
 
@@ -44,7 +40,6 @@ export default function PoiFilters({
   onReset,
 }: PoiFiltersProps) {
   return (
-    /* the card around the controls and the count; onReset is optional, so the panel never decides whether a filter can be reset */
     <article className="p-5">
       <div className="grid gap-y-4 lg:gap-x-4">
         <SearchField
@@ -89,7 +84,6 @@ export default function PoiFilters({
       </ul>
 
       <div className="mt-5 flex flex-wrap items-center gap-3 border-t-2 border-line rounded-none pt-5">
-        {/* the caller builds the sentence because it is Dutch and inflects (“1 bezienswaardigheid” vs “9 bezienswaardigheden”) */}
         <p className="text-sm text-ink-muted" aria-live="polite">
           {`${matchCount} ${
             matchCount === 1 ? "bezienswaardigheid" : "bezienswaardigheden"

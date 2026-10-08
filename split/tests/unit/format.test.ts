@@ -1,5 +1,4 @@
 import {
-  formatCount,
   formatDecimal,
   formatDistance,
   formatDuration,
@@ -56,12 +55,5 @@ describe("formatRating", () => {
   it("is a one decimal Dutch number", () => {
     expect(formatRating(4.9)).toBe("4,9");
     expect(formatRating(5)).toBe("5,0");
-  });
-});
-
-describe("formatCount", () => {
-  it("groups thousands the Dutch way", () => {
-    expect(formatCount(1204)).toBe("1.204");
-    expect(formatCount(12)).toBe("12");
   });
 });

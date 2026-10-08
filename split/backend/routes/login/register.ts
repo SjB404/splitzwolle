@@ -1,22 +1,14 @@
-import { Router, Request, Response } from "express";
+import { Router } from "express";
+import type { Request, Response } from "express";
 import { randomUUID } from "crypto";
 import bcrypt from "bcryptjs";
 import { generateSecret, generateURI } from "otplib";
 import QRCode from "qrcode";
-import mysql, { RowDataPacket, ResultSetHeader } from "mysql2/promise";
+import type { RowDataPacket, ResultSetHeader } from "mysql2/promise";
+import { pool } from "../../db.ts";
 import { signToken } from "./jwt.ts";
 
 const router = Router();
-
-const pool = mysql.createPool({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "swolla",
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
 
 interface UserRow extends RowDataPacket {
   id: string;
@@ -29,7 +21,7 @@ interface UserRow extends RowDataPacket {
 }
 
 router.post("/register", async (req: Request, res: Response) => {
-  const { name, password, twofa, email, role } = req.body;
+  const { name, password, twofa, email } = req.body;
 
   if (!name || !password || !email) {
     return res.status(400).json({ error: "must have name, password and email" });
@@ -64,13 +56,14 @@ router.post("/register", async (req: Request, res: Response) => {
         name,
         email,
         passwordHash,
-        role ?? "user",
+        // client-supplied roles are ignored; promotion goes through the admin routes
+        "user",
         twoFactorSecret,
         twofa ?? false,
       ]
     );
 
-    const token = signToken({ id, email, role: role ?? "user" });
+    const token = signToken({ id, email, role: "user" });
 
     res.cookie("token", token, {
       httpOnly: true,
@@ -87,10 +80,7 @@ router.post("/register", async (req: Request, res: Response) => {
   } catch (err) {
     console.error("POST /register failed:", err);
 
-    res.status(500).json({
-      error: "Registration failed",
-      detail: err instanceof Error ? err.message : String(err),
-    });
+    res.status(500).json({ error: "Registration failed" });
   }
 });
 

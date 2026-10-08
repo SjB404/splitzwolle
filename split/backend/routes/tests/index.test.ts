@@ -2,8 +2,6 @@ import { describe, it, expect, vi } from "vitest";
 import express from "express";
 import request from "supertest";
 
-// Replace each sub-router with a tiny stub that identifies itself,
-// so we only test how index.ts wires them together.
 const { stub } = vi.hoisted(() => ({
   stub: (name: string, path: string) => async () => {
     const { Router } = await import("express");
@@ -18,7 +16,9 @@ const { stub } = vi.hoisted(() => ({
 vi.mock("../login/register.ts", stub("register", "/ping"));
 vi.mock("../login/login.ts", stub("login", "/login-ping"));
 vi.mock("../login/googleAuth.ts", stub("google", "/google-ping"));
-vi.mock("../pages/Contact.ts", stub("contact", "/ping"));
+vi.mock("../pages/contact.ts", stub("contact", "/ping"));
+vi.mock("../admin/users.ts", stub("admin-users", "/ping"));
+vi.mock("../pages/reviews.ts", stub("reviews", "/reviews/view"));
 
 import router from "../index.ts";
 
@@ -51,5 +51,13 @@ describe("index router", () => {
     expect(res.status).toBe(404);
   });
 
-  it.todo("users.ts (admin) and reviews.ts are not mounted here yet");
+  it("mounts the admin users router at /admin/users", async () => {
+    const res = await request(app).get("/api/admin/users/ping");
+    expect(res.text).toBe("admin-users");
+  });
+
+  it("mounts the reviews router on its own /reviews paths", async () => {
+    const res = await request(app).get("/api/reviews/view");
+    expect(res.text).toBe("reviews");
+  });
 });

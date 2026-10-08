@@ -1,6 +1,3 @@
-/* the menu that turns places into a route — the places inside the covered area, grouped by the era they belong to, plus the way of travelling */
-/* the picked order is the visit order, so the number on a chip is the number on the map and in the summary beside it */
-
 import Icon from "./icon.tsx";
 import { poiCategoryIcon } from "../data/pointsOfInterest.ts";
 import type { PoiEra, PointOfInterest, TravelMode } from "../types.ts";
@@ -16,9 +13,8 @@ const MODES: { mode: TravelMode; label: string; icon: string }[] = [
 ];
 
 interface PoiPickerProps {
-  /* the places a route may use: the ones inside the covered area */
   points: PointOfInterest[];
-  /* the picked ids, in visit order */
+  /* picked ids, in visit order */
   pickedIds: string[];
   mode: TravelMode;
   onToggle: (id: string) => void;
@@ -43,7 +39,7 @@ export default function PoiPicker({
             type="button"
             aria-pressed={mode === item.mode}
             onClick={() => onModeChange(item.mode)}
-            /* `medium` lifts the chip from 32px to 40px, which is what lets `tap-target` reach material 3's 48px hit area without growing the visual past it — the same recipe the places page's category chips use, so a chip is one control in both places */
+            /* chip medium = 40px; tap-target gives material 3's 48px hit area without growing the visual */
             className={`chip medium tap-target ripple ${
               mode === item.mode ? "bg-selected text-on-selected border-transparent" : ""
             }`}
@@ -86,7 +82,6 @@ export default function PoiPicker({
                     type="button"
                     aria-pressed={order >= 0}
                     onClick={() => onToggle(point.id)}
-                    /* the same 40px chip as the travel mode above it: a place is one tap on a value, and every one of them has to be as hittable as the chip beside it */
                     className={`chip medium tap-target ripple ${
                       order >= 0 ? "bg-selected text-on-selected border-transparent" : ""
                     }`}

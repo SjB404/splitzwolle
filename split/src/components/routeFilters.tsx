@@ -1,6 +1,3 @@
-/* the route list's search box and its five filters — one row, next to each other, so the list below is what the eye lands on */
-/* the option lists live here and not in data/routes.ts because they are labels, not data; every list rests on "all", which is why an untouched row filters nothing out */
-
 import ClearFiltersButton from "./clearFiltersButton.tsx";
 import FilterSelect from "./filterSelect.tsx";
 import SearchField from "./searchField.tsx";
@@ -20,7 +17,6 @@ const POPULARITY_OPTIONS: SelectOption<RoutePopularityFilter>[] = [
   { value: "popular", label: "Alleen populair" },
 ];
 
-/* whose route it is: the ones the reader saved in this browser, or the community's ready-made ones */
 const OWNERSHIP_OPTIONS: SelectOption<RouteOwnershipFilter>[] = [
   { value: "all", label: "Iedereens routes" },
   { value: "community", label: "Van de community" },
@@ -47,9 +43,7 @@ const DIFFICULTY_OPTIONS: SelectOption<RouteDifficultyFilter>[] = [
 interface RouteFiltersProps {
   filters: RouteFilterState;
   matchCount: number;
-  /* a patch and not a (key, value) pair, so the page always stores a whole, valid filter set */
   onFilterChange: (patch: Partial<RouteFilterState>) => void;
-  /* undefined while nothing is filtered, which is what keeps the reset button away */
   onReset?: () => void;
 }
 
@@ -60,7 +54,6 @@ export default function RouteFilters({
   onReset,
 }: RouteFiltersProps) {
   return (
-    /* a search landmark, so the field and the filters that belong to it are one region rather than six loose controls */
     <div
       role="search"
       aria-label="Routes zoeken en filteren"
@@ -116,7 +109,6 @@ export default function RouteFilters({
         className="min-w-0 grow basis-48"
       />
 
-      {/* the count takes its own line on a phone, so it never squeezes the last filter beside it */}
       <p
         aria-live="polite"
         className="basis-full text-sm text-ink-muted sm:basis-auto sm:ml-auto"
@@ -124,7 +116,7 @@ export default function RouteFilters({
         {matchCount} {matchCount === 1 ? "route" : "routes"} gevonden
       </p>
 
-      {/* h-12 matches the fields in this row, so the row reads as one line of controls and not five fields with a shorter button after them (§7) */}
+      {/* h-12 matches the field height in this row */}
       {onReset && <ClearFiltersButton onClick={onReset} className="h-12" />}
     </div>
   );

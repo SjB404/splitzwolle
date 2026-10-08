@@ -10,16 +10,20 @@ const { pool, conn } = vi.hoisted(() => {
 vi.mock("mysql2/promise", () => ({ default: { createPool: () => pool } }));
 
 import router from "../pages/reviews.ts";
+import { signToken } from "../login/jwt.ts";
 
 const app = express();
 app.use(express.json());
 app.use("/", router);
+
+const token = signToken({ id: "user-1", email: "u@b.nl", role: "user" });
 
 beforeEach(() => {
   conn.query.mockReset();
   conn.release.mockReset();
   pool.getConnection.mockReset();
   pool.getConnection.mockResolvedValue(conn);
+  vi.spyOn(console, "error").mockImplementation(() => {});
 });
 
 describe("GET /reviews/view", () => {
@@ -60,38 +64,86 @@ describe("GET /reviews/view", () => {
     expect(sql).not.toContain("1 OR 1=1");
     expect(params).toEqual(["1 OR 1=1"]);
   });
+
+  it("400 when routeID is missing and doesn't touch the database", async () => {
+    const res = await request(app).get("/reviews/view");
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: "routeID is required" });
+    expect(pool.getConnection).not.toHaveBeenCalled();
+  });
+
+  it("500 when the query fails and still releases the connection", async () => {
+    conn.query.mockRejectedValueOnce(new Error("db down"));
+    const res = await request(app).get("/reviews/view?routeID=5");
+
+    expect(res.status).toBe(500);
+    expect(res.body).toEqual({ error: "Could not fetch reviews" });
+    expect(conn.release).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("POST /reviews", () => {
-  it("inserts the rating and comment and confirms", async () => {
+  const post = (body: object, withAuth = true) => {
+    const req = request(app).post("/reviews").send(body);
+    return withAuth ? req.set("Authorization", "Bearer " + token) : req;
+  };
+
+  it("inserts the routeID, rating and comment and confirms", async () => {
     conn.query.mockResolvedValueOnce([{ affectedRows: 1 }, undefined]);
-    const res = await request(app).post("/reviews").send({ rating: 4, comment: "Nice route" });
+    const res = await post({ routeID: 5, rating: 4, comment: "Nice route" });
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ message: "Review added" });
     expect(conn.query).toHaveBeenCalledWith("INSERT INTO reviews SET ?", {
+      routeID: 5,
       rating: 4,
       comment: "Nice route",
     });
   });
 
-  it("only inserts rating and comment, ignoring any extra body fields", async () => {
+  it("only inserts routeID, rating and comment, ignoring any extra body fields", async () => {
     conn.query.mockResolvedValueOnce([{ affectedRows: 1 }, undefined]);
-    await request(app)
-      .post("/reviews")
-      .send({ rating: 5, comment: "x", id: 999, routeID: 1, admin: true });
+    await post({ routeID: 1, rating: 5, comment: "x", id: 999, admin: true });
 
-    expect(conn.query.mock.calls[0][1]).toEqual({ rating: 5, comment: "x" });
+    expect(conn.query.mock.calls[0][1]).toEqual({ routeID: 1, rating: 5, comment: "x" });
   });
 
   it("releases the connection", async () => {
     conn.query.mockResolvedValueOnce([{ affectedRows: 1 }, undefined]);
-    await request(app).post("/reviews").send({ rating: 3, comment: "ok" });
+    await post({ routeID: 2, rating: 3, comment: "ok" });
 
     expect(conn.release).toHaveBeenCalledTimes(1);
   });
 
-  it.todo("should store the routeID (currently reviews aren't linked to a route)");
-  it.todo("should require login (requireAuth) and validate rating/comment");
-  it.todo("should handle DB errors and release the connection (currently the request hangs)");
+  it("401 without a token and doesn't touch the database", async () => {
+    const res = await post({ routeID: 1, rating: 4, comment: "Nice" }, false);
+
+    expect(res.status).toBe(401);
+    expect(pool.getConnection).not.toHaveBeenCalled();
+  });
+
+  const missing: [string, object][] = [
+    ["routeID", { rating: 4, comment: "Nice" }],
+    ["rating", { routeID: 1, comment: "Nice" }],
+    ["comment", { routeID: 1, rating: 4 }],
+    ["empty comment", { routeID: 1, rating: 4, comment: "" }],
+  ];
+
+  it.each(missing)("400 when %s is missing", async (_label, body) => {
+    const res = await post(body);
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: "routeID, rating and comment are required" });
+    expect(pool.getConnection).not.toHaveBeenCalled();
+  });
+
+  it("500 when the insert fails and still releases the connection", async () => {
+    conn.query.mockRejectedValueOnce(new Error("db down"));
+    const res = await post({ routeID: 1, rating: 4, comment: "Nice" });
+
+    expect(res.status).toBe(500);
+    expect(res.body).toEqual({ error: "Could not add review" });
+    expect(conn.release).toHaveBeenCalledTimes(1);
+  });
 });

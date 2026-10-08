@@ -124,7 +124,7 @@ describe("RouteShape", () => {
 });
 
 describe("MapSnapshot", () => {
-  /* the static maps service is off in the test environment, which is exactly what the fallback is for */
+  /* static maps is off in tests, so the fallback is what renders */
   it("falls back to the shape it is given when no picture can be asked for", () => {
     render(
       <MapSnapshot
@@ -160,7 +160,6 @@ describe("MapSnapshot", () => {
     );
     expect(image).toHaveAttribute("loading", "lazy");
 
-    /* a picture the api refuses to serve leaves the shape on screen, for good */
     fireEvent.error(image);
 
     expect(screen.getByText("de route")).toBeInTheDocument();

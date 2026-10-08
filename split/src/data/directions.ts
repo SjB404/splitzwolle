@@ -1,10 +1,9 @@
-/* the link out to google maps for the places of a route — a url and not the api: the interactive map itself is data/googleMaps.ts */
-
 import type { LatLng, TravelMode } from "../types.ts";
+import { formatLatLng } from "./googleMaps.ts";
 
-/* the api's url format wants the coordinates and the pipe literally, not percent-encoded, so the query is built by hand */
+/* coordinates and the | must stay literal, not percent-encoded */
 export function directionsUrl(points: LatLng[], mode: TravelMode): string {
-  const coordinates = points.map(({ lat, lng }) => `${lat},${lng}`);
+  const coordinates = points.map(formatLatLng);
   const query = [
     "api=1",
     `origin=${coordinates[0]}`,
@@ -12,7 +11,7 @@ export function directionsUrl(points: LatLng[], mode: TravelMode): string {
     `travelmode=${mode}`,
   ];
 
-  /* everything between the two ends is a waypoint; the api takes 9, and the longest route here has 5 places */
+  /* the api takes at most 9 waypoints */
   if (coordinates.length > 2) {
     query.push(`waypoints=${coordinates.slice(1, -1).join("|")}`);
   }

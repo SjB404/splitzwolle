@@ -1,7 +1,4 @@
-/* a fake google maps api, rich enough for the map component: the maps, the markers, the lines and the
-   bounds it builds. it records what it was handed, so a test can look at the drawing instead of a screen.
-   the stub classes are deliberately not named Map / Polyline: a class name is bound inside its own body,
-   and a field like `new Map()` would then build another stub instead of the global one. */
+/* stubs are StubMap/StubPolyline: a class named Map would shadow the global inside itself */
 
 import type { LatLng } from "../../src/types.ts";
 
@@ -9,7 +6,6 @@ export interface FakeMap {
   host: HTMLElement;
   options: Record<string, unknown>;
   zoom: number;
-  /* what the last fitBounds was asked to frame */
   fitted: { points: LatLng[]; padding?: number } | null;
   listeners: globalThis.Map<string, (() => void)[]>;
   emit(event: string): void;
@@ -34,7 +30,6 @@ export interface FakeMaps {
   bounds: LatLng[][];
 }
 
-/** installs the fake on globalThis.google and hands back everything it built */
 export function installFakeMaps(): FakeMaps {
   const built: FakeMaps = { maps: [], markers: [], polylines: [], bounds: [] };
 
@@ -105,7 +100,7 @@ export function installFakeMaps(): FakeMaps {
       this.title = options.title ?? "";
       this.element = options.content ?? document.createElement("div");
       this.map = options.map ?? null;
-      /* the api puts the marker's own element into the map's dom, which is what lets it be measured */
+      /* the real api appends the marker's element into the map's dom */
       this.map?.host.append(this.element);
       built.markers.push(this as unknown as FakeMarker);
     }
@@ -147,7 +142,7 @@ export function installFakeMaps(): FakeMaps {
       Map: StubMap,
       Polyline: StubPolyline,
       LatLngBounds: StubBounds,
-      /* the api's control corners, which the app reads to pin the zoom control: the fake carries the same members, or `mapOptions` throws before a map is ever built */
+      /* every ControlPosition member is needed, or mapOptions throws before a map is built */
       ControlPosition: {
         TOP_LEFT: 1,
         TOP_CENTER: 2,

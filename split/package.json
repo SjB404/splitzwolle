@@ -12,9 +12,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:backend": "vitest run --root backend/routes/tests",
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install chromium",
-    "test:all": "npm run test && npm run test:e2e"
+    "test:all": "npm run test && npm run test:backend && npm run test:e2e"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
@@ -42,7 +43,11 @@
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.7",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.13.3",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@types/speakeasy": "^2.0.10",

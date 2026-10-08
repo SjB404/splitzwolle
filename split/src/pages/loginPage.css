@@ -1,0 +1,59 @@
+/* the page is not scoped, so plain rules beat the beercss layer; only pinned rules need !important */
+
+.right-panel {
+  background: var(--surface-container-high);
+}
+
+.auth-card {
+  background: var(--surface-container-lowest);
+  border: 2px solid var(--outline-variant);
+  border-radius: var(--radius-box);
+  padding: 2.5rem 2.25rem 2rem;
+}
+
+.auth-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-box);
+  margin-bottom: 1rem;
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.auth-badge i {
+  font-size: 26px;
+}
+
+.auth-card .field.border > input {
+  background: var(--surface-container);
+  transition: background-color var(--speed2) var(--ease-standard);
+}
+
+.auth-card .field.border > input:hover,
+.auth-card .field.border > input:focus {
+  background: var(--surface-container-low);
+}
+
+.auth-card button.cta {
+  font-weight: 600;
+}
+
+.auth-card button.google {
+  background: var(--surface-container-low);
+  transition: background-color var(--speed2) var(--ease-standard),
+    border-color var(--speed2) var(--ease-standard);
+}
+
+.auth-card button.google:hover {
+  background: var(--surface-container);
+}
+
+@layer overrides {
+  /* index.css pins every outlined button to --outline in this layer, so the hover needs the flag too */
+  .auth-card button.google:hover {
+    border-color: var(--primary) !important;
+  }
+}

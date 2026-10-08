@@ -64,7 +64,7 @@ describe("POST /contact", () => {
     const res = await request(app).post("/contact").send(message);
 
     expect(res.status).toBe(500);
-    expect(res.text).toBe("Error sending message");
+    expect(res.body).toEqual({ error: "Error sending message" });
   });
 
   it("500 when the insert fails", async () => {
@@ -72,9 +72,22 @@ describe("POST /contact", () => {
     const res = await request(app).post("/contact").send(message);
 
     expect(res.status).toBe(500);
-    expect(res.text).toBe("Error sending message");
+    expect(res.body).toEqual({ error: "Error sending message" });
+    expect(conn.release).toHaveBeenCalledTimes(1);
   });
 
-  it.todo("should validate name/email/message (currently missing fields go straight to the DB)");
-  it.todo("should release the connection when the insert fails (currently it leaks)");
+  it("400 and no DB call when a field is missing", async () => {
+    const res = await request(app).post("/contact").send({ name: "Alice" });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: "missing fields" });
+    expect(pool.getConnection).not.toHaveBeenCalled();
+  });
+
+  it("releases the connection when the insert fails", async () => {
+    conn.execute.mockRejectedValueOnce(new Error("db down"));
+    await request(app).post("/contact").send(message);
+
+    expect(conn.release).toHaveBeenCalledTimes(1);
+  });
 });

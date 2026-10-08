@@ -11,6 +11,7 @@ import Footer, {
 import PageTitle from "../../../src/components/pageTitle.tsx";
 import Container from "../../../src/components/container.tsx";
 import SectionHeading from "../../../src/components/sectionHeading.tsx";
+import { LOGIN_PATH } from "../../../src/data/navigation.ts";
 import { renderWithRouter } from "../helpers.tsx";
 
 describe("the bar's theme switch", () => {
@@ -191,7 +192,7 @@ describe("Navbar", () => {
     ).toHaveAttribute("href", "/routes");
     expect(
       screen.getByRole("link", { name: "Inloggen op je account" }),
-    ).toHaveAttribute("href", "/inloggen");
+    ).toHaveAttribute("href", LOGIN_PATH);
   });
 
   it("opens and closes the mobile menu, reporting its state", () => {
@@ -206,7 +207,7 @@ describe("Navbar", () => {
     expect(menu).toHaveAttribute("aria-expanded", "true");
     expect(screen.getAllByRole("link", { name: "Routes" })).toHaveLength(2);
 
-    /* the panel itself is unmounted by motion's exit, which needs a frame — the state is the contract here */
+    /* the panel unmounts only after motion's exit frame; the state is the contract here */
     fireEvent.click(menu);
 
     expect(menu).toHaveAttribute("aria-expanded", "false");
@@ -229,7 +230,7 @@ describe("Footer", () => {
     return renderWithRouter(<Footer />, "/");
   }
 
-  it("is the contact band the nav link points at", () => {
+  it("is the contact band the #contact hash still lands on", () => {
     const { container } = renderFooter();
 
     expect(container.querySelector("footer#contact")).toBeInTheDocument();

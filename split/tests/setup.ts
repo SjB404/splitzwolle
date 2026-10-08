@@ -1,8 +1,8 @@
-/* globals (describe/it/expect/vi/beforeEach) come from `test.globals`, so nothing here imports the runner */
+/* test.globals is on; nothing here imports the runner */
 import "@testing-library/jest-dom";
 import { cleanup } from "@testing-library/react";
 
-/* jsdom has no matchMedia, and motion (plus anything theme aware) reads it */
+/* jsdom has no matchMedia; motion and theme code read it */
 if (!window.matchMedia) {
   Object.defineProperty(window, "matchMedia", {
     writable: true,
@@ -19,18 +19,18 @@ if (!window.matchMedia) {
   });
 }
 
-/* the theme toggle writes to <body> and localStorage, both of which outlive a cleanup(); reset them */
+/* body class and localStorage outlive cleanup(); reset them */
 beforeEach(() => {
   document.body.className = "light";
   document.title = "";
   localStorage.clear();
 });
 
-/* jsdom implements neither, and the shell calls both: a route change scrolls to the top, and a hash scrolls to a band */
+/* jsdom implements neither scrollTo nor scrollIntoView; the shell calls both */
 Object.defineProperty(window, "scrollTo", { writable: true, value: vi.fn() });
 Element.prototype.scrollIntoView = vi.fn() as unknown as () => void;
 
-/* jsdom implements only part of <dialog>; the modal api is filled in where it is missing */
+/* jsdom only implements part of <dialog>; fill in what is missing */
 const dialogPrototype = globalThis.HTMLDialogElement?.prototype;
 
 if (dialogPrototype) {

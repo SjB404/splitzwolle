@@ -1,10 +1,3 @@
-/*
-  The routes page answers three urls from one component: the plain builder, a built route under
-  /routes/custom, and a ready-made one under /routes/public. The url *is* the state, so these tests
-  render the real app with the url set in the history — a MemoryRouter without a route table would
-  hand the page no parameters at all, and half of what it does would be untestable.
-*/
-
 import { afterEach, describe, expect, it } from "vitest";
 import {
   fireEvent,
@@ -33,7 +26,7 @@ const AREA_POINTS = pointsInArea(POINTS_OF_INTEREST);
 const ROUTE = ROUTES[0];
 const BIKE_ROUTE = ROUTES.find((route) => route.theme === "Fiets")!;
 
-/** App brings its own BrowserRouter, so the url is set in the history before it mounts */
+/* App brings its own BrowserRouter; set the url before it mounts */
 function renderAt(path: string) {
   window.history.pushState({}, "", path);
   return render(<App />);
@@ -44,10 +37,9 @@ const clickPlace = (point = AREA_POINTS[0]) =>
 
 const pickedLine = (count: number) =>
   `${count} van ${AREA_POINTS.length} plekken`;
-/* the map says what the area holds while nothing is picked */
 const EMPTY_LINE = `${AREA_POINTS.length} plekken in de binnenstad`;
 
-/* every card carries one link to its own page, so that link is what a card looks like to a test */
+/* a card is queried by its single "Open de route" link */
 const cards = () => screen.queryAllByRole("link", { name: /^Open de route / });
 const titles = () =>
   cards()
@@ -116,7 +108,7 @@ describe("RoutesPage, the builder", () => {
     const place = AREA_POINTS[0];
     clickPlace(place);
 
-    /* the picked places are the url: choosing one is a navigation, not a piece of state */
+    /* picking a place navigates; the url is the state */
     await waitFor(() =>
       expect(window.location.pathname).toBe(builderPath([place.id])),
     );
@@ -146,7 +138,7 @@ describe("RoutesPage, the builder", () => {
       }),
     ).toBeInTheDocument();
 
-    /* the routes api is not reachable in the tests, so the summary says the numbers are an estimate */
+    /* the routes api is unreachable in tests, so the numbers stay an estimate */
     expect(await screen.findByText(/Hemelsbreed geschat/)).toBeInTheDocument();
     expect(screen.getByText(pickedLine(2))).toBeInTheDocument();
     expect(
@@ -409,7 +401,6 @@ describe("RoutesPage, a route's own page", () => {
       "href",
       ROUTES_PATH,
     );
-    /* the trail is a labelled navigation with the current page printed as text */
     const trail = header.getByRole("navigation", { name: "Kruimelpad" });
 
     expect(within(trail).getByText(ROUTE.title)).toBeInTheDocument();

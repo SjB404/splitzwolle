@@ -1,7 +1,3 @@
-/* the reviews, folded away — a reader sees the average and how many people gave it, and opens the rest on demand.
-   it sits under the map of a ready-made route, which is why it is collapsed: the route itself comes first */
-/* the breakdown, the review cards and the form are written out here and not as components of their own: the fold is their only caller */
-
 import { useState } from "react";
 import { m } from "motion/react";
 import Icon from "./icon.tsx";
@@ -11,7 +7,6 @@ import { ROUTE_REVIEWS, buildReviewBreakdown } from "../data/routes.ts";
 import { formatRating } from "../format.ts";
 import type { Route } from "../types.ts";
 
-/* the rating scale, used by the slider, its label and the hidden description */
 const RATING_SCALE_MAX = 5;
 
 interface RouteReviewsPanelProps {
@@ -24,8 +19,7 @@ export default function RouteReviewsPanel({ route }: RouteReviewsPanelProps) {
 
   return (
     <section className="surface mt-6 overflow-hidden rounded-box border-2 border-line">
-      {/* one button for the whole row: it is the only control here, and aria-expanded is what a screen reader reads.
-          transparent, because beerCSS fills a bare button with the brand colour and this is a row, not an action */}
+      {/* transparent: beerCSS fills a bare button with the brand colour, but this row is not an action */}
       <button
         type="button"
         aria-expanded={open}
@@ -49,7 +43,7 @@ export default function RouteReviewsPanel({ route }: RouteReviewsPanelProps) {
         </span>
       </button>
 
-      {/* the panel grows the page under it, so it slides open instead of blinking into place; folding it away is instant, so the fold is always the reader's to undo */}
+      {/* open animates height; closing is instant by design, so no exit animation */}
       {open && (
         <m.div
           initial={{ height: 0, opacity: 0 }}
@@ -64,7 +58,6 @@ export default function RouteReviewsPanel({ route }: RouteReviewsPanelProps) {
 
             <div className="grid gap-y-8 lg:gap-x-10">
               <div className="s12 l4">
-                {/* how a rating is built up — each bar's max is the total reviews, so the bars read as shares of one whole; they are aria-hidden because the same numbers sit beside them */}
                 <article className="p-5">
                   <p className="font-display text-4xl font-bold text-heading">
                     {formatRating(route.rating)}
@@ -99,7 +92,6 @@ export default function RouteReviewsPanel({ route }: RouteReviewsPanelProps) {
                 <ul className="flex flex-col gap-4">
                   {ROUTE_REVIEWS.map((review) => (
                     <li key={review.id}>
-                      {/* one written review; the avatar role always reads on its background, and stars plus the number stop 4 and 5 looking alike */}
                       <article className="p-5">
                         <div className="flex items-center gap-3">
                           <span className="circle bg-avatar flex h-10 w-10 flex-none items-center justify-center text-sm font-semibold text-on-avatar">
@@ -141,7 +133,6 @@ export default function RouteReviewsPanel({ route }: RouteReviewsPanelProps) {
   );
 }
 
-/* the form under the reviews — nothing is submitted (no api yet), the comment box is uncontrolled, and the rating is controlled so the text under it follows the drag */
 function ReviewForm() {
   const [rating, setRating] = useState(RATING_SCALE_MAX);
 
@@ -160,7 +151,7 @@ function ReviewForm() {
       <div>
         <p className="text-sm font-medium text-ink">Beoordeling</p>
 
-        {/* mx-0 max-w-sm cancel beerCSS's inline margins on .slider, so the track lines up with the fields above */}
+        {/* mx-0 cancels beerCSS's inline margins on .slider */}
         <label className="slider mx-0 mt-1 w-full max-w-sm">
           <span className="sr-only">
             Kies een beoordeling tussen 1 en {RATING_SCALE_MAX} sterren
@@ -173,7 +164,7 @@ function ReviewForm() {
             defaultValue={RATING_SCALE_MAX}
             onChange={(event) => setRating(Number(event.currentTarget.value))}
           />
-          {/* the empty span is the filled part of the slider track */}
+          {/* the empty span is the filled part of the beerCSS slider track */}
           <span />
         </label>
 

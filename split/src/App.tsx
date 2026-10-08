@@ -31,14 +31,12 @@ import {
   publicRoutePath,
 } from "./data/navigation.ts";
 
-/* the shape a route's url had before it became /routes/custom and /routes/public, so an old link still lands somewhere */
 function LegacyRouteRedirect() {
   const { routeId } = useParams<{ routeId: string }>();
 
   return <Navigate to={publicRoutePath(routeId ?? "")} replace />;
 }
 
-/* the shell every page wears: bar, main, footer — the account screen hides the footer, because it is a screen of its own */
 function AppLayout() {
   const { pathname } = useLocation();
   const hideFooter = pathname === LOGIN_PATH;
@@ -54,7 +52,6 @@ function AppLayout() {
   );
 }
 
-/* puts a route change back at the top; a hash wins, so /#contact lands from anywhere */
 function ScrollToTop() {
   const { pathname, hash } = useLocation();
 
@@ -62,7 +59,7 @@ function ScrollToTop() {
     const target = hash ? document.getElementById(hash.slice(1)) : null;
 
     if (target) {
-      /* html { scroll-behavior: smooth } decides how it travels */
+      /* scroll animates because index.css sets html { scroll-behavior: smooth } */
       target.scrollIntoView();
       return;
     }
@@ -73,18 +70,16 @@ function ScrollToTop() {
   return null;
 }
 
-/* reducedMotion="user" makes every motion animation follow the OS setting, and LazyMotion + domAnimation + strict keeps the layout engine out of the bundle — hence m.div, never motion.div */
+/* lazyMotion strict: use m.div, never motion.div; reducedMotion="user" follows the os setting */
 function App() {
   return (
     <LazyMotion features={domAnimation} strict>
       <MotionConfig reducedMotion="user">
-        {/* the paths come from data/navigation.ts, so renaming one re-points the router and every link at once */}
         <BrowserRouter>
           <ScrollToTop />
           <Routes>
             <Route element={<AppLayout />}>
               <Route path={HOME_PATH} element={<HomePage />} />
-              {/* one page, three urls: the builder, a built route, and a ready-made one */}
               <Route path={ROUTES_PATH} element={<RoutesPage />} />
               <Route
                 path={`${CUSTOM_ROUTE_PATH}/:placeIds`}

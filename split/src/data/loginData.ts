@@ -59,7 +59,6 @@ export const TEXT = {
     switchToRegister: "Registreren",
     twoFactorNotice:
       "Dit account heeft 2FA ingeschakeld. Voer je verificatiecode in om door te gaan.",
-    success: "Ingelogd! Welkom terug,",
     failed: "Inloggen mislukt. Controleer je gegevens.",
   },
   register: {
@@ -83,11 +82,19 @@ export const TEXT = {
     failed: "Registreren is niet gelukt. Probeer het opnieuw.",
   },
   google: {
-    success: "Succesvol ingelogd met Google.",
     error: "Inloggen met Google is mislukt. Probeer het opnieuw.",
+  },
+  session: {
+    title: "Je bent al ingelogd",
+    signedInAs: "Ingelogd als",
+    active: "Je hebt een actieve sessie.",
+    logout: "Uitloggen",
+    loggingOut: "Bezig met uitloggen…",
+    logoutFailed: "Uitloggen is niet gelukt.",
   },
   common: {
     or: "of",
+    serverUnreachable: "Kan geen verbinding maken met de server.",
   },
   
 } as const;

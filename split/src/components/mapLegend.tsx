@@ -1,8 +1,5 @@
-/* the key that explains a map's symbols — it describes the artwork, so it uses the artwork's own fixed colours (the one place those are correct) */
-
 import type { ReactNode } from "react";
 
-/* the shapes a map can draw; a union, so an entry cannot name a symbol no map knows */
 export type LegendShape = "route" | "historic" | "current";
 
 export interface MapLegendItem {
@@ -14,7 +11,6 @@ const LEGEND_SWATCHES: Record<LegendShape, ReactNode> = {
   route: (
     <span className="h-1 w-6 rounded-full bg-orange-500" aria-hidden="true" />
   ),
-  /* the two dot styles the interactive maps draw: today's places in the brand orange, the ones van toen in the brand blue, both with a white ring; the swatch is the dot's own 24px (§8) */
   historic: (
     <span
       className="h-6 w-6 rounded-full border-2 border-white bg-blue-500"
@@ -30,7 +26,6 @@ const LEGEND_SWATCHES: Record<LegendShape, ReactNode> = {
 };
 
 interface MapLegendProps {
-  /* what the map this legend belongs to actually draws */
   items: MapLegendItem[];
 }
 

@@ -5,7 +5,7 @@ import { renderWithRouter } from "../helpers.tsx";
 
 const ROUTE = ROUTES[0];
 
-/* the fold is the only way to the content, so these tests open it first */
+/* the fold is the only way to the content; open it first */
 const renderPanel = () => {
   const view = renderWithRouter(<RouteReviewsPanel route={ROUTE} />);
 
@@ -132,7 +132,7 @@ describe("RouteReviewsPanel", () => {
 
     fireEvent.submit(container.querySelector("form")!);
 
-    /* the form only prevents the default: there is no api to post to yet */
+    /* the form only prevents default; nothing is stored */
     expect(screen.getByLabelText("Jouw ervaring")).toHaveValue("Mooie route!");
     expect(screen.getByText("3 van 5 sterren")).toBeInTheDocument();
   });

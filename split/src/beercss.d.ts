@@ -1,4 +1,4 @@
-/* beerCSS ships no types; only the slider repaint the hero needs is declared, so an upgrade can only break this much */
+/* beerCSS ships no types; only the slider repaint the hero needs is declared */
 
 declare module "beercss/dist/cdn/beer.min.js";
 

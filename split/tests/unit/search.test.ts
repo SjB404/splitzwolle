@@ -21,8 +21,6 @@ const contentIds: Record<SearchKind, string[]> = {
 };
 
 describe("the index and the content", () => {
-  /* two datasets that have to agree: a record whose id is gone is dead weight, and content without a
-     record can never be found by the home page's search bars */
   it("describes exactly the routes and the places that exist", () => {
     for (const kind of KINDS) {
       expect
@@ -36,6 +34,22 @@ describe("the index and the content", () => {
       for (const record of recordsOf[kind]) {
         expect.soft(record.title.length).toBeGreaterThan(0);
         expect.soft(record.meta.length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it("resolves every record id to its source and spells its title the same", () => {
+    const sourceTitles: Record<SearchKind, Map<string, string>> = {
+      route: new Map(ROUTES.map((route) => [route.id, route.title])),
+      poi: new Map(POINTS_OF_INTEREST.map((point) => [point.id, point.name])),
+    };
+
+    for (const kind of KINDS) {
+      for (const record of recordsOf[kind]) {
+        expect.soft(sourceTitles[kind].has(record.id), record.id).toBe(true);
+        expect
+          .soft(record.title, record.id)
+          .toBe(sourceTitles[kind].get(record.id));
       }
     }
   });

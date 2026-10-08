@@ -1,6 +1,4 @@
-/* the places the site knows about — every one of them is inside the area it covers (data/area.ts), and every coordinate, address and place id comes from google's places api rather than from anyone's memory */
-/* how the list was resolved, and how to resolve it again after adding a place, is written down in docs/DESIGN.md §8; the ratings, review counts and descriptions are still placeholder content for the collaborator's api */
-/* `image` is optional and comes from the collaborator's api; the pictures shipped with the site are matched to a place by its id in data/placeImages.ts, because this module is read by the e2e suite (docs/place-images.md) */
+/* coordinates, addresses and place ids come from google's places api, never typed by hand */
 
 import { haversineKm, STREET_FACTOR } from "./routeGeometry.ts";
 import type {
@@ -19,12 +17,10 @@ export const CATEGORIES: PoiCategory[] = [
   { id: "Culinair", icon: "restaurant" },
 ];
 
-/** the glyph for a category, used by chips and cards. falls back to a pin. */
 export function poiCategoryIcon(category: PoiCategoryName): string {
   return CATEGORIES.find((item) => item.id === category)?.icon ?? "place";
 }
 
-/* cheapest sort first: rating, name, distance */
 export const POI_SORTS: SelectOption<PoiSort>[] = [
   { value: "rating", label: "Beoordeling" },
   { value: "name", label: "Naam" },
@@ -37,7 +33,6 @@ export const INITIAL_POI_FILTERS: PoiFilterState = {
   sort: "rating",
 };
 
-/* true when a filter has left its resting value, which is what shows "Filters wissen"; the comparison reads INITIAL_POI_FILTERS, so a new filter cannot be left behind */
 export function hasActivePoiFilters(filters: PoiFilterState): boolean {
   const restingKeys = Object.keys(
     INITIAL_POI_FILTERS,
@@ -46,10 +41,9 @@ export function hasActivePoiFilters(filters: PoiFilterState): boolean {
   return restingKeys.some((key) => filters[key] !== INITIAL_POI_FILTERS[key]);
 }
 
-/* the square every distance on this site is measured from, resolved through the places api like the rest of them */
+/* every distance on the site is measured from here */
 const GROTE_MARKT: LatLng = { lat: 52.5122429, lng: 6.0927568 };
 
-/* the list before its distances are worked out; the walk is measured from the coordinates, so it cannot fall out of step with the pin */
 const RESOLVED_PLACES: Omit<PointOfInterest, "distanceKm">[] = [
   {
     id: "peperbus",
@@ -186,12 +180,10 @@ export const POINTS_OF_INTEREST: PointOfInterest[] = RESOLVED_PLACES.map(
   }),
 );
 
-/** one place by its id — a route stores ids, so this is the one lookup between a route and the places it visits */
 export function getPointOfInterest(id: string): PointOfInterest | undefined {
   return POINTS_OF_INTEREST.find((point) => point.id === id);
 }
 
-/** the overview's filter + sort logic, next to the data it works on */
 export function filterPointsOfInterest(
   filters: PoiFilterState,
 ): PointOfInterest[] {

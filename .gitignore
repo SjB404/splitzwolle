@@ -1,2 +1,4 @@
 # Local notes and instruction files
 docs/
+node_modules/
+*.log

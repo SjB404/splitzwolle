@@ -1,16 +1,10 @@
 import { MAP_IMAGES, MAP_SIZE } from "../../src/data/maps.ts";
 import type { MapImageId } from "../../src/types.ts";
 
-const IDS: MapImageId[] = [
-  "historic",
-  "satellite",
-  "places",
-  "terrain",
-  "roads",
-];
+const IDS: MapImageId[] = ["historic", "satellite"];
 
 describe("MAP_IMAGES", () => {
-  it("describes exactly the five known map exports", () => {
+  it("describes exactly the two known map exports", () => {
     expect(Object.keys(MAP_IMAGES).sort()).toEqual([...IDS].sort());
   });
 
@@ -32,13 +26,6 @@ describe("MAP_IMAGES", () => {
   it("points each id at its own file", () => {
     expect(MAP_IMAGES.historic.src).toContain("zwolle-historic-1652");
     expect(MAP_IMAGES.satellite.src).toContain("zwolle-satellite.");
-    expect(MAP_IMAGES.places.src).toContain("zwolle-satellite-places.");
-    expect(MAP_IMAGES.terrain.src).toContain(
-      "zwolle-satellite-places-terrain.",
-    );
-    expect(MAP_IMAGES.roads.src).toContain(
-      "zwolle-satellite-places-terrain-roads.",
-    );
   });
 
   it("knows the export's own pixel size", () => {

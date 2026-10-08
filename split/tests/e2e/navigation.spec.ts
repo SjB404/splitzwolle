@@ -1,6 +1,7 @@
 import { expect, test } from "./fixtures";
 import {
   CONTACT_DETAILS,
+  CONTACT_PATH,
   FOOTER_COLUMNS,
   HOME_PATH,
   LOGIN_PATH,
@@ -10,7 +11,6 @@ import {
   isActiveLink,
 } from "./app";
 
-/* the bar's links that go to a page; Contact points at a band inside a page and is its own case */
 const PAGE_LINKS = NAV_LINKS.filter((link) => !link.to.includes("#"));
 
 test.describe("the top bar", { tag: "@nav" }, () => {
@@ -21,7 +21,7 @@ test.describe("the top bar", { tag: "@nav" }, () => {
     }) => {
       const expected = to.split("#")[0];
 
-      /* start somewhere else, so the click really is what moves the reader */
+      /* start elsewhere, so the click is what moves the reader */
       await page.goto(expected === ROUTES_PATH ? HOME_PATH : ROUTES_PATH);
 
       await page
@@ -30,7 +30,6 @@ test.describe("the top bar", { tag: "@nav" }, () => {
         .click();
       await expect(page).toHaveURL(expected);
 
-      /* the app's own rule decides who is active, so this follows a rule change instead of pinning one */
       for (const link of PAGE_LINKS) {
         const target = page
           .getByRole("banner")
@@ -47,7 +46,7 @@ test.describe("the top bar", { tag: "@nav" }, () => {
     });
   }
 
-  test("sends the contact link down to the footer band", async ({ page }) => {
+  test("sends the contact link to the contact page", async ({ page }) => {
     await page.goto(ROUTES_PATH);
 
     await page
@@ -55,8 +54,10 @@ test.describe("the top bar", { tag: "@nav" }, () => {
       .getByRole("link", { name: "Contact", exact: true })
       .click();
 
-    await expect(page).toHaveURL(/\/#contact$/);
-    await expect(page.locator("footer#contact")).toBeInViewport();
+    await expect(page).toHaveURL(CONTACT_PATH);
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Neem contact met ons op" }),
+    ).toBeVisible();
   });
 
   test("takes the brand name home", async ({ page }) => {
@@ -83,8 +84,8 @@ test.describe("the top bar", { tag: "@nav" }, () => {
 });
 
 test.describe("the account link", { tag: "@nav" }, () => {
-  /* pinned finding: /inloggen is linked from three places but has no route of its own */
-  test("has no page behind it yet, and lands on the 404", async ({ page }) => {
+  /* the login page has no backend in this suite; it must still render its form */
+  test("opens the login screen", async ({ page }) => {
     await page.goto("/");
 
     await page
@@ -94,7 +95,10 @@ test.describe("the account link", { tag: "@nav" }, () => {
 
     await expect(page).toHaveURL(LOGIN_PATH);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-      "Deze pagina bestaat niet",
+      "Zwolle Routes",
+    );
+    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
+      "Inloggen",
     );
   });
 
@@ -113,8 +117,10 @@ test.describe("the account link", { tag: "@nav" }, () => {
     }
 
     await group.getByRole("link", { name: "Inloggen", exact: true }).click();
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-      "Deze pagina bestaat niet",
+
+    await expect(page).toHaveURL(LOGIN_PATH);
+    await expect(page.getByRole("heading", { level: 2 })).toHaveText(
+      "Inloggen",
     );
   });
 });
@@ -149,6 +155,14 @@ test.describe("the footer", { tag: "@nav" }, () => {
     ).toHaveAttribute("href", `tel:${CONTACT_DETAILS.phoneHref}`);
     await expect(footer).toContainText(CONTACT_DETAILS.address);
     await expect(footer).toContainText(`© ${new Date().getFullYear()}`);
+  });
+
+  test("still answers a direct #contact hash by scrolling its band into view", async ({
+    page,
+  }) => {
+    await page.goto(`${HOME_PATH}#contact`);
+
+    await expect(page.locator("footer#contact")).toBeInViewport();
   });
 
   test("follows a footer link", async ({ page }) => {

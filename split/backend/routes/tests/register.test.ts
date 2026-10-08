@@ -26,7 +26,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const cookieOf = (res: request.Response) =>
   ([] as string[]).concat(res.headers["set-cookie"] ?? []).find((c) => c.startsWith("token="));
 
-/** First query = "does the email exist?", second = the INSERT */
+// first query checks the email, second is the insert
 const emailFree = () => {
   pool.query.mockResolvedValueOnce([[], []]);
   pool.query.mockResolvedValueOnce([{ affectedRows: 1 }, undefined]);
@@ -56,7 +56,7 @@ describe("POST /users/register", () => {
 
     expect(res.status).toBe(409);
     expect(res.body).toEqual({ error: "Email already exists" });
-    expect(pool.query).toHaveBeenCalledTimes(1); // no INSERT
+    expect(pool.query).toHaveBeenCalledTimes(1);
   });
 
   it("201: creates the user, returns id + token, no 2FA data", async () => {
@@ -142,6 +142,24 @@ describe("POST /users/register", () => {
     spy.mockRestore();
   });
 
-  it.todo("should ignore a client-supplied `role` (currently anyone can register as admin)");
-  it.todo("should not leak internal error details in the 500 response (`detail`)");
+  it("ignores a client-supplied role and registers the user as 'user'", async () => {
+    emailFree();
+    const res = await request(app)
+      .post("/users/register")
+      .send({ ...valid, role: "admin" });
+
+    expect(res.status).toBe(201);
+    expect(pool.query.mock.calls[1][1][4]).toBe("user");
+    expect(verifyToken(res.body.token).role).toBe("user");
+  });
+
+  it("does not leak internal error details in the 500 response", async () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    pool.query.mockRejectedValueOnce(new Error("db down with secret details"));
+    const res = await request(app).post("/users/register").send(valid);
+
+    expect(res.status).toBe(500);
+    expect(res.body).toEqual({ error: "Registration failed" });
+    spy.mockRestore();
+  });
 });

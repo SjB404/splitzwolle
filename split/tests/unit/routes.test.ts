@@ -6,14 +6,12 @@ import {
   ROUTE_PREVIEW_COUNT,
   ROUTE_REVIEWS,
   ROUTE_THEMES,
-  ROUTE_THEME_ICONS,
   buildReviewBreakdown,
   filterRoutes,
   getRelatedRoutes,
   hasActiveRouteFilters,
   routeCoordinates,
   routePoints,
-  routeStart,
 } from "../../src/data/routes.ts";
 import { AREA_BOUNDS } from "../../src/data/area.ts";
 import { getPointOfInterest } from "../../src/data/pointsOfInterest.ts";
@@ -23,7 +21,6 @@ function filters(patch: Partial<RouteFilterState> = {}): RouteFilterState {
   return { ...INITIAL_ROUTE_FILTERS, ...patch };
 }
 
-/* the fields a search runs over, spelled once so the expectations below cannot drift from the filter */
 const haystack = (route: Route) =>
   [
     route.title,
@@ -39,7 +36,6 @@ const dataIds = (predicate: (route: Route) => boolean) =>
   ids(ROUTES.filter(predicate));
 const cases = ROUTES.map((route) => [route.id, route] as const);
 
-/* a route that shares its theme with another, and one that does not — the two shapes the ordering test needs */
 const withTwin = ROUTES.find((route) =>
   ROUTES.some((other) => other.id !== route.id && other.theme === route.theme),
 );
@@ -51,7 +47,7 @@ const alone = ROUTES.find(
 );
 
 describe("the route data", () => {
-  /* the one place a content change has to be acknowledged by hand; everything below grows with the list */
+  /* this count has to be updated by hand when the dataset changes */
   it("holds the dataset this suite was written against", () => {
     expect(ROUTES).toHaveLength(8);
   });
@@ -83,10 +79,8 @@ describe("the route data", () => {
       expect.soft(route.description.length).toBeGreaterThan(0);
       expect.soft(ROUTE_THEMES).toContain(route.theme);
       expect.soft(ROUTE_DIFFICULTIES).toContain(route.difficulty);
-      expect.soft(ROUTE_THEME_ICONS[route.theme]).toBeTruthy();
       expect.soft(route.distanceKm).toBeGreaterThan(0);
       expect.soft(route.durationMinutes).toBeGreaterThan(0);
-      expect.soft(route.elevation).toBeGreaterThanOrEqual(0);
       expect.soft(route.rating).toBeGreaterThan(0);
       expect.soft(route.rating).toBeLessThanOrEqual(5);
       expect.soft(Number.isInteger(route.reviews)).toBe(true);
@@ -106,7 +100,7 @@ describe("the route data", () => {
   });
 });
 
-describe("routePoints, routeCoordinates and routeStart", () => {
+describe("routePoints and routeCoordinates", () => {
   it("follows the visit order", () => {
     for (const route of ROUTES) {
       expect
@@ -128,14 +122,6 @@ describe("routePoints, routeCoordinates and routeStart", () => {
         .soft(routeCoordinates(route))
         .toEqual(routePoints(route).map((point) => point.coordinates));
     }
-  });
-
-  it("reads the start off the first place", () => {
-    for (const route of ROUTES) {
-      expect.soft(routeStart(route)?.id).toBe(route.poiIds[0]);
-    }
-
-    expect(routeStart({ ...ROUTES[0], poiIds: [] })).toBeUndefined();
   });
 
   it("only points at places that exist", () => {

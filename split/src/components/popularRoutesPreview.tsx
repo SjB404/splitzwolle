@@ -1,7 +1,3 @@
-/* the home page's strip of the route overview — its own search bar and the cards that matched; how many routes a preview holds lives in data/routes.ts */
-/* the matches come from the search index (data/search.ts) and not from the data module, so this strip is already wired the way the api will be */
-/* the cards are written out here and not as a component of their own: this strip is the only caller, and it never shows the "Populair" tag — the section title already says it */
-
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { AnimatePresence, m } from "motion/react";
@@ -25,14 +21,13 @@ import { formatDistance, formatDuration, formatRating } from "../format.ts";
 export default function PopularRoutesPreview() {
   const [query, setQuery] = useState("");
 
-  /* the search answers with ids, so the strip keeps rendering the routes the rest of the app renders */
   const matches = useMemo(() => {
     const ids = searchIds("route", query);
     return ROUTES.filter((route) => ids.has(route.id));
   }, [query]);
 
   return (
-    /* content-visibility keeps this band, which sits under the fold, out of the first paint and out of every resize until it is scrolled to; the intrinsic size is the band's own measured height, so the scrollbar does not move when it is rendered */
+    /* content-visibility:auto keeps this band out of the first paint; 48rem is its measured height */
     <section className="py-band [contain-intrinsic-size:auto_48rem] [content-visibility:auto]">
       <Container>
         <SectionHeading
@@ -50,7 +45,7 @@ export default function PopularRoutesPreview() {
             matches.length === 1 ? "route" : "routes"
           }`}
           action={
-            /* a link dressed as a button needs .button (a bare <a> has no button box), and border defaults to primary text — 2.5:1 on white — so the ink comes from the theme; h-12 is the field's own 48px, so the action sits in the row at the field's height instead of 8px short of it (§7) */
+            /* bare <a> needs .button; .border's default text is 2.5:1 on white, so text-ink fixes it */
             <Link to={ROUTES_PATH} className="button border text-ink ripple h-12">
               Alle routes bekijken
             </Link>
@@ -65,73 +60,74 @@ export default function PopularRoutesPreview() {
             description="Zoek op een andere wijk, titel of thema, of bekijk alle routes."
           />
         ) : (
-          /* a preview keeps showing a strip of what matched; grid and AnimatePresence together, so a card leaving on a search stays in the dom until its fade ends, which css cannot do */
           <div className="mt-10 grid gap-6">
             <AnimatePresence initial={false}>
-              {matches.slice(0, ROUTE_PREVIEW_COUNT).map((route) => (
-                <m.article
-                  key={route.id}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={MOTION_TRANSITION}
-                  className="s12 m6 l4 xl:col-span-3 no-padding group relative flex flex-col overflow-hidden transition-transform motion-safe:hover:-translate-y-1 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-(--primary)"
-                >
-                  {/* the frame takes its height from the column and keeps a map's kind of ratio, so the preview scales with the card instead of stepping at two widths; square, so it butts the card body and the panel's own clip draws the top corners (DESIGN.md §5) */}
-                  <div className="relative aspect-[16/10] overflow-hidden rounded-none surface-container">
-                    {/* the route's own shape, drawn from the places it visits; a real map picture takes its place when the static map service is switched on */}
-                    <MapSnapshot
-                      points={routeCoordinates(route)}
-                      alt={`Kaart met de route ${route.title}`}
-                      className="h-full w-full object-cover"
-                      fallback={<RouteShape points={routeCoordinates(route)} />}
-                    />
+              {matches.slice(0, ROUTE_PREVIEW_COUNT).map((route) => {
+                const coords = routeCoordinates(route);
 
-                    <span className="chip surface-container-lowest absolute right-4 top-4 text-[11px] font-semibold">
-                      {route.area}
-                    </span>
+                return (
+                  <m.article
+                    key={route.id}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={MOTION_TRANSITION}
+                    className="s12 m6 l4 xl:col-span-3 no-padding group relative flex flex-col overflow-hidden transition-transform motion-safe:hover:-translate-y-1 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-(--primary)"
+                  >
+                    <div className="relative aspect-[16/10] overflow-hidden rounded-none surface-container">
+                      <MapSnapshot
+                        points={coords}
+                        alt={`Kaart met de route ${route.title}`}
+                        className="h-full w-full object-cover"
+                        fallback={<RouteShape points={coords} />}
+                      />
 
-                    <span className="chip surface-container-lowest absolute bottom-4 left-4 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-muted">
-                      {route.theme}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-1 flex-col rounded-none p-5">
-                    <h3 className="text-xl font-bold">{route.title}</h3>
-
-                    <p className="mt-2 flex items-center gap-1.5 text-sm text-ink-muted">
-                      <Icon name="route" className="text-base" />
-                      {formatDistance(route.distanceKm)} ·{" "}
-                      {formatDuration(route.durationMinutes)}
-                    </p>
-
-                    <div className="mt-4 flex items-center gap-2 border-t-2 border-line rounded-none pt-4">
-                      <span className="inline-flex items-center gap-1 text-sm font-semibold text-ink">
-                        <Icon
-                          name="star"
-                          className="fill text-base text-accent"
-                        />
-                        {formatRating(route.rating)}
-                      </span>
-                      <span className="text-xs text-ink-muted">
-                        ({route.reviews} beoordelingen)
+                      <span className="chip surface-container-lowest absolute right-4 top-4 text-[11px] font-semibold">
+                        {route.area}
                       </span>
 
-                      <span className="ml-auto inline-flex items-center gap-1 text-sm font-semibold text-accent transition-transform group-hover:translate-x-0.5">
-                        Bekijk{" "}
-                        <Icon name="arrow_forward" className="text-base" />
+                      <span className="chip surface-container-lowest absolute bottom-4 left-4 text-[10px] font-bold uppercase tracking-[0.14em] text-ink-muted">
+                        {route.theme}
                       </span>
                     </div>
-                  </div>
 
-                  {/* the whole card is the way to the route's own page: an empty link laid over it, last so it paints above the picture and the body. A stretched `::after` on the title cannot do this — beerCSS's reset makes every element relative, so inset-0 stops at the heading instead of reaching the card. It stays square (§5) and hands the focus ring to the card, which draws it outside its own clip */}
-                  <Link
-                    to={publicRoutePath(route.id)}
-                    aria-label={route.title}
-                    className="absolute inset-0 z-0 rounded-none focus-visible:outline-none"
-                  />
-                </m.article>
-              ))}
+                    <div className="flex flex-1 flex-col rounded-none p-5">
+                      <h3 className="text-xl font-bold">{route.title}</h3>
+
+                      <p className="mt-2 flex items-center gap-1.5 text-sm text-ink-muted">
+                        <Icon name="route" className="text-base" />
+                        {formatDistance(route.distanceKm)} ·{" "}
+                        {formatDuration(route.durationMinutes)}
+                      </p>
+
+                      <div className="mt-4 flex items-center gap-2 border-t-2 border-line rounded-none pt-4">
+                        <span className="inline-flex items-center gap-1 text-sm font-semibold text-ink">
+                          <Icon
+                            name="star"
+                            className="fill text-base text-accent"
+                          />
+                          {formatRating(route.rating)}
+                        </span>
+                        <span className="text-xs text-ink-muted">
+                          ({route.reviews} beoordelingen)
+                        </span>
+
+                        <span className="ml-auto inline-flex items-center gap-1 text-sm font-semibold text-accent transition-transform group-hover:translate-x-0.5">
+                          Bekijk{" "}
+                          <Icon name="arrow_forward" className="text-base" />
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* overlay link: a stretched ::after fails because beerCSS's reset makes every element relative */}
+                    <Link
+                      to={publicRoutePath(route.id)}
+                      aria-label={`Open de route ${route.title}`}
+                      className="absolute inset-0 z-0 rounded-none focus-visible:outline-none"
+                    />
+                  </m.article>
+                );
+              })}
             </AnimatePresence>
           </div>
         )}

@@ -1,5 +1,3 @@
-/* the one way out of a filtered list — three places offer it, so the wording and the icon stay identical in all three */
-
 import Icon from "./icon.tsx";
 
 interface ClearFiltersButtonProps {
@@ -17,7 +15,7 @@ export default function ClearFiltersButton({
       onClick={onClick}
       className={`button border text-ink ripple tap-target ${className}`}
     >
-      {/* outlined buttons default to primary text (2.5:1 on white), so the ink comes from the theme — DESIGN.md §7 */}
+      {/* outlined beerCSS buttons default to primary text (2.5:1 on white) */}
       <Icon name="close" className="mr-1.5 text-base" />
       Filters wissen
     </button>

@@ -1,4 +1,5 @@
 import {
+  CONTACT_PATH,
   CUSTOM_ROUTE_PATH,
   HOME_PATH,
   LOGIN_PATH,
@@ -21,16 +22,36 @@ import {
   FOOTER_COLUMNS,
 } from "../../src/components/footer.tsx";
 
-/* the bar's links that go to a page, in the order the bar shows them */
 const PAGE_LINKS = NAV_LINKS.filter((link) => !link.to.includes("#"));
+
+/* the url map App.tsx serves: its static paths plus the two dynamic route families */
+const SERVED_PATHS = [
+  HOME_PATH,
+  ROUTES_PATH,
+  POI_PATH,
+  PLANNING_PATH,
+  LOGIN_PATH,
+  CONTACT_PATH,
+];
+const SERVED_PREFIXES = [`${CUSTOM_ROUTE_PATH}/`, `${PUBLIC_ROUTE_PATH}/`];
+
+/* a hash names a band on a page that already exists, so it is stripped before the check */
+function serves(to: string): boolean {
+  const path = to.split("#")[0];
+
+  return (
+    SERVED_PATHS.includes(path) ||
+    SERVED_PREFIXES.some((prefix) => path.startsWith(prefix))
+  );
+}
 
 describe("the path constants", () => {
   it("are the urls the router and the links share", () => {
     expect(HOME_PATH).toBe("/");
     expect(ROUTES_PATH).toBe("/routes");
     expect(POI_PATH).toBe("/points-of-interest");
-    expect(LOGIN_PATH).toBe("/inloggen");
-    expect(REGISTER_PATH).toBe("/inloggen#registreren");
+    expect(LOGIN_PATH).toBe("/login");
+    expect(REGISTER_PATH).toBe("/login#registreren");
   });
 
   it("keeps the old planning url alive so an old link still lands somewhere", () => {
@@ -79,6 +100,13 @@ describe("parsePlaceIds", () => {
       "melkmarkt",
     ]);
   });
+
+  it("counts a place twice in a url as one stop", () => {
+    expect(parsePlaceIds("peperbus,melkmarkt,peperbus")).toEqual([
+      "peperbus",
+      "melkmarkt",
+    ]);
+  });
 });
 
 describe("pointOfInterestPath", () => {
@@ -117,9 +145,12 @@ describe("publicRoutePath", () => {
 });
 
 describe("NAV_LINKS", () => {
-  it("starts at home and ends at the footer's contact band", () => {
+  it("starts at home and ends at the contact page", () => {
     expect(NAV_LINKS[0]).toEqual({ label: "Home", to: HOME_PATH });
-    expect(NAV_LINKS[NAV_LINKS.length - 1].to).toBe(`${HOME_PATH}#contact`);
+    expect(NAV_LINKS[NAV_LINKS.length - 1]).toEqual({
+      label: "Contact",
+      to: CONTACT_PATH,
+    });
   });
 
   it("lists every page exactly once", () => {
@@ -148,11 +179,9 @@ describe("FOOTER_COLUMNS", () => {
   });
 
   it("points every link at a path the app serves", () => {
-    const known = [HOME_PATH, ROUTES_PATH, POI_PATH, LOGIN_PATH, PLANNING_PATH];
-
     for (const column of FOOTER_COLUMNS) {
       for (const link of column.links) {
-        expect.soft(known).toContain(link.to.split("#")[0]);
+        expect.soft(serves(link.to)).toBe(true);
       }
     }
   });
@@ -180,6 +209,28 @@ describe("FOOTER_COLUMNS", () => {
       ROUTES_PATH,
       POI_PATH,
     ]);
+  });
+});
+
+describe("the link map behind the chrome", () => {
+  function deadLinks(links: { label: string; to: string }[]): string[] {
+    return links
+      .filter((link) => !serves(link.to))
+      .map((link) => `${link.label} -> ${link.to}`);
+  }
+
+  it("points every nav and footer link at a url the app really serves", () => {
+    expect(
+      deadLinks([
+        ...NAV_LINKS,
+        ...FOOTER_COLUMNS.flatMap((column) => column.links),
+      ]),
+    ).toEqual([]);
+  });
+
+  it("keeps the register hash on the page that opens the register form", () => {
+    expect(REGISTER_PATH.split("#")[0]).toBe(LOGIN_PATH);
+    expect(serves(REGISTER_PATH)).toBe(true);
   });
 });
 

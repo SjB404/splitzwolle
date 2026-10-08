@@ -15,30 +15,23 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <!-- Material Symbols, subset to the icons this app actually uses. The full
-         BeerCSS icon fonts are deliberately not bundled — see src/index.css.
-         Names must stay alphabetical, and adding a new icon means adding its
-         name here as well as to the <Icon> usage. -->
+    <!-- material symbols subset; names stay alphabetical and new icons must be added here too -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&icon_names=account_balance,apps,arrow_back,arrow_forward,bookmark,bookmark_border,check,check_box,check_box_outline_blank,check_circle,chevron_right,close,dark_mode,directions_bike,directions_walk,expand_less,expand_more,flag,light_mode,local_fire_department,lock,mail,menu,museum,open_in_new,park,person,place,restaurant,route,schedule,search,share,star&display=block"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&icon_names=account_balance,add,apps,arrow_back,arrow_drop_down,arrow_forward,bookmark,bookmark_border,build,call,check,check_box,check_box_outline_blank,check_circle,chevron_right,close,dark_mode,directions_bike,directions_walk,error,expand_less,expand_more,flag,handshake,info,light_mode,local_fire_department,location_on,lock,logout,mail,menu,more_horiz,museum,open_in_new,park,person,person_add,place,remove,restaurant,route,schedule,search,send,share,star&display=block"
       rel="stylesheet"
     />
     <link href="/src/index.css" rel="stylesheet" />
   </head>
-  <!-- `light` is the default theme. It is also what stops BeerCSS from picking
-       the OS preference and swapping in its own palette — the toggle owns that
-       choice instead (see src/components/navbar.tsx). -->
+  <!-- `light` required: without it beerCSS follows the OS preference and its own palette -->
   <body class="light">
     <div id="root"></div>
-    <!-- Apply the saved theme before the first paint, so a dark-mode visitor
-         never sees a flash of the light palette. Key kept in sync with
-         src/components/navbar.tsx. -->
+    <!-- applies the saved theme before first paint; key must stay in sync with navbar.tsx -->
     <script>
       try {
         var theme = localStorage.getItem("zwolle-routes:theme");
         if (theme) document.body.className = theme;
       } catch (error) {
-        /* Storage can be blocked; the light default already applies. */
+        /* storage can be blocked; the light default already applies */
       }
     </script>
     <script type="module" src="/src/main.tsx"></script>

@@ -1,14 +1,7 @@
 import { expect, test } from "./fixtures";
 import { ALL_PATHS } from "./app";
 
-/*
-  What a lint rule cannot see, read off the real accessibility tree of a real browser: every picture has
-  something to say, every control has a name, every page has one headline, and no id is used twice.
-  The checks run on every url the app serves, so a new route or page is audited without a test edit.
-*/
-
-/* no page skips a heading level; the builder used to be the one exception, until its band got the h2 the
-   picker's groups needed. A new skip anywhere fails every url it appears on. */
+/* per-path allowance for known heading-level skips */
 const KNOWN_HEADING_JUMPS: Record<string, number> = {};
 
 const CHECKS = () => {
@@ -101,7 +94,7 @@ test.describe(
       test(`${path} has names, labels and one headline`, async ({ page }) => {
         await page.goto(path);
 
-        /* the heading order is checked on its own below, because two overview pages are known to skip a level */
+        /* heading-order issues are counted separately below */
         const issues = (await page.evaluate(CHECKS)).filter(
           (issue) => !issue.startsWith("the heading level jumps"),
         );

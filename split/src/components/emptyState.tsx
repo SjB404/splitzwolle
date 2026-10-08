@@ -1,16 +1,12 @@
-/* the card a list shows when it has nothing to show; the way out comes in as action, because only the page knows what resetting means */
-
 import type { ReactNode } from "react";
 import Icon from "./icon.tsx";
 
 interface EmptyStateProps {
-  /* usually the glyph the missing thing would have worn */
   icon: string;
   title: string;
   description: string;
-  /* 2 on its own, 3 under a SectionHeading: a skipped level breaks the outline */
+  /* 3 when nested under a SectionHeading (h2): skipping a level breaks the outline */
   titleLevel?: 2 | 3;
-  /* what the reader can do about it — only the page knows */
   action?: ReactNode;
 }
 

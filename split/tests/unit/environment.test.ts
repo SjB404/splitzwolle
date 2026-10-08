@@ -1,7 +1,4 @@
-/* the canary: it proves the globals, the jsdom environment and the jest-dom matchers are all wired up.
-   the tests deliberately use the globals and never `import { … } from "vitest"` — an imported copy of the
-   runner cannot see the running suite in this install and every test file fails with "failed to find the
-   current suite" (see docs/TESTPLAN.md) */
+/* use the globals, never import from "vitest": an imported runner cannot see the suite */
 
 test("the runner, jsdom and the matchers are wired up", () => {
   const element = document.createElement("div");

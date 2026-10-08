@@ -1,5 +1,5 @@
-import { NextFunction, Request, Response } from "express";
-import { verifyToken, AuthTokenPayload } from "../routes/login/jwt"; 
+import type { NextFunction, Request, Response } from "express";
+import { verifyToken, type AuthTokenPayload } from "../routes/login/jwt.ts";
 
 declare global {
   namespace Express {

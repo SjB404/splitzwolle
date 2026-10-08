@@ -3,48 +3,48 @@
     {
       "id": "binnenstad-highlights",
       "title": "Binnenstad Highlights",
-      "meta": "Binnenstad · Historisch · Sassenpoort · Peperbus · Vrouwenhuis"
+      "meta": "Binnenstad · Historisch · Sassenpoort · Academiehuis de Grote Kerk · De Peperbus · Het Vrouwenhuis"
     },
     {
       "id": "hanzekwartier-peperbus",
       "title": "Hanzekwartier & Peperbus",
-      "meta": "Binnenstad · Wandel · Thorbeckegracht · Vrouwenhuis · Peperbus"
+      "meta": "Binnenstad · Wandel · Thorbeckegracht & Stadsmuren · Het Vrouwenhuis · De Peperbus"
     },
     {
       "id": "musea-in-het-centrum",
       "title": "Musea in het centrum",
-      "meta": "Binnenstad · Kunst · Museum de Fundatie · ANNO Stadsmuseum · Vrouwenhuis"
+      "meta": "Binnenstad · Kunst · Museum de Fundatie · ANNO Stadsmuseum Zwolle · Het Vrouwenhuis"
     },
     {
       "id": "culinair-centrum",
       "title": "Culinair centrum",
-      "meta": "Binnenstad · Culinair · Het Zwolse Balletjeshuis · Thorbeckegracht"
+      "meta": "Binnenstad · Culinair · Het Zwolse Balletjeshuis · Thorbeckegracht & Stadsmuren"
     },
     {
       "id": "park-en-gracht",
       "title": "Fundatie & gracht",
-      "meta": "Buitensingel · Kunst · Museum de Fundatie · Thorbeckegracht"
+      "meta": "Buitensingel · Kunst · Museum de Fundatie · Thorbeckegracht & Stadsmuren"
     },
     {
       "id": "rondje-stadsgracht",
       "title": "Rondje Stadsgracht",
-      "meta": "Buitensingel · Wandel · Sassenpoort · Thorbeckegracht · Museum de Fundatie"
+      "meta": "Buitensingel · Wandel · Sassenpoort · Thorbeckegracht & Stadsmuren · Museum de Fundatie"
     },
     {
       "id": "grachten-fietsroute",
       "title": "Grachten & singel",
-      "meta": "Buitensingel · Fiets · Sassenpoort · Grote Kerk · Peperbus · Thorbeckegracht"
+      "meta": "Buitensingel · Fiets · Sassenpoort · Academiehuis de Grote Kerk · De Peperbus · Thorbeckegracht & Stadsmuren · Museum de Fundatie"
     },
     {
       "id": "historische-singel-route",
       "title": "Historische Singel-route",
-      "meta": "Binnenstad · Historisch · Grote Kerk · Sassenpoort · Thorbeckegracht"
+      "meta": "Binnenstad · Historisch · Academiehuis de Grote Kerk · Sassenpoort · Thorbeckegracht & Stadsmuren"
     }
   ],
   "pointsOfInterest": [
     {
       "id": "peperbus",
-      "title": "Peperbus",
+      "title": "De Peperbus",
       "meta": "Monumenten · Binnenstad · toren"
     },
     {

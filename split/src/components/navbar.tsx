@@ -1,5 +1,3 @@
-/* the app bar every page in the shell wears — it reads the router and not page state, so the active link comes from useLocation */
-
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { AnimatePresence, m } from "motion/react";
@@ -16,12 +14,12 @@ import {
 } from "../data/navigation.ts";
 import type { NavLink } from "../types.ts";
 
-/* the bar's own links, declared here because this is the only place that reads them; the export is what lets a test pin them */
+/* exported so tests can pin them; the only place that reads them */
 // oxlint-disable-next-line react/only-export-components
 export const NAV_LINKS: NavLink[] = [
   { label: "Home", to: HOME_PATH },
   { label: "Routes", to: ROUTES_PATH },
-  { label: "Points of Interest", to: POI_PATH },
+  { label: "Bezienswaardigheden", to: POI_PATH },
   { label: "Contact", to: CONTACT_PATH },
 ];
 
@@ -31,7 +29,7 @@ export default function Navbar() {
 
   return (
     <header className="app-bar sticky top-0 z-50 bg-bar text-on-bar px-0">
-      {/* the gutter comes from CONTAINER, so the bar lines up with the sections below; px-0 cancels BeerCSS's own header padding, and the .max spacer pushes the actions to the trailing edge */}
+      {/* px-0 cancels beerCSS header padding; .max is beerCSS's spacer pushing the actions right */}
       <nav className={`${CONTAINER} w-full gap-2 sm:gap-6`}>
         <Link
           to="/"
@@ -40,7 +38,6 @@ export default function Navbar() {
           Zwolle Routes
         </Link>
 
-        {/* the active link is marked with weight and an underline, never by dimming the others */}
         {NAV_LINKS.map((link) => {
           const active = isActiveLink(pathname, link.to);
 
@@ -64,7 +61,7 @@ export default function Navbar() {
 
         <ThemeToggle />
 
-        {/* an icon link needs .button next to .circle: the circle only rounds the box, and a bare <a> has no size of its own */}
+        {/* .circle only rounds the box; an icon link needs .button for size */}
         <Link
           to={ROUTES_PATH}
           className="button circle transparent ripple tap-target hidden text-on-bar sm:inline-flex"
@@ -73,7 +70,6 @@ export default function Navbar() {
           <Icon name="search" />
         </Link>
 
-        {/* the avatar wears the brand colour opposite its bar, and it is the way into the account screen */}
         <Link
           to={LOGIN_PATH}
           className="button circle bg-avatar ripple tap-target text-xs font-semibold text-on-avatar"
@@ -82,8 +78,7 @@ export default function Navbar() {
           JB
         </Link>
 
-        {/* -me-2 pulls the trailing button back by the 8px the glyph is inset in its 40px circle, so the icon lines up with the gutter */}
-        {/* the glyph turns as it swaps, so the button answers the press itself: without it the icon just blinks from one name to the other */}
+        {/* -me-2 offsets the glyph's 8px inset in its 40px circle, lining the icon up with the gutter */}
         <button
           type="button"
           className="circle transparent ripple tap-target -me-2 text-on-bar lg:hidden"
@@ -106,7 +101,6 @@ export default function Navbar() {
         </button>
       </nav>
 
-      {/* the mobile menu is one of the few places a real enter/exit earns its keep: it changes the page height, so without it the menu just appears */}
       <AnimatePresence initial={false}>
         {menuOpen && (
           <m.div
@@ -117,13 +111,12 @@ export default function Navbar() {
             className="overflow-hidden lg:hidden"
           >
             <Container className="w-full pb-4">
-              {/* the active row is a see through layer over the bar, not an inverted pill: the bar's text is white in light mode, so an inversion would be orange on white */}
+              {/* not an inverted pill: bar text is white in light mode, an inversion would be orange on white */}
               <div className="flex flex-col gap-1">
                 {NAV_LINKS.map((link, index) => {
                   const active = isActiveLink(pathname, link.to);
 
                   return (
-                    /* the rows arrive one after another: opacity only, so the cascade still reads when the reader has asked for less motion and the panel's own height is skipped */
                     <m.div
                       key={link.label}
                       initial={{ opacity: 0 }}
@@ -154,13 +147,11 @@ export default function Navbar() {
   );
 }
 
-/* switches the light and dark palettes; both live in index.css, so the only job here is keeping the <body> class and the stored choice in step with index.html's pre-paint script */
+/* the key is also read by index.html's pre-paint script: keep the two in step */
 export const THEME_STORAGE_KEY = "zwolle-routes:theme";
 
-/* the two palettes index.css declares. a third value would leave <body> without one */
 type Theme = "light" | "dark";
 
-/* a plain function so the effect below stays a one liner */
 function applyTheme(theme: Theme) {
   document.body.classList.toggle("dark", theme === "dark");
   document.body.classList.toggle("light", theme !== "dark");
@@ -172,23 +163,21 @@ function readStoredTheme(): Theme {
       ? "dark"
       : "light";
   } catch {
-    return "light"; // storage can be blocked (private mode), and light is the default
+    return "light"; // storage can be blocked (private mode), so fall back to light
   }
 }
 
-/* the bar's own theme switch: light and dark are the bar's business, so it is not a component of its own */
 function ThemeToggle() {
   const [theme, setTheme] = useState<Theme>(readStoredTheme);
   const isDark = theme === "dark";
 
-  /* <body> lives outside the React tree, so the class is written here — syncing with something external, not calculated state */
   useEffect(() => {
     applyTheme(theme);
 
     try {
       localStorage.setItem(THEME_STORAGE_KEY, theme);
     } catch {
-      /* remembering the choice is a nice to have, and the toggle works without it */
+      /* remembering the choice is optional; the toggle works without it */
     }
   }, [theme]);
 
@@ -202,7 +191,7 @@ function ThemeToggle() {
         isDark ? "Schakel naar licht thema" : "Schakel naar donker thema"
       }
     >
-      {/* the icon shows what you get, not what you have; mode="wait" lets the exit finish, and App's reducedMotion="user" drops the rotation but keeps the fade */}
+      {/* App sets reducedMotion="user": the rotation is dropped but the fade stays */}
       <AnimatePresence initial={false} mode="wait">
         <m.span
           key={isDark ? "light" : "dark"}

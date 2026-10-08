@@ -1,6 +1,3 @@
-/* the hook that turns picked places into a route: the estimate is there at once, the api's answer replaces
-   it when it arrives, and an answer for a choice the reader has already left behind is never drawn */
-
 import { act, renderHook, waitFor } from "@testing-library/react";
 import {
   STREET_FACTOR,
@@ -19,7 +16,7 @@ interface PlanHookProps {
   mode: TravelMode;
 }
 
-/* the hook is imported fresh per test: the module it reads keeps a session-wide refusal and a request cache */
+/* import the hook fresh per test; its module caches requests and a refusal */
 let planHook: (points: PointOfInterest[], mode: TravelMode) => PlannedRoute;
 
 async function loadHook() {
@@ -28,7 +25,7 @@ async function loadHook() {
   planHook = mod.usePlannedRoute;
 }
 
-/* a named wrapper, which is what lets the lint rule see a hook rather than a bare call */
+/* named wrapper so the lint rule sees a hook call */
 function usePlan({ points, mode }: PlanHookProps) {
   return planHook(points, mode);
 }
@@ -49,7 +46,6 @@ function apiRoute(distanceMeters = 1234, durationMillis = 600_000) {
   };
 }
 
-/** a fake api that records what it was asked and lets the test decide when it answers */
 function fakeGoogle(answer: (request: Request, call: number) => unknown) {
   const requests: Request[] = [];
 
@@ -90,7 +86,6 @@ describe("usePlannedRoute", () => {
 
     expect(result.current.pending).toBe(false);
     expect(result.current.distanceKm).toBe(0);
-    /* one place is no route, so the path is just that place */
     expect(result.current.path).toEqual([COORDINATES[0]]);
     expect(result.current.points).toEqual(points);
     expect(requests).toHaveLength(0);
@@ -116,7 +111,7 @@ describe("usePlannedRoute", () => {
 
   it("keeps the estimate when the api will not answer", async () => {
     await loadHook();
-    /* no fake api at all: the module reaches for a google that is not there, and refuses */
+    /* no fake api: the module reaches for a missing google and falls back */
 
     const { result } = renderHook(usePlan, {
       initialProps: {
@@ -205,7 +200,7 @@ describe("usePlannedRoute", () => {
 
     rerender({ points: PLACES, mode: "walking" });
 
-    /* three places were never asked about, so the estimate stands in until they are */
+    /* the new places were never requested yet, so the estimate stands */
     expect(result.current.pending).toBe(true);
     expect(result.current.followsStreets).toBe(false);
     expect(result.current.distanceKm).toBeCloseTo(
@@ -218,7 +213,6 @@ describe("usePlannedRoute", () => {
     await loadHook();
     const slow = deferred<unknown>();
 
-    /* the first question is answered late, the second never: what is left on screen is the estimate */
     fakeGoogle((_request, call) =>
       call === 1 ? slow.promise : new Promise(() => {}),
     );

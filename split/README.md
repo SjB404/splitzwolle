@@ -1,32 +1,32 @@
-# React + TypeScript + Vite
+# Zwolle Routes — frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+The Vite + React app behind **Zwolle Routes**, a Dutch walking-and-cycling route planner for
+Zwolle with a historic map layer beside the present-day map. The app, its data, its tests and the
+Express API all live in this folder.
 
-Currently, two official plugins are available:
+## Scripts
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+| Task                    | Command                                                             |
+| ----------------------- | ------------------------------------------------------------------- |
+| Dev server              | `npm run dev` — http://localhost:5173                               |
+| Production build        | `npm run build` (`tsc -b` + Vite)                                   |
+| Lint                    | `npm run lint` (oxlint)                                             |
+| Preview the build       | `npm run preview`                                                   |
+| API dev server          | `npm run dev:server` — http://localhost:3000 (talks to MySQL)       |
+| Unit + component tests  | `npm run test`                                                      |
+| Coverage                | `npm run test:coverage`                                             |
+| API tests               | `npm run test:backend`                                              |
+| End-to-end tests        | `npm run test:e2e` (one-off `npm run test:e2e:install`)             |
+| Everything              | `npm run test:all`                                                  |
 
-## React Compiler
+From the repo root, prefix every command with `--prefix split` (see the root README).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Where to look
 
-## Expanding the Oxlint configuration
+- `src/` — one `pages/` file per route, one flat `components/` folder, `data/` for content and logic
+- `backend/` — the Express API, mounted at `/api`
+- `tests/unit/`, `tests/e2e/`, `backend/routes/tests/` — the three suites
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
-
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Read [`../docs/DESIGN.md`](../docs/DESIGN.md) before touching UI; the root
+[`README.md`](../README.md) points at the rest of the documentation
+(`PROJECT-MAP.md`, `TESTPLAN.md`, `BACKEND.md`).

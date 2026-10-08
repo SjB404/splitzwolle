@@ -5,7 +5,6 @@ import { publicRoutePath } from "../../../src/data/navigation.ts";
 import { formatDistance, formatDuration, formatRating } from "../../../src/format.ts";
 import { renderWithRouter } from "../helpers.tsx";
 
-/* the strip shows the first slice of the list, in order */
 const SHOWN = ROUTES.slice(0, ROUTE_PREVIEW_COUNT);
 const CARD = SHOWN[0];
 
@@ -24,10 +23,9 @@ describe("PopularRoutesPreview", () => {
   it("links each card's title at the route's own page", () => {
     renderWithRouter(<PopularRoutesPreview />);
 
-    expect(screen.getByRole("link", { name: CARD.title })).toHaveAttribute(
-      "href",
-      publicRoutePath(CARD.id),
-    );
+    expect(
+      screen.getByRole("link", { name: `Open de route ${CARD.title}` }),
+    ).toHaveAttribute("href", publicRoutePath(CARD.id));
     expect(
       screen.getByRole("heading", { level: 3, name: CARD.title }),
     ).toBeInTheDocument();

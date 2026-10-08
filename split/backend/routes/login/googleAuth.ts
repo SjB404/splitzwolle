@@ -1,24 +1,14 @@
-import { Router, Request, Response } from "express";
+import { Router } from "express";
+import type { Request, Response } from "express";
 import { randomUUID } from "crypto";
 import bcrypt from "bcryptjs";
 import { OAuth2Client } from "google-auth-library";
-import mysql, { RowDataPacket, ResultSetHeader } from "mysql2/promise";
+import type { RowDataPacket, ResultSetHeader } from "mysql2/promise";
+import { pool } from "../../db.ts";
 import { signToken } from "./jwt.ts";
-import dotenv from "dotenv";
-
-dotenv.config();
+import "dotenv/config";
 
 const router = Router();
-
-const pool = mysql.createPool({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "swolla",
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
 
 interface UserRow extends RowDataPacket {
   id: string;
@@ -38,7 +28,7 @@ const oauthClient = new OAuth2Client(
   GOOGLE_REDIRECT_URI
 );
 
-router.get("/google", (req: Request, res: Response) => {
+router.get("/google", (_req: Request, res: Response) => {
   const url = oauthClient.generateAuthUrl({
     access_type: "offline",
     scope: ["openid", "email", "profile"],

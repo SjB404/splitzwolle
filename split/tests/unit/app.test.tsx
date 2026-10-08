@@ -1,6 +1,3 @@
-/* the real router, not a MemoryRouter: this is the only test that proves the paths in data/navigation.ts
-   are wired to the pages, and that the shell wraps all of them. */
-
 import { render, screen, waitFor } from "@testing-library/react";
 import App from "../../src/App.tsx";
 import {
@@ -12,7 +9,7 @@ import {
 } from "../../src/data/navigation.ts";
 import { ROUTES } from "../../src/data/routes.ts";
 
-/** App brings its own BrowserRouter, so the url is set in the history before it mounts */
+/* App brings its own BrowserRouter; set the url before it mounts */
 function renderAt(path: string) {
   window.history.pushState({}, "", path);
   return render(<App />);
@@ -88,15 +85,22 @@ describe("the router", () => {
     ).toBeInTheDocument();
   });
 
-  it("pins the account path, which has no page of its own yet", async () => {
-    renderAt(LOGIN_PATH);
+  it("pins the account path to the login screen", async () => {
+    /* offline: the session check must fall through to the form, not hang */
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
 
-    expect(
-      await screen.findByRole("heading", {
-        level: 1,
-        name: "Deze pagina bestaat niet",
-      }),
-    ).toBeInTheDocument();
+    try {
+      renderAt(LOGIN_PATH);
+
+      expect(
+        await screen.findByRole("heading", { level: 1, name: "Zwolle Routes" }),
+      ).toBeInTheDocument();
+      expect(
+        await screen.findByRole("heading", { level: 2, name: "Inloggen" }),
+      ).toBeInTheDocument();
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it("scrolls to the top on a normal route change", async () => {

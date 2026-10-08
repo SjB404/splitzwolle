@@ -1,9 +1,7 @@
-/* the closing band and the page's contact block — id="contact" is what the top bar's Contact link points at (see components/navbar.tsx) */
-/* the link groups and the contact details are declared here, because this is the only place that reads them */
-
 import { Link } from "react-router-dom";
 import Icon from "./icon.tsx";
 import Container from "./container.tsx";
+import { CONTACT_DETAILS } from "../data/contact.ts";
 import {
   HOME_PATH,
   LOGIN_PATH,
@@ -11,9 +9,9 @@ import {
   REGISTER_PATH,
   ROUTES_PATH,
 } from "../data/navigation.ts";
-import type { ContactDetails, FooterColumn } from "../types.ts";
+import type { FooterColumn } from "../types.ts";
 
-/* the footer's link groups; contact details are placeholders until the collaborator's api is wired up (DESIGN.md §15). The exports are what lets a test pin them */
+/* contact details live in data/contact.ts, shared with the contact page */
 // oxlint-disable-next-line react/only-export-components
 export const FOOTER_COLUMNS: FooterColumn[] = [
   {
@@ -33,21 +31,15 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
   },
 ];
 
-// oxlint-disable-next-line react/only-export-components
-export const CONTACT_DETAILS: ContactDetails = {
-  email: "info@zwolleroutes.nl",
-  phone: "+31 38 123 45 67",
-  phoneHref: "+31381234567",
-  address: "Grote Markt 1, 8011 PK Zwolle",
-};
+/* re-exported so tests and other modules keep importing it from this file */
+export { CONTACT_DETAILS };
 
 export default function Footer() {
   return (
-    /* px-0 cancels beerCSS's own footer padding, so the brand starts at the same gutter as every section above it */
+    /* px-0 cancels beerCSS footer padding; CONTAINER supplies the gutter */
     <footer id="contact" className="inverse-surface px-0 py-10">
-      {/* w-full matters: beerCSS makes <footer> a grid, and a grid item with mx-auto shrinks to its content */}
+      {/* w-full: beerCSS makes <footer> a grid; mx-auto shrinks grid items to content */}
       <Container className="flex w-full flex-col gap-10">
-        {/* the brand goes above the link groups until xl: at lg the three groups and the brand share the row, which wraps Contact onto a line of its own */}
         <div className="flex flex-col gap-10 xl:flex-row xl:justify-between">
           <div className="max-w-sm">
             <p className="font-display text-lg font-bold">Zwolle Routes</p>
@@ -57,19 +49,19 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* flex, not the 12 column grid: a wrapping row of link groups is one dimensional, and the grid multiplies its gap by 11 */}
+          {/* flex, not the 12-column grid: the grid multiplies its gap by 11 */}
           <div className="flex flex-wrap gap-x-12 gap-y-8 sm:gap-x-20">
             {FOOTER_COLUMNS.map((column) => (
               <nav
                 key={column.title}
                 aria-label={column.title}
-                /* mt-0 takes back beerCSS's 1rem above any element that follows a sibling: the gap-y-8 on the row is what spaces these groups */
+                /* mt-0 cancels beerCSS's 1rem sibling margin; gap-y-8 spaces */
                 className="mt-0 flex flex-col items-start gap-2"
               >
                 <h2 className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
                   {column.title}
                 </h2>
-                {/* the list gets its own div on purpose: beerCSS turns a <ul> that is a direct child of <nav> into an absolutely positioned menu overlay, which lays the links on top of the heading */}
+                {/* the div matters: beerCSS turns a <ul> under <nav> into an absolute menu overlay */}
                 <div>
                   <ul className="flex flex-col gap-1 text-sm text-ink-muted">
                     {column.links.map((link) => (

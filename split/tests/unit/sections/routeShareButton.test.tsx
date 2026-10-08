@@ -7,7 +7,7 @@ import { renderWithRouter } from "../helpers.tsx";
 
 const PLACES = ["peperbus", "melkmarkt"];
 
-/* jsdom ships no clipboard, so the test lends it one and takes it back */
+/* jsdom has no clipboard; the test lends one and takes it back */
 function lendClipboard() {
   const writeText = vi.fn(() => Promise.resolve());
 
@@ -60,8 +60,7 @@ describe("RouteShareButton", () => {
 
     expect(bubble).toHaveTextContent("Kies eerst twee plekken op de kaart.");
 
-    /* the button stands in the map's bottom-right corner, so the bubble opens *upwards*: under the
-       button it would land outside the map, over the legend (DESIGN.md §7) */
+    /* the bubble opens upwards; below the button it would fall outside the map */
     expect(bubble.className).toContain("bottom-full");
   });
 
@@ -92,7 +91,6 @@ describe("RouteShareButton", () => {
     expect(screen.queryByRole("alert")).toBeNull();
   });
 
-  /* the popup is only about the missing route, so a second place makes it moot */
   it("closes the popup once a second place makes a route", async () => {
     function Harness() {
       const [ids, setIds] = useState<string[]>(["peperbus"]);
@@ -120,7 +118,6 @@ describe("RouteShareButton", () => {
     await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
   });
 
-  /* the route is already in the url, so sharing it is copying that url — places and order and all */
   it("copies the route's own url, in a live region", async () => {
     const writeText = lendClipboard();
     renderWithRouter(<RouteShareButton placeIds={PLACES} />);

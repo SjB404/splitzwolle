@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import express from "express";
 import request from "supertest";
 import bcrypt from "bcryptjs";
@@ -201,5 +201,15 @@ describe("POST /auth/login", () => {
     spy.mockRestore();
   });
 
-  it.todo("should not leak internal error details in the 500 response (`detail`)");
+  it("does not leak internal error details in the 500 response", async () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    pool.query.mockRejectedValueOnce(new Error("db down with secret details"));
+    const res = await request(app)
+      .post("/auth/login")
+      .send({ email: baseUser.email, password: PASSWORD });
+
+    expect(res.status).toBe(500);
+    expect(res.body).toEqual({ error: "Login failed" });
+    spy.mockRestore();
+  });
 });

@@ -3,8 +3,7 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     environment: "node",
-    // Set before any source file is imported, so jwt.ts / googleAuth.ts
-    // never fall back to their hardcoded defaults during tests.
+    // must be set before sources load; jwt/googleAuth fall back to hardcoded defaults
     env: {
       JWT_SECRET: "test-secret",
       JWT_EXPIRES_IN: "1h",

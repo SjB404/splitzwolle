@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import type { InputHTMLAttributes, ReactNode } from "react";
-import "./css/loginPage.css";
+import "./loginPage.css";
+import PageTitle from "../components/pageTitle.tsx";
 import {
   API_BASE,
   ALERT_STYLES,
@@ -17,7 +18,7 @@ const LOGOUT_PATH = "/auth/logout";
 
 type Mode = "login" | "register";
 type AlertTone = keyof typeof ALERT_STYLES;
-type GoogleStatus = "success" | "error" | null;
+type GoogleStatus = "error" | null;
 type Session = "checking" | "authed" | "anon";
 
 interface ApiError {
@@ -78,7 +79,7 @@ async function apiPost<T extends ApiError>(
       status: 0,
       body: {
         error:
-          err instanceof Error ? err.message : "cannot connect to server",
+          err instanceof Error ? err.message : TEXT.common.serverUnreachable,
       } as T,
     };
   }
@@ -107,7 +108,7 @@ async function apiGet<T extends ApiError>(
       status: 0,
       body: {
         error:
-          err instanceof Error ? err.message : "cannot connect to server",
+          err instanceof Error ? err.message : TEXT.common.serverUnreachable,
       } as T,
     };
   }
@@ -140,7 +141,6 @@ function Field({
   id,
   label,
   className = "",
-  placeholder,
   ...props
 }: FieldProps) {
   return (
@@ -148,7 +148,6 @@ function Field({
       <div className="field label border round">
         <input id={id} className="active" placeholder=" " {...props} />
         <label htmlFor={id} className="active">{label}</label>
-        {placeholder && <span className="helper">{placeholder}</span>}
       </div>
     </div>
   );
@@ -253,7 +252,9 @@ function OrDivider() {
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<Mode>("login");
+  const [mode, setMode] = useState<Mode>(() =>
+    window.location.hash === "#registreren" ? "register" : "login"
+  );
   const [loading, setLoading] = useState<boolean>(false);
 
   const [loginEmail, setLoginEmail] = useState<string>("");
@@ -262,7 +263,6 @@ export default function LoginPage() {
   const [tokenRequired, setTokenRequired] = useState<boolean>(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [loginNotice, setLoginNotice] = useState<string | null>(null);
-  const [loginUser, setLoginUser] = useState<User | null>(null);
   const [forgotNotice, setForgotNotice] = useState<boolean>(false);
 
   const [regName, setRegName] = useState<string>("");
@@ -314,6 +314,7 @@ export default function LoginPage() {
     setLoginError(null);
     setLoginNotice(null);
     setRegError(null);
+    setRegResult(null);
     setTokenRequired(false);
     setLoginToken("");
   };
@@ -326,7 +327,6 @@ export default function LoginPage() {
     setLoading(true);
     setLoginError(null);
     setLoginNotice(null);
-    setLoginUser(null);
 
     const payload = {
       email: loginEmail,
@@ -347,7 +347,6 @@ export default function LoginPage() {
     }
 
     if (status >= 200 && status < 300) {
-      setLoginUser(body?.user ?? null);
       navigate(POST_LOGIN_PATH, { replace: true });
       return;
     }
@@ -370,7 +369,6 @@ export default function LoginPage() {
     if (status >= 200 && status < 300) {
       setSession("anon");
       setCurrentUser(null);
-      setLoginUser(null);
       setLoginPassword("");
       setLoginToken("");
       setTokenRequired(false);
@@ -378,7 +376,7 @@ export default function LoginPage() {
       setMode("login");
     } else {
       setLogoutError(
-        body?.error || body?.detail || body?.message || "Could not log out."
+        body?.error || body?.detail || body?.message || TEXT.session.logoutFailed
       );
     }
   };
@@ -418,13 +416,16 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen w-full flex-col font-sans md:flex-row">
+      <PageTitle
+        title={mode === "login" ? TEXT.login.title : TEXT.register.title}
+      />
 
       <div className="inverse-surface flex w-full flex-col justify-between px-8 py-12 md:w-1/2 md:px-16 md:py-16">
         <div>
           <p className="inverse-primary-text text-xs font-semibold tracking-widest">
             {TEXT.hero.eyebrow}
           </p>
-          <h1 className="font-heading mt-3 text-3xl font-bold sm:text-4xl">
+          <h1 className="font-display mt-3 text-3xl font-bold sm:text-4xl">
             {TEXT.hero.title}
           </h1>
 
@@ -455,13 +456,13 @@ export default function LoginPage() {
           ) : session === "authed" ? (
             <>
               <div className="auth-badge"><i>logout</i></div>
-              <h2 className="font-heading text-3xl font-bold">
-                You're already logged in
+              <h2 className="font-display text-3xl font-bold">
+                {TEXT.session.title}
               </h2>
               <p className="mt-2 text-sm opacity-70">
                 {currentUser?.name || currentUser?.email
-                  ? `Signed in as ${currentUser.name || currentUser.email}.`
-                  : "You have an active session."}
+                  ? `${TEXT.session.signedInAs} ${currentUser.name || currentUser.email}.`
+                  : TEXT.session.active}
               </p>
 
               <div className="mt-8 space-y-4">
@@ -472,22 +473,19 @@ export default function LoginPage() {
                   disabled={loading}
                   loading={loading}
                 >
-                  {loading ? "Logging out..." : "Log out"}
+                  {loading ? TEXT.session.loggingOut : TEXT.session.logout}
                 </SubmitButton>
               </div>
             </>
           ) : mode === "login" ? (
             <>
               <div className="auth-badge"><i>route</i></div>
-              <h2 className="font-heading text-3xl font-bold">{TEXT.login.title}</h2>
+              <h2 className="font-display text-3xl font-bold">{TEXT.login.title}</h2>
               <p className="mt-2 text-sm opacity-70">
                 {TEXT.login.subtitle}
               </p>
 
               <div className="mt-8 space-y-4">
-                {googleStatus === "success" && (
-                  <Alert tone="success">{TEXT.google.success}</Alert>
-                )}
                 {googleStatus === "error" && (
                   <Alert tone="error">{TEXT.google.error}</Alert>
                 )}
@@ -540,11 +538,6 @@ export default function LoginPage() {
 
                 {loginNotice && <Alert tone="info">{loginNotice}</Alert>}
                 {loginError && <Alert tone="error">{loginError}</Alert>}
-                {loginUser && (
-                  <Alert tone="success">
-                    {TEXT.login.success} {loginUser.name || loginUser.email}.
-                  </Alert>
-                )}
 
                 <SubmitButton
                   onClick={handleLogin}
@@ -580,7 +573,7 @@ export default function LoginPage() {
           ) : (
             <>
               <div className="auth-badge"><i>person_add</i></div>
-              <h2 className="font-heading text-3xl font-bold">{TEXT.register.title}</h2>
+              <h2 className="font-display text-3xl font-bold">{TEXT.register.title}</h2>
               <p className="mt-2 text-sm opacity-70">
                 {TEXT.register.subtitle}
               </p>

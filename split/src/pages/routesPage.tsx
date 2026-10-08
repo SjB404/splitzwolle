@@ -1,7 +1,3 @@
-/* the overview: build a route out of the places, or take a ready-made one — the url *is* the state, so a built
-   route and a ready-made one are both shareable links and the back button always works */
-/* the filters are state and not url parameters: they are a view of one list, not a destination */
-
 import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Container from "../components/container.tsx";
@@ -40,10 +36,9 @@ import type {
   TravelMode,
 } from "../types.ts";
 
-/* the places a route may use do not depend on a filter: they are the ones inside the covered area (data/area.ts) */
+/* the picker's points are all in-area points, not the filtered list */
 const AREA_POINTS = pointsInArea(POINTS_OF_INTEREST);
 
-/* what the builder's map draws, in the order the legend reads it */
 const AREA_MAP_LEGEND: MapLegendItem[] = [
   { shape: "route", label: "Route" },
   { shape: "historic", label: "Plek van toen" },
@@ -52,19 +47,15 @@ const AREA_MAP_LEGEND: MapLegendItem[] = [
 
 export default function RoutesPage() {
   const navigate = useNavigate();
-  /* the two url shapes this page answers: /routes/custom/<ids> and /routes/public/<id> (see data/navigation.ts) */
   const { placeIds, routeId } = useParams<{
     placeIds?: string;
     routeId?: string;
   }>();
   const [filters, setFilters] = useState(INITIAL_ROUTE_FILTERS);
   const [showAll, setShowAll] = useState(false);
-  /* the way of travelling is the reader's own choice; until they make one, a bicycle route opens in bicycle mode, so the numbers on arrival are the ones the route was made for */
   const [chosenMode, setChosenMode] = useState<TravelMode | null>(null);
-  /* the reader's own saved routes live in the browser, so the page reads them as state and passes them on */
   const savedIds = useSavedRouteIds();
 
-  /* a ready-made route is in the url by id, a built one by its places — both are read here, never stored */
   const publicRoute = routeId
     ? (ROUTES.find((route) => route.id === routeId) ?? null)
     : null;
@@ -96,14 +87,11 @@ export default function RoutesPage() {
 
   const plan = usePlannedRoute(pickedPoints, mode);
 
-  /* the map prints the visit order beside each dot, so the list, the map and the summary read the same */
   const order = useMemo(
     () => new Map(pickedIds.map((id, index) => [id, index + 1])),
     [pickedIds],
   );
 
-  /* every change of the picked places is a url change, which is what makes the share button, a copied link and
-     the back button agree without anything being synced by hand */
   function setPicked(next: string[]) {
     navigate(next.length > 0 ? builderPath(next) : ROUTES_PATH);
   }
@@ -116,7 +104,6 @@ export default function RoutesPage() {
     );
   }
 
-  /* a filter change collapses the list, so "Toon meer" cannot leave the reader on a list nobody asked for */
   function updateFilter(patch: Partial<RouteFilterState>) {
     setFilters((current) => ({ ...current, ...patch }));
     setShowAll(false);
@@ -127,7 +114,6 @@ export default function RoutesPage() {
     setShowAll(false);
   }
 
-  /* an id that is not in the data is a dead link, and says so */
   if (routeId && !publicRoute) {
     return (
       <NotFoundPage
@@ -142,7 +128,6 @@ export default function RoutesPage() {
       {publicRoute ? (
         <PageHeader
           breadcrumb={
-            /* the trail a sub page opens with; only this page has one, so it is written out here */
             <nav
               aria-label="Kruimelpad"
               className="flex flex-wrap items-center gap-2 text-sm text-ink-muted"
@@ -182,7 +167,7 @@ export default function RoutesPage() {
 
       <section className="py-band">
         <Container className="grid gap-y-8 lg:gap-x-8">
-          {/* the picker's groups are h3, so the band owes them an h2: a page may not jump a heading level */}
+          {/* picker groups are h3, so this band must supply an h2 (no skipped heading levels) */}
           <div className="s12">
             <SectionHeading
               title={publicRoute ? "Deze route op de kaart" : "Bouw je route"}
@@ -208,7 +193,6 @@ export default function RoutesPage() {
           </div>
 
           <div className="s12 l8">
-            {/* relative, so the share action can sit in the map's own corner */}
             <div className="relative">
               <AreaMap
                 points={AREA_POINTS}
@@ -225,9 +209,7 @@ export default function RoutesPage() {
                 description={`Kaart van ${AREA_NAME} met ${AREA_POINTS.length} plekken. De gekozen plekken en hun volgorde staan in de lijst naast de kaart.`}
               />
 
-              {/* the corner a thumb reaches on a phone, and the one the share action belongs in: the map's own
-                  zoom control is moved to the top-right in `mapOptions` (§8) so the two can never stack, and the
-                  chip at the top-left still names the map */}
+              {/* map's own zoom control sits top-right (mapOptions §8), so this corner stays free for share */}
               <div className="absolute bottom-4 right-4 z-20">
                 <RouteShareButton placeIds={pickedIds} />
               </div>
@@ -248,12 +230,10 @@ export default function RoutesPage() {
             description="Rondjes die anderen al liepen of fietsten, met dezelfde plekken als hierboven. Klik een kaart om de route te openen, of het bookmark om hem te bewaren."
           />
 
-          {/* the search box first, then the four filters beside it: one row, so the list below is what the eye lands on */}
           <RouteFilters
             filters={filters}
             matchCount={results.length}
             onFilterChange={updateFilter}
-            /* onReset stays undefined while nothing is filtered, which is how "Filters wissen" stays away */
             onReset={hasActiveRouteFilters(filters) ? resetFilters : undefined}
           />
 

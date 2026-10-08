@@ -1,6 +1,3 @@
-/* the shared map, exercised with a fake google maps api: the dots, the visit order, the preview card,
-   the line and the measured traps (a theme change rebuilds the map, an auth failure falls back). */
-
 import {
   act,
   fireEvent,
@@ -38,7 +35,7 @@ interface MapProps {
   label?: string;
 }
 
-/** the component is imported fresh per test, so the api's own module-level state starts clean */
+/* the component is imported fresh per test; api module state starts clean */
 async function renderMap(props: MapProps = {}) {
   vi.resetModules();
   vi.stubEnv("VITE_GOOGLE_MAPS_API_KEY", "test-key");
@@ -48,7 +45,7 @@ async function renderMap(props: MapProps = {}) {
 
   const view = render(<AreaMap {...mapProps(props)} />);
 
-  /* the loader resolves when the api announces itself, exactly as it does in a browser */
+  /* the loader resolves when the api announces itself, as in a browser */
   await act(async () => {
     (
       window as unknown as { __zwolleRoutesGoogleMapsReady?: () => void }
@@ -129,8 +126,7 @@ describe("AreaMap", () => {
     expect(ordered.element.className).toContain("scale-125");
   });
 
-  /* a marker is only as big as its dot, and a 24px circle is not a thumb target: the dot carries a
-     pseudo element that takes the touch area out to 48px without drawing anything (DESIGN.md §5, §8) */
+  /* the touch area comes from a before: pseudo element, not from a bigger dot */
   it("gives every dot a touch area of its own", async () => {
     const { built } = await renderMap();
 
@@ -226,7 +222,7 @@ describe("AreaMap", () => {
   it("spreads the dots again whenever the map settles", async () => {
     const { built } = await renderMap();
 
-    /* the api fires idle when the viewport settles; the dots are nudged apart without throwing */
+    /* the api fires idle when the viewport settles */
     expect(() => built.maps[0].emit("idle")).not.toThrow();
     expect(built.markers.every((marker) => marker.element.isConnected)).toBe(
       true,

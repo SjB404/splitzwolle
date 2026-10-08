@@ -1,6 +1,5 @@
-/* one material symbols glyph; the name must be in the subset url in index.html, font size sets the size, and aria-hidden keeps the glyph name out of screen readers */
+/* the glyph name must be in the icon_names subset in index.html */
 
-/* name is a plain string, not a union: the icon list lives in index.html's font subset, outside this project */
 interface IconProps {
   name: string;
   className?: string;

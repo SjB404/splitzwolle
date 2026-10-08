@@ -1,13 +1,11 @@
-/* a route's own shape, drawn from its coordinates — what a preview shows when the static map service is not switched on, and light enough to draw a screenful of them */
-/* the projection is flat on purpose: the longitude is squeezed by the latitude so the shape is not stretched, and over two kilometres of city the difference from a real mercator projection is under a pixel */
+/* flat projection on purpose: over 2km of city the error vs mercator is under a pixel */
 
 import { useMemo } from "react";
 import type { LatLng } from "../types.ts";
 
-/* the drawing box; 320 x 200 is the cards' own 16:10 ratio at half resolution, and the css just scales it */
+/* 320x200 is the cards' 16:10 ratio at half resolution; css scales it */
 const VIEW = { width: 320, height: 200 };
 
-/* how much of the box stays empty around the shape */
 const PADDING = 26;
 
 interface RouteShapeProps {
@@ -30,7 +28,6 @@ export default function RouteShape({
       className={`h-full w-full ${className}`}
       aria-hidden="true"
     >
-      {/* the same recipe the maps use: a white casing under the brand line, so the route reads on any surface */}
       <polyline
         points={shape.polyline}
         fill="none"
@@ -48,10 +45,9 @@ export default function RouteShape({
         strokeLinejoin="round"
       />
 
-      {/* the ends are bigger than the places in between, so the direction of travel is readable at card size */}
       {shape.dots.map((dot, index) => (
         <circle
-          key={`${dot.x}-${dot.y}`}
+          key={`${index}-${dot.x}-${dot.y}`}
           cx={dot.x}
           cy={dot.y}
           r={index === 0 || index === shape.dots.length - 1 ? 6 : 4.5}
@@ -63,17 +59,16 @@ export default function RouteShape({
   );
 }
 
-/* the places onto the box: one scale for both axes, so the shape keeps its proportions and a route that runs north-south sits in the middle of the frame */
 function project(points: LatLng[]): {
   polyline: string;
   dots: { x: number; y: number }[];
 } {
-  /* whatever is not a real coordinate is dropped instead of drawn: a preview must never be able to break the page it is on, and a path can arrive from the api as well as from our own data */
+  /* drop non-finite coordinates: paths can arrive from the api too */
   const clean = points.filter(
     (point) =>
       point && Number.isFinite(point.lat) && Number.isFinite(point.lng),
   );
-  /* the routes api repeats a point where a route doubles back, and two identical points are one dot (and one svg key) */
+  /* the routes api repeats points where a route doubles back; duplicate svg keys otherwise */
   const distinct = clean.filter(
     (point, index) =>
       index === 0 ||
@@ -95,11 +90,11 @@ function project(points: LatLng[]): {
   const ys = flat.map((point) => point.y);
   const minX = Math.min(...xs);
   const minY = Math.min(...ys);
-  /* a single place has no span to scale against, and a zero would divide */
+  /* a single place has no span to scale against; 1e-6 avoids dividing by zero */
   const spanX = Math.max(Math.max(...xs) - minX, 1e-6);
   const spanY = Math.max(Math.max(...ys) - minY, 1e-6);
 
-  /* one scale for both axes, so the shape keeps its proportions — stretching each axis to the frame turned a route with one far stop into an unreadable spike (measured on the east-west routes) */
+  /* one scale for both axes; fitting each axis separately spiked east-west routes (measured) */
   const scale = Math.min(
     (VIEW.width - 2 * PADDING) / spanX,
     (VIEW.height - 2 * PADDING) / spanY,

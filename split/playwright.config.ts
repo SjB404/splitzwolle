@@ -1,7 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-/* the e2e server is its own (port 4321) and has no maps key, so the suite never bills google and the
-   map fallback is the deterministic thing under test — the real maps are checked by hand at 5173 */
+/* no maps key here: the suite tests the map fallback and never bills google */
 const PORT = 4321;
 
 export default defineConfig({

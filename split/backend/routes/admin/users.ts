@@ -1,19 +1,11 @@
-import { Router, Request, Response } from "express";
+import { Router } from "express";
+import type { Request, Response } from "express";
 import bcrypt from "bcryptjs";
-import mysql, { RowDataPacket, ResultSetHeader } from "mysql2/promise";
+import type { RowDataPacket, ResultSetHeader } from "mysql2/promise";
+import { pool } from "../../db.ts";
 import { requireRole } from "../../middleware/userAuthenticator.ts"; 
 
 const router = Router();
-
-const pool = mysql.createPool({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "swolla",
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
 
 interface UserRow extends RowDataPacket {
   id: string;

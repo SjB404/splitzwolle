@@ -1,6 +1,3 @@
-/* the map module had no tests at all: it is the one place the app talks to google, so the api is faked here —
-   the loader, the options, the colours and the two api calls are all exercised without a key or a network */
-
 import { AREA_CORNERS, AREA_CENTER } from "../../src/data/area.ts";
 import type { LatLng } from "../../src/types.ts";
 
@@ -8,7 +5,7 @@ const PERPELBUS: LatLng = { lat: 52.5121724, lng: 6.0898097 };
 const SASSENPOORT: LatLng = { lat: 52.5099842, lng: 6.0955212 };
 
 interface FakeGoogleOptions {
-  /* what the routes api answers; throw to refuse the call, like a key without that api does */
+  /* computeRoutes' answer; throw to simulate a refused call */
   computeRoutes?: (request: RoutesRequest) => unknown | Promise<unknown>;
   onBounds?: (southWest: LatLng, northEast: LatLng) => void;
 }
@@ -20,7 +17,6 @@ interface RoutesRequest {
   travelMode: string;
 }
 
-/** one api answer that follows the streets */
 function apiRoute(distanceMeters = 1234, durationMillis = 600_000) {
   return {
     routes: [
@@ -38,7 +34,7 @@ function apiRoute(distanceMeters = 1234, durationMillis = 600_000) {
 function fakeGoogle(options: FakeGoogleOptions = {}) {
   return {
     maps: {
-      /* the api's control corners, named member for named member: `mapOptions` reads RIGHT_TOP to pin the zoom control */
+      /* mapOptions reads RIGHT_TOP here, so the names must mirror the api's */
       ControlPosition: {
         TOP_LEFT: 1,
         TOP_CENTER: 2,
@@ -53,7 +49,6 @@ function fakeGoogle(options: FakeGoogleOptions = {}) {
         BOTTOM_CENTER: 11,
         BOTTOM_RIGHT: 12,
       },
-      /* the api's own bounds class, reduced to the two corners it was handed */
       LatLngBounds: class {
         constructor(southWest: LatLng, northEast: LatLng) {
           options.onBounds?.(southWest, northEast);
@@ -69,7 +64,7 @@ function fakeGoogle(options: FakeGoogleOptions = {}) {
   };
 }
 
-/** a fresh copy of the module, so the session-wide refusals and the request cache never leak between tests */
+/** re-imports the module so the failure latch and request cache do not leak between tests */
 async function freshModule(
   env: { key?: string; staticMaps?: string; mapId?: string } = {},
 ) {
@@ -83,7 +78,7 @@ async function freshModule(
 
 describe("the key", () => {
   beforeEach(() => {
-    /* a script the loader added in another test must not be counted as this test's */
+    /* scripts added by earlier tests linger in this jsdom document */
     document
       .querySelectorAll("script[src*='maps.googleapis.com']")
       .forEach((script) => script.remove());
@@ -155,7 +150,7 @@ describe("loadGoogleMaps", () => {
     );
     expect(scripts[0].async).toBe(true);
 
-    /* the api announces itself through the callback the loader installed */
+    /* the load promise settles only through this callback */
     (
       window as unknown as { __zwolleRoutesGoogleMapsReady: () => void }
     ).__zwolleRoutesGoogleMapsReady();
@@ -168,13 +163,12 @@ describe("loadGoogleMaps", () => {
     const late = vi.fn();
 
     const unsubscribe = maps.onGoogleMapsAuthFailure(early);
-    /* the loader is what installs the api's own failure hook */
+    /* gm_authFailure is installed only once the loader runs */
     void maps.loadGoogleMaps();
     window.gm_authFailure?.();
 
     expect(early).toHaveBeenCalledTimes(1);
 
-    /* a map that mounts after the failure still has to hear about it */
     maps.onGoogleMapsAuthFailure(late);
     expect(late).toHaveBeenCalledTimes(1);
 
@@ -213,12 +207,12 @@ describe("mapOptions", () => {
     expect(options.gestureHandling).toBe("cooperative");
     expect(options.disableDefaultUI).toBe(true);
     expect(options.clickableIcons).toBe(false);
-    /* the zoom control is the api's chrome the map keeps, and it is pinned to the top-right: the bottom-right corner is the share button's (DESIGN.md §7, §8) */
+    /* zoom control pinned top-right, away from the share button */
     expect(options.zoomControlOptions).toEqual({
       position: 7,
     });
     expect(bounds).toEqual(AREA_CORNERS);
-    /* strictBounds would also stop fitBounds from framing the places, which is a measured trap */
+    /* strictBounds would also stop fitBounds from framing the places */
     expect(options.restriction).not.toHaveProperty("strictBounds");
   });
 

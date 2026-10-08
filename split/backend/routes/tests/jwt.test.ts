@@ -1,8 +1,13 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import jwt from "jsonwebtoken";
 import { signToken, verifyToken } from "../login/jwt.ts";
 
 const payload = { id: "user-1", email: "a@b.nl", role: "user" };
+
+// stubs must be cleared by hand: this config does not auto-unstub envs
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
 
 describe("jwt", () => {
   it("signToken returns a JWT that contains the payload and an expiry", () => {
@@ -43,5 +48,13 @@ describe("jwt", () => {
 
   it("verifyToken rejects garbage", () => {
     expect(() => verifyToken("not-a-token")).toThrow();
+  });
+
+  it("throws on a fresh import when NODE_ENV=production and JWT_SECRET is unset", async () => {
+    vi.resetModules();
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("JWT_SECRET", "");
+
+    await expect(import("../login/jwt.ts")).rejects.toThrow(/JWT_SECRET/);
   });
 });

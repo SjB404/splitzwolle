@@ -25,7 +25,7 @@ describe("RouteResults' cards", () => {
   it("names the route and tells it in a line", () => {
     render();
 
-    /* the heading's name comes from the card's link, which carries the action too ("Open de route …") */
+    /* the heading's accessible name comes from the card's link text */
     expect(screen.getByRole("heading", { level: 3 })).toHaveTextContent(
       POPULAR.title,
     );
@@ -77,7 +77,7 @@ describe("RouteResults' cards", () => {
     });
 
     expect(card).toHaveAttribute("href", publicRoutePath(POPULAR.id));
-    /* the link is laid over the card, which is what turns the whole card into the target */
+    /* the overlay link is what makes the whole card the target */
     expect(card).toHaveClass("absolute", "inset-0");
     expect(container.querySelectorAll("a")).toHaveLength(1);
   });
@@ -143,7 +143,6 @@ describe("RouteResults' cards", () => {
 
     expect(container.querySelectorAll("a button")).toHaveLength(0);
     expect(container.querySelectorAll("button button")).toHaveLength(0);
-    /* the card is one link and one button: the whole card opens the route, the bookmark rides on it */
     expect(container.querySelectorAll("button")).toHaveLength(1);
     expect(container.querySelectorAll("a")).toHaveLength(1);
   });

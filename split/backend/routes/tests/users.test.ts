@@ -10,7 +10,7 @@ const { pool } = vi.hoisted(() => ({
 vi.mock("mysql2/promise", () => ({ default: { createPool: () => pool } }));
 
 import router from "../admin/users.ts";
-import { signToken } from "../login/jwt.ts"; // adjust path if jwt.ts lives elsewhere
+import { signToken } from "../login/jwt.ts";
 
 const app = express();
 app.use(express.json());
@@ -70,8 +70,8 @@ describe("PATCH /admin/users/:id", () => {
     request(app).patch(`/admin/users/${id}`).set("Authorization", admin).send(body);
 
   const updateOk = () => {
-    pool.query.mockResolvedValueOnce([{ affectedRows: 1 }, undefined]); // UPDATE
-    pool.query.mockResolvedValueOnce([[updated], []]); // SELECT
+    pool.query.mockResolvedValueOnce([{ affectedRows: 1 }, undefined]); // update
+    pool.query.mockResolvedValueOnce([[updated], []]); // select
   };
 
   it("400 when there is nothing valid to update", async () => {

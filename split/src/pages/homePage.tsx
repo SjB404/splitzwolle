@@ -1,5 +1,3 @@
-/* the landing page — hero plus two previews; its bands live in src/sections, and it sets its own title because it has no header band */
-
 import PageTitle from "../components/pageTitle.tsx";
 import Hero from "../components/hero.tsx";
 import PointsOfInterestPreview from "../components/pointsOfInterestPreview.tsx";

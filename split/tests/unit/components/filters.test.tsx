@@ -123,32 +123,6 @@ describe("SearchField", () => {
     expect(onChange).toHaveBeenCalledWith("peperbus");
   });
 
-  it("renders the action slot it is given, and nothing without one", () => {
-    const { rerender } = render(
-      <SearchField
-        id="x"
-        label="Zoek"
-        placeholder="Zoek…"
-        value=""
-        onChange={() => {}}
-      />,
-    );
-
-    expect(screen.queryByRole("button", { name: "Wissen" })).toBeNull();
-
-    rerender(
-      <SearchField
-        id="x"
-        label="Zoek"
-        placeholder="Zoek…"
-        value=""
-        onChange={() => {}}
-        action={<button type="button">Wissen</button>}
-      />,
-    );
-
-    expect(screen.getByRole("button", { name: "Wissen" })).toBeInTheDocument();
-  });
 });
 
 describe("SectionSearchBar", () => {

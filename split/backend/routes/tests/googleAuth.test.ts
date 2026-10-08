@@ -82,7 +82,7 @@ describe("GET /auth/google/callback", () => {
       idToken: "google-id-token",
       audience: "test-client-id",
     });
-    expect(pool.query).toHaveBeenCalledTimes(1); // SELECT only, no INSERT
+    expect(pool.query).toHaveBeenCalledTimes(1);
 
     const cookie = cookieOf(res)!;
     expect(cookie).toMatch(/HttpOnly/i);
@@ -91,14 +91,14 @@ describe("GET /auth/google/callback", () => {
     expect(verifyToken(jwtValue)).toMatchObject({
       id: "user-1",
       email: "a@b.nl",
-      role: "admin", // role comes from the DB, not from Google
+      role: "admin", // role comes from the db, not from google
     });
   });
 
   it("creates a new 'user' account for an unknown email", async () => {
     googleReturns({ email: "new@b.nl", name: "Newbie" });
-    pool.query.mockResolvedValueOnce([[], []]); // SELECT: not found
-    pool.query.mockResolvedValueOnce([{ affectedRows: 1 }, undefined]); // INSERT
+    pool.query.mockResolvedValueOnce([[], []]); // select: not found
+    pool.query.mockResolvedValueOnce([{ affectedRows: 1 }, undefined]); // insert
 
     const res = await request(app).get("/auth/google/callback?code=abc");
 
@@ -115,7 +115,7 @@ describe("GET /auth/google/callback", () => {
       null,
       false,
     ]);
-    // Random, unusable password (bcrypt hash of a random UUID)
+    // random, unusable password (bcrypt hash of a random uuid)
     expect(await bcrypt.compare("", passwordHash)).toBe(false);
     expect(passwordHash).toMatch(/^\$2[aby]\$/);
 

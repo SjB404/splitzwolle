@@ -1,5 +1,4 @@
-/* the interactive map every page shares — the places as dots, the picked ones numbered, the route between them, and a preview of whatever the pointer is over */
-/* the map is built once, outside react, and lives in a host element react never touches again: this component is what reads that instance and paints it */
+/* the map instance is built outside react; this component only reads and draws it */
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import "./areaMap.css";
@@ -23,38 +22,27 @@ import type {
   RouteGeometry,
 } from "../types.ts";
 
-/* the line's two weights, the same recipe the cards use: a white casing under the brand line */
 const LINE_STYLE = { casing: 10, line: 5, zIndex: 1 };
 
-/* the preview card's own size, which the placement maths needs: `w-56` is 224px wide, and 296px is the card at its tallest — picture, name, category line, address and score (measured, not guessed) */
+/* keep in sync with the preview card: w-56 = 224px, 296px measured tallest */
 const PREVIEW_WIDTH = 224;
 const PREVIEW_HEIGHT = 296;
 const PREVIEW_GAP = 12;
 
-/* how far apart two dots have to sit before they stop covering each other, in pixels: a place's own 24px dot plus 8px of air — a numbered or highlighted dot draws a quarter bigger, and `MAX_SHIFT` is what separates the ones that end up closer than this */
+/* min gap between dots, px; MAX_SHIFT handles what still overlaps */
 const DOT_GAP = 32;
 
-/* the most a dot is pushed off its own position: past this the nudge would be a lie about where a place is */
 const MAX_SHIFT = 14;
 
 interface AreaMapProps {
-  /* the places to pin */
   points: PointOfInterest[];
-  /* the route through the picked places, when there is one */
   line?: RouteGeometry | null;
-  /* the visit order per place id, so the map and the list beside it agree */
   order?: Map<string, number>;
-  /* the one place the page is about, drawn with a ring */
   highlightId?: string | null;
-  /* a click on a dot; the page decides whether that picks, toggles or only selects */
   onClickPoint?: (id: string) => void;
-  /* what the preview says a click does, which differs per page */
   clickHint?: string;
-  /* what the corner chip says */
   label: string;
-  /* what the map shows, for readers who cannot use it */
   description: string;
-  /* how tall the map stands; the builder asks for a taller one, because there the map is the work surface */
   heightClassName?: string;
   className?: string;
 }
@@ -80,15 +68,14 @@ export default function AreaMap({
       { marker: google.maps.marker.AdvancedMarkerElement; element: HTMLElement }
     >(),
   );
-  /* the api's listeners live outside react, so they read the current callbacks through refs rather than stale closures */
+  /* api listeners live outside react, so callbacks are read via refs */
   const clickRef = useRef(onClickPoint);
   const spreadRef = useRef<() => void>(() => {});
-  /* the map is built outside react: a number that goes up every time one exists is what tells the effects below there is something to draw on */
+  /* map is built outside react; this counter tells the effects a map now exists */
   const [mapGeneration, setMapGeneration] = useState(0);
   const [colorScheme, setColorScheme] = useState(mapColorScheme());
-  /* a checkout without a key never loads the api at all, so the map starts out failed rather than being sent there by an effect */
+  /* no key: the api never loads, so start in the failed state */
   const [failed, setFailed] = useState(!hasGoogleMapsKey);
-  /* which dot the pointer is over, and where to put its card: `below` flips the card under the dot when the map frame has no room above it */
   const [preview, setPreview] = useState<{
     id: string;
     x: number;
@@ -100,7 +87,6 @@ export default function AreaMap({
     clickRef.current = onClickPoint;
   }, [onClickPoint]);
 
-  /* where the pointer is, in the wrapper's own coordinates. the card cannot leave the map sideways, and flips under the dot when it would not fit above it, so it is whole wherever the dot is */
   function showPreview(id: string, element: HTMLElement) {
     const wrapper = element.closest(".relative");
     if (!wrapper) return;
@@ -111,7 +97,7 @@ export default function AreaMap({
     const centre = dot.left - box.left + dot.width / 2;
     const top = dot.top - box.top;
     const bottom = dot.bottom - box.top;
-    /* the card hangs above the dot, which is where the dot's own tooltip belongs; it drops below only when the frame's top is too close and there is room under the dot, and it overhangs the frame when neither fits — the frame clips, so a card at the map's edge used to lose the picture */
+    /* the frame clips: flip the card below the dot when there is no room above */
     const below =
       top < PREVIEW_HEIGHT + PREVIEW_GAP &&
       box.height - bottom >= PREVIEW_HEIGHT + PREVIEW_GAP;
@@ -124,7 +110,7 @@ export default function AreaMap({
     });
   }
 
-  /* push apart the dots that would sit on top of each other, so every place keeps a spot of its own to be clicked; the map calls it through a ref, which is set below on every render, so it always sees the current places and zoom */
+  /* the map calls this via a ref set every render, so it always sees current points and zoom */
   function spreadDots() {
     const map = mapRef.current;
     const zoom = map?.getZoom();
@@ -165,7 +151,7 @@ export default function AreaMap({
     spreadRef.current = spreadDots;
   });
 
-  /* the api reads colorScheme when the map is made and ignores setOptions afterwards (measured), so the theme is state: changing it replaces the map */
+  /* the api reads colorScheme at map creation and ignores setOptions afterwards (measured) */
   useEffect(() => {
     const observer = new MutationObserver(() =>
       setColorScheme(mapColorScheme()),
@@ -177,7 +163,7 @@ export default function AreaMap({
 
   useEffect(() => {
     const host = hostRef.current;
-    /* the api's own bookkeeping, captured once: a ref read inside a cleanup is a value that cannot be promised still to be the same one */
+    /* refs captured once: a ref read inside a cleanup may no longer hold the same value */
     const dots = dotsRef.current;
     const lines = linesRef.current;
     if (!host) return;
@@ -194,7 +180,6 @@ export default function AreaMap({
         });
 
         mapRef.current = map;
-        /* the dots are spread again whenever the map settles, because how much they overlap depends on the zoom */
         map.addListener("idle", () => spreadRef.current());
         setMapGeneration((current) => current + 1);
       })
@@ -204,17 +189,15 @@ export default function AreaMap({
 
     return () => {
       alive = false;
-      /* the host element is react's, but what is inside it belongs to the api: emptying it is what lets a second map take the first one's place (and what makes a strict-mode remount start clean) */
+      /* react owns the host element, the api owns its contents: clear it so a remount starts clean */
       host.replaceChildren();
       lines.length = 0;
       dots.clear();
     };
   }, [colorScheme]);
 
-  /* mounted twice, subscribed twice, unsubscribed twice — the api hands the same failure to every listener */
   useEffect(() => onGoogleMapsAuthFailure(() => setFailed(true)), []);
 
-  /* the dots belong to the api, so a changed set of places is reconciled by id rather than re-rendered */
   useEffect(() => {
     const map = mapRef.current;
     const seen = new Set<string>();
@@ -239,7 +222,6 @@ export default function AreaMap({
         marker.addEventListener("gmp-click", () =>
           clickRef.current?.(point.id),
         );
-        /* the preview follows the pointer, and the keyboard gets it through focus */
         element.addEventListener("mouseenter", () =>
           showPreview(point.id, element),
         );
@@ -258,7 +240,6 @@ export default function AreaMap({
     });
   }, [mapGeneration, points]);
 
-  /* what each dot looks like: its era's fill, its number once it has joined the route, a ring while the page is about it */
   useEffect(() => {
     dotsRef.current.forEach(({ element }, id) => {
       const point = points.find((candidate) => candidate.id === id);
@@ -274,7 +255,6 @@ export default function AreaMap({
     spreadRef.current();
   }, [mapGeneration, points, order, highlightId]);
 
-  /* the frame the map opens on: every place it has, with room for the dots' own size */
   useEffect(() => {
     const map = mapRef.current;
     if (mapGeneration === 0 || !map || points.length === 0) return;
@@ -285,8 +265,7 @@ export default function AreaMap({
     if (!bounds.isEmpty()) map.fitBounds(bounds, 56);
   }, [mapGeneration, points]);
 
-  /* the line through the picked places: two polylines, and the api's road-following path when it had one */
-  /* the path is filtered down to real coordinates first: a line is a drawing, and a drawing must never be able to blank the page it is on */
+  /* filtered to real coordinates: an invalid path must never blank the map */
   const linePath = useMemo(
     () =>
       (line?.path ?? [])
@@ -339,7 +318,7 @@ export default function AreaMap({
   return (
     <div className={`relative ${className}`}>
       <div className="surface relative overflow-hidden rounded-box border-2 border-line">
-        {/* square, like the frame it fills: the frame clips its own corner, and google's own dom is squared in areaMap.css for the same reason (DESIGN.md §5) */}
+        {/* rounded-none: the frame clips its own corner; google's dom is squared in areaMap.css */}
         <div ref={hostRef} className={`${heightClassName} w-full rounded-none`} />
 
         {mapGeneration === 0 && (
@@ -349,7 +328,7 @@ export default function AreaMap({
         )}
       </div>
 
-      {/* outside the frame above, which clips its own corners: a dot at an edge still gets a whole card */}
+      {/* outside the clipping frame, so an edge dot still gets a whole card */}
       {previewPoint && preview && (
         <PreviewCard
           point={previewPoint}
@@ -366,7 +345,7 @@ export default function AreaMap({
   );
 }
 
-/* the place the pointer is over: its picture when there is one, and who it is and what a click does otherwise. it takes no pointer events, so it can never steal the hover from the dot it belongs to */
+/* pointer-events-none so the card can never steal hover from its dot */
 function PreviewCard({
   point,
   hint,
@@ -389,7 +368,7 @@ function PreviewCard({
       }`}
       style={{ left: x, top: y }}
     >
-      {/* square children: the card clips its own corner, so the picture and the glyph panel butt straight against the text below (DESIGN.md §5) */}
+      {/* rounded-none: the card clips its corner, so children stay square */}
       {image ? (
         <img
           src={image}
@@ -427,7 +406,6 @@ function PreviewCard({
   );
 }
 
-/* what a page shows when the api cannot be reached: the route's own shape and a sentence, and no invented map */
 function MapUnavailable({
   label,
   description,
@@ -464,7 +442,7 @@ function MapUnavailable({
   );
 }
 
-/* the small label that names what a map shows; the dot keeps the artwork's fixed orange because it must match the route line (DESIGN.md §8) */
+/* the dot keeps the fixed orange: it must match the route line colour */
 function MapChip({ label, className = "" }: { label: string; className?: string }) {
   return (
     <span
@@ -479,7 +457,6 @@ function MapChip({ label, className = "" }: { label: string; className?: string 
   );
 }
 
-/* one place's whole appearance, in one function: today's places wear the brand orange, the ones van toen the brand blue — the same two colours the whole site is built from — and a place that is on the route carries its number */
 function paintDot(
   element: HTMLElement,
   {
@@ -492,20 +469,12 @@ function paintDot(
 
   element.className = [
     "flex items-center justify-center rounded-full border-2 font-bold leading-none transition-transform",
-    /* the shift the map works out for overlapping dots arrives as a custom property */
     "[translate:var(--dot-shift,0_0)]",
-    /* a marker is only as big as its dot, and a 24px circle is a fiddly thing to hit with a thumb: the
-       pseudo element carries the touch area out to 48px without drawing anything, the way `tap-target`
-       widens a 40px control (§5). `-inset-3.5` is 14px a side, which is what lands on 48px: an absolutely
-       positioned box is placed against the *padding* box, so the dot's own 2px boundary is not counted
-       (measured: `-inset-3` gave 44px). It is not written as `tap-target`, whose 4px a side would need a
-       40px dot to reach 48px */
+    /* before:-inset-3.5 = 48px touch area (measured: -inset-3 gave 44px); tap-target won't fit */
     "before:absolute before:-inset-3.5 before:content-['']",
     current
       ? "border-white bg-orange-500 text-white"
       : "border-white bg-blue-500 text-white",
-    /* 24px for a place, 32px once it carries its visit number — and a number (or the page's own place)
-       grows by a quarter again, which is what keeps a stop apart from the places around it */
     order === null ? "h-6 w-6 text-[12px]" : "h-8 w-8 text-[14px]",
     order !== null || highlighted ? "scale-125" : "",
   ].join(" ");
@@ -513,7 +482,6 @@ function paintDot(
   element.textContent = order === null ? "" : String(order);
 }
 
-/* web mercator pixels at this zoom — the map's own maths, and enough to tell which dots would cover each other */
 function worldPixels(
   { lat, lng }: LatLng,
   zoom: number,
@@ -529,12 +497,10 @@ function worldPixels(
   };
 }
 
-/* the nudge is capped, so a dot never claims to be somewhere it is not */
 function clamp(shift: number): number {
   return Math.max(-MAX_SHIFT, Math.min(MAX_SHIFT, Math.round(shift)));
 }
 
-/* whatever is not a real coordinate, wherever it came from, is not something this map draws */
 function isCoordinate(point: LatLng | undefined): point is LatLng {
   return (
     point !== undefined &&

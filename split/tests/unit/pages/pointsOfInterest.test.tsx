@@ -10,7 +10,7 @@ import { renderWithRouter } from "../helpers.tsx";
 
 const placeLinks = () => screen.getAllByRole("link", { name: "In een route" });
 
-/* every chip on the page by its text — the map's own chip carries a place name, the cards carry a category or an era */
+/* every .chip on the page, the map's own chip included */
 const chipTexts = () =>
   [...document.querySelectorAll(".chip")].map(
     (chip) => chip.textContent?.trim() ?? "",
@@ -121,7 +121,7 @@ describe("PointsOfInterestPage", () => {
     ).toHaveAttribute("aria-pressed", "true");
     expect(chipTexts()).toContain("Sassenpoort");
 
-    /* a pick is the tone, and the tone only: the flash belongs to a url landing (DESIGN.md §10) */
+    /* a pick gets the tone only; the flash is for a url landing */
     expect(card).toHaveClass("secondary-container");
     expect(card).not.toHaveClass("animate-flash");
   });
@@ -135,14 +135,14 @@ describe("PointsOfInterestPage", () => {
       .getByRole("heading", { level: 3, name: place.name })
       .closest("article")!;
 
-    /* the id is what a url's fragment resolves to, so the two have to agree */
+    /* the anchor id is what a url fragment resolves to */
     expect(card).toHaveAttribute("id", pointOfInterestAnchor(place.id));
     expect(
       within(card).getByRole("button", { name: "Op de kaart" }),
     ).toHaveAttribute("aria-pressed", "true");
     expect(chipTexts()).toContain(place.name);
 
-    /* the tone is the page's own background colour, so it marks a reader's pick; a card the url named lights its own edge instead — the bare token, because colour-only feedback is not motion-safe-gated (DESIGN.md §11) */
+    /* a card the url named flashes its edge instead of taking the pick tone */
     expect(card).toHaveClass("animate-flash");
     expect(card).not.toHaveClass("secondary-container");
   });

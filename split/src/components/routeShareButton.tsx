@@ -1,8 +1,3 @@
-/* the share action in the map's corner — the route is already in the url, so sharing is copying it.
-   There is no account yet, so a copied link is the whole feature (see docs/BACKEND.md).
-   With fewer than two places there is nothing to share: instead of a dead button, the click opens a
-   small popup that says so. It is a popup and not a modal, so the map behind it stays usable */
-
 import { useEffect, useRef, useState } from "react";
 import Icon from "./icon.tsx";
 import { builderPath } from "../data/navigation.ts";
@@ -15,13 +10,10 @@ export default function RouteShareButton({ placeIds }: RouteShareButtonProps) {
   const [note, setNote] = useState("");
   const [hintOpen, setHintOpen] = useState(false);
   const wrapper = useRef<HTMLDivElement>(null);
-  /* a route needs two places before it is a route, so the button waits for the second click */
   const ready = placeIds.length > 1;
-  /* the popup is only about the missing route, so a second place hides it with no extra state */
   const showHint = hintOpen && !ready;
   const link = `${window.location.origin}${builderPath(placeIds)}`;
 
-  /* the popup is dismissed by escape or by a click outside it; picking a second place makes it moot */
   useEffect(() => {
     if (!showHint) return;
 
@@ -44,7 +36,6 @@ export default function RouteShareButton({ placeIds }: RouteShareButtonProps) {
   }, [showHint]);
 
   async function share() {
-    /* nothing to share yet: the popup explains the wait rather than the button going dead */
     if (!ready) {
       setNote("");
       setHintOpen(true);
@@ -55,14 +46,13 @@ export default function RouteShareButton({ placeIds }: RouteShareButtonProps) {
       await navigator.clipboard.writeText(link);
       setNote("Link gekopieerd. Plak hem waar je wilt.");
     } catch {
-      /* a browser that will not give the clipboard still gets the link, to copy by hand */
+      /* some browsers deny the clipboard api; show the link to copy by hand */
       setNote(`Kopieer de link: ${link}`);
     }
   }
 
   return (
-    /* reverse: the column is anchored by its *bottom* in the map's corner, so a note that appears after a copy
-       grows upwards over the map and the button stays where the reader's thumb left it (§7) */
+    /* flex-col-reverse: a note appearing after a copy grows upward, not over the button */
     <div className="flex flex-col-reverse items-end gap-2">
       <div ref={wrapper} className="relative">
         <button
@@ -78,7 +68,6 @@ export default function RouteShareButton({ placeIds }: RouteShareButtonProps) {
           <Icon name="share" />
         </button>
 
-        {/* a small popup, not a modal: the map stays visible and usable behind it; it opens *above* the button, because the button stands in the map's bottom-right corner (§7) */}
         {showHint && (
           <div
             role="alert"
@@ -99,7 +88,6 @@ export default function RouteShareButton({ placeIds }: RouteShareButtonProps) {
         )}
       </div>
 
-      {/* the answer is announced, because the button itself does not change after a copy */}
       <p
         aria-live="polite"
         className="max-w-[16rem] text-right text-xs text-ink-muted"

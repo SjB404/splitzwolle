@@ -2,8 +2,7 @@ import { POINTS_OF_INTEREST, getPointOfInterest } from "../../src/data/pointsOfI
 import { PLACE_IMAGES } from "../../src/data/placeImages.ts";
 
 describe("the place pictures", () => {
-  /* a key that names no place is a picture nothing can ever show, and a place without a key is a
-     thumbnail that quietly falls back to a glyph — both are typos, and neither one throws */
+  /* neither a stray key nor a missing one throws; both fall back silently */
   it("keys every place, and only places that exist", () => {
     expect(Object.keys(PLACE_IMAGES).sort()).toEqual(
       POINTS_OF_INTEREST.map((point) => point.id).sort(),
