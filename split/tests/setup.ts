@@ -1,6 +1,14 @@
 /* test.globals is on; nothing here imports the runner */
 import "@testing-library/jest-dom";
+import type { TestingLibraryMatchers } from "@testing-library/jest-dom/matchers";
 import { cleanup } from "@testing-library/react";
+
+/* jest-dom's own /vitest entry types the one-parameter Assertion<T> of vitest 4 and older;
+   vitest 5 splits it into Assertion<R, T>, whose parameter list an augmentation must repeat exactly */
+declare module "vitest" {
+  interface Assertion<R, T> extends TestingLibraryMatchers<any, R> {}
+  interface AsymmetricMatchersContaining extends TestingLibraryMatchers<any, any> {}
+}
 
 /* jsdom has no matchMedia; motion and theme code read it */
 if (!window.matchMedia) {

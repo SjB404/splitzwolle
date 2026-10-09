@@ -325,6 +325,7 @@ describe("PoiResults", () => {
       <PoiResults
         points={POINTS_OF_INTEREST}
         selectedId={null}
+        flashId={null}
         onSelect={() => {}}
         onReset={() => {}}
       />,
@@ -346,6 +347,7 @@ describe("PoiResults", () => {
       <PoiResults
         points={POINTS_OF_INTEREST}
         selectedId="peperbus"
+        flashId={null}
         onSelect={() => {}}
         onReset={() => {}}
       />,
@@ -363,6 +365,7 @@ describe("PoiResults", () => {
       <PoiResults
         points={[]}
         selectedId={null}
+        flashId={null}
         onSelect={() => {}}
         onReset={onReset}
       />,
@@ -386,6 +389,7 @@ describe("PoiResults' cards", () => {
       <PoiResults
         points={[point]}
         selectedId={selectedId}
+        flashId={null}
         onSelect={onSelect}
         onReset={() => {}}
       />,
