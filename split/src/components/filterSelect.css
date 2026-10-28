@@ -1,12 +1,12 @@
 @layer overrides {
-  /* beerCSS fill keeps its own surface tone and colours the label for it; both are overridden here */
+  /* override beerCSS's fill colour and label colour */
   .field.fill.primary {
     background: var(--primary) !important;
   }
 
   .field.fill.primary > :is(select, input) {
     background: transparent !important;
-    /* beerCSS leaves the control text --on-surface: nearly white on the pale dark-mode fill */
+    /* beerCSS's text colour is nearly white on the pale dark-mode fill */
     color: var(--on-primary) !important;
   }
 

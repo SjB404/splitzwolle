@@ -39,7 +39,7 @@ export default function PoiPicker({
             type="button"
             aria-pressed={mode === item.mode}
             onClick={() => onModeChange(item.mode)}
-            /* chip medium = 40px; tap-target gives material 3's 48px hit area without growing the visual */
+            /* tap-target gives a 48px hit area without making the chip bigger */
             className={`chip medium tap-target ripple ${
               mode === item.mode ? "bg-selected text-on-selected border-transparent" : ""
             }`}

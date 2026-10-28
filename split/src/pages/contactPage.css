@@ -1,0 +1,27 @@
+/* selectors start with .beer so they beat the scoped beercss rules this page imports */
+
+/* faq answers fold open and shut instead of fading in.
+   animating to height:auto needs interpolate-size (chromium for now), other browsers just open instantly */
+.beer details.faq {
+  interpolate-size: allow-keywords;
+}
+
+.beer details.faq::details-content {
+  block-size: 0;
+  overflow: clip;
+  opacity: 1;
+  transform: none;
+  transition:
+    block-size 0.15s var(--ease-standard),
+    content-visibility 0.15s allow-discrete;
+}
+
+.beer details.faq[open]::details-content {
+  block-size: auto;
+  transition-duration: 0.2s;
+}
+
+/* beercss waits 0.2s before it even starts closing a menu (meant for hover menus), not wanted here */
+.beer .field > menu {
+  transition-delay: 0s;
+}

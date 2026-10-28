@@ -162,36 +162,15 @@ export default function RoutesPage() {
           </div>
         </PageHeader>
       ) : (
-        <PageHeader title="Stel je route samen" />
+        <PageHeader
+          title="Stel je route samen"
+          description={`Kies de plekken die je wilt zien, op de kaart of in de lijst, in de volgorde die jij wilt. Alles binnen ${AREA_NAME}.`}
+        />
       )}
 
+      {/* the picker sits beside the map on desktop and below it on a phone */}
       <section className="py-band">
-        <Container className="grid gap-y-8 lg:gap-x-8">
-          {/* picker groups are h3, so this band must supply an h2 (no skipped heading levels) */}
-          <div className="s12">
-            <SectionHeading
-              title={publicRoute ? "Deze route op de kaart" : "Bouw je route"}
-              description={
-                publicRoute
-                  ? "De plekken van deze route staan al in de kaart. Haal er een weg of zet er een bij om je eigen versie te maken."
-                  : `Kies de plekken die je wilt zien, in de volgorde die jij wilt — alles binnen ${AREA_NAME}.`
-              }
-            />
-          </div>
-
-          <div className="s12 l4">
-            <PoiPicker
-              points={AREA_POINTS}
-              pickedIds={pickedIds}
-              mode={mode}
-              onToggle={togglePoint}
-              onModeChange={setChosenMode}
-              onReset={() => setPicked([])}
-            />
-
-            <RoutePlanSummary plan={plan} onReset={() => setPicked([])} />
-          </div>
-
+        <Container className="grid gap-6">
           <div className="s12 l8">
             <div className="relative">
               <AreaMap
@@ -200,7 +179,7 @@ export default function RoutesPage() {
                 order={order}
                 onClickPoint={togglePoint}
                 clickHint="Klik om deze plek aan je route toe te voegen"
-                heightClassName="h-[clamp(24rem,56vh,40rem)]"
+                heightClassName="h-[clamp(22rem,70vh,48rem)]"
                 label={
                   pickedIds.length > 0
                     ? `${pickedIds.length} van ${AREA_POINTS.length} plekken`
@@ -209,20 +188,53 @@ export default function RoutesPage() {
                 description={`Kaart van ${AREA_NAME} met ${AREA_POINTS.length} plekken. De gekozen plekken en hun volgorde staan in de lijst naast de kaart.`}
               />
 
-              {/* map's own zoom control sits top-right (mapOptions §8), so this corner stays free for share */}
+              {/* zoom is top-right, so this corner is free for share */}
               <div className="absolute bottom-4 right-4 z-20">
                 <RouteShareButton placeIds={pickedIds} />
               </div>
             </div>
 
             <MapLegend items={AREA_MAP_LEGEND} />
-
-            {publicRoute && <RouteReviewsPanel route={publicRoute} />}
           </div>
+
+          <aside className="s12 l4">
+            <article className="p-5">
+              <h2 className="text-xl font-bold">
+                {publicRoute ? "Plekken in deze route" : "Kies je plekken"}
+              </h2>
+              {publicRoute && (
+                <p className="mt-1 text-sm text-ink-muted">
+                  Haal er een weg of zet er een bij om je eigen versie te maken.
+                </p>
+              )}
+
+              <div className="mt-4">
+                <PoiPicker
+                  points={AREA_POINTS}
+                  pickedIds={pickedIds}
+                  mode={mode}
+                  onToggle={togglePoint}
+                  onModeChange={setChosenMode}
+                  onReset={() => setPicked([])}
+                />
+              </div>
+            </article>
+
+            <RoutePlanSummary plan={plan} onReset={() => setPicked([])} />
+          </aside>
         </Container>
       </section>
 
-      <section className="py-band">
+      {publicRoute && (
+        <section className="pb-band">
+          <Container>
+            <RouteReviewsPanel route={publicRoute} />
+          </Container>
+        </section>
+      )}
+
+      {/* content-visibility skips layout and paint while the list is off screen (cheaper resizing) */}
+      <section className="py-band [contain-intrinsic-size:auto_60rem] [content-visibility:auto]">
         <Container>
           <SectionHeading
             eyebrow="Kant-en-klaar"

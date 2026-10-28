@@ -28,7 +28,7 @@ export default function PointsOfInterestPreview() {
   }, [query]);
 
   return (
-    /* content-visibility:auto keeps this band out of the first paint; 32rem is its measured height */
+    /* content-visibility:auto skips rendering until scrolled near; 32rem is its rough height */
     <section className="py-band [contain-intrinsic-size:auto_32rem] [content-visibility:auto]">
       <Container>
         <SectionHeading
@@ -90,7 +90,7 @@ export default function PointsOfInterestPreview() {
                         />
                       )}
                     </span>
-                    {/* min-h-10 reserves two name lines so the category labels line up across the row */}
+                    {/* min-h-10 reserves two lines so the labels line up */}
                     <span className="min-h-10 text-sm font-semibold text-ink group-hover:underline">
                       {point.name}
                     </span>

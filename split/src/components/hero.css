@@ -1,6 +1,6 @@
-/* opacity comes from --historic-opacity, set inline by hero.tsx while dragging */
+/* --historic-opacity is set by hero.tsx from the slider position.
+   no transition here: the slider itself drives it, a transition would make the map lag behind the handle */
 
 .historic-layer {
   opacity: var(--historic-opacity, 1);
-  transition: opacity var(--speed2, 0.2s) var(--ease-standard);
 }

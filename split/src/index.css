@@ -1,27 +1,28 @@
-/* layer order deliberate: beercss above tailwind's preflight, overrides first for !important */
+/* layer order matters: overrides comes first so its !important wins */
 @layer overrides, theme, base, beercss, components, utilities;
 
 @import "tailwindcss";
 
-/* font.css (1.4mb icon fonts) and dark.css skipped; theme is the light/dark class on <body> */
+/* skip beerCSS's icon fonts and dark.css; the theme is a class on <body> */
 @import "beercss/src/cdn/settings/reset.css" layer(beercss);
 @import "beercss/src/cdn/settings/global.css" layer(beercss);
 @import "beercss/src/cdn/settings/light.css" layer(beercss);
 @import "beercss/src/cdn/settings/theme.css" layer(beercss);
 @import "beercss/src/cdn/helpers/all.css" layer(beercss);
 @import "beercss/src/cdn/elements/all.css" layer(beercss);
-/* beerCSS 5's elements/all.css omits selection.css, so checkbox/radio/switch need this import */
+/* elements/all.css leaves out selection.css (checkbox/radio/switch) */
 @import "beercss/src/cdn/elements/selection.css" layer(beercss);
 
-/* static keeps every token in the built css, so var() references below always resolve */
+/* static keeps every token in the output, so var() references always resolve */
 @theme static {
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: "Montserrat", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display:
+    "Montserrat", ui-sans-serif, system-ui, -apple-system, sans-serif;
 
   --seed-orange: #f68221;
   --seed-blue: #282c6d;
 
-  /* ramp stops at the seed: any darker orange reads as brown, and orange is never text */
+  /* no darker stops: darker orange looks brown */
   --color-orange-50: color-mix(in oklab, var(--seed-orange) 6%, white);
   --color-orange-100: color-mix(in oklab, var(--seed-orange) 15%, white);
   --color-orange-200: color-mix(in oklab, var(--seed-orange) 28%, white);
@@ -41,7 +42,7 @@
   --color-blue-900: color-mix(in oklab, var(--seed-blue) 54%, black);
   --color-blue-950: color-mix(in oklab, var(--seed-blue) 40%, black);
 
-  /* chroma scaled to 0.62: fading blue toward black otherwise reads as a vivid blue full-screen */
+  /* lower chroma, otherwise dark backgrounds look vivid blue */
   --color-navy-600: oklch(from var(--color-blue-600) l calc(c * 0.62) h);
   --color-navy-700: oklch(from var(--color-blue-700) l calc(c * 0.62) h);
   --color-navy-800: oklch(from var(--color-blue-800) l calc(c * 0.62) h);
@@ -56,16 +57,24 @@
   --color-haze-200: color-mix(in oklab, var(--seed-blue) 13%, white);
   --color-haze-300: color-mix(in oklab, var(--seed-blue) 20%, white);
 
-  /* static so var(--ease-standard) always resolves; durations come from beerCSS's --speed1/2/3 */
+  /* blue-tinted greys for light mode; plain white/blue mixes turn lavender */
+  --color-mist-50: oklch(from var(--seed-blue) 0.985 0.004 h);
+  --color-mist-100: oklch(from var(--seed-blue) 0.965 0.007 h);
+  --color-mist-200: oklch(from var(--seed-blue) 0.93 0.01 h);
+  --color-mist-300: oklch(from var(--seed-blue) 0.88 0.014 h);
+  --color-mist-500: oklch(from var(--seed-blue) 0.62 0.03 h);
+  --color-mist-700: oklch(from var(--seed-blue) 0.45 0.04 h);
+
+  /* static so var(--ease-standard) always resolves */
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
 
-  /* 1.5rem: controls clamp to a 24px pill, cards draw 24px; handed out in @layer overrides */
-  --radius-box: 1.5rem;
+  /* applied in @layer overrides */
+  --radius-box: 1.75rem;
 }
 
 @theme {
-  --default-transition-duration: 200ms;
+  --default-transition-duration: 150ms;
   --default-transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
 
   --text-display: clamp(2rem, 4.4vw + 0.35rem, 4.5rem);
@@ -80,17 +89,7 @@
   --spacing-hero: clamp(0.5rem, 1.2vw, 1rem);
   --spacing-header: clamp(1.5rem, 2.6vw, 2.5rem);
 
-  /* declared as a theme animation so motion-safe:animate-rise exists; gate it at the call site */
-  --animate-rise: rise 0.45s var(--ease-standard) both;
-
-  @keyframes rise {
-    from {
-      opacity: 0;
-      transform: translateY(0.75rem);
-    }
-  }
-
-  /* outline is the only animatable edge; border and shadow are !important in overrides */
+  /* animates outline because border and shadow are !important in overrides */
   --animate-flash: flash 2s var(--ease-standard);
 
   @keyframes flash {
@@ -129,12 +128,12 @@
   --color-on-selected: var(--on-selected);
 }
 
-/* body.light repeated: beerCSS re-declares every role there and its purple would win */
+/* body.light repeated, otherwise beerCSS's own purple theme wins */
 :root,
 body.light {
   color-scheme: light;
 
-  /* white on #f68221 is only 2.6:1; the tints take blue-900 instead (deliberate) */
+  /* white on orange is only 2.6:1, so the tints use blue-900 text */
   --primary: var(--color-orange-500);
   --on-primary: #ffffff;
   --primary-container: var(--color-orange-100);
@@ -154,7 +153,7 @@ body.light {
   --tertiary-container: var(--color-sand-200);
   --on-tertiary-container: var(--color-blue-900);
 
-  /* error defaults from material 3, unchanged */
+  /* material 3 default error colours */
   --error: #ba1a1a;
   --on-error: #ffffff;
   --error-container: #ffdad6;
@@ -163,22 +162,22 @@ body.light {
   --heading: var(--color-blue-500);
   --accent-text: var(--color-blue-500);
 
-  --background: #fffcf0;
+  --background: var(--color-mist-50);
   --on-background: var(--color-blue-900);
-  --surface: #fffcf0;
+  --surface: var(--color-mist-50);
   --on-surface: var(--color-blue-900);
-  --surface-variant: var(--color-haze-200);
-  --on-surface-variant: color-mix(in oklab, var(--seed-blue) 72%, white);
-  --surface-dim: var(--color-haze-300);
+  --surface-variant: var(--color-mist-200);
+  --on-surface-variant: var(--color-mist-700);
+  --surface-dim: var(--color-mist-300);
   --surface-bright: #ffffff;
   --surface-container-lowest: #ffffff;
   --surface-container-low: #ffffff;
-  --surface-container: var(--color-sand-100);
-  --surface-container-high: var(--color-sand-200);
-  --surface-container-highest: var(--color-sand-300);
+  --surface-container: var(--color-mist-100);
+  --surface-container-high: var(--color-mist-200);
+  --surface-container-highest: var(--color-mist-300);
 
-  --outline: var(--color-blue-400);
-  --outline-variant: var(--color-haze-300);
+  --outline: var(--color-mist-500);
+  --outline-variant: var(--color-mist-300);
 
   --inverse-surface: #ffffff;
   --inverse-on-surface: var(--color-blue-900);
@@ -198,7 +197,7 @@ body.light {
 body.dark {
   color-scheme: dark;
 
-  --primary: var(--color-blue-300);
+  --primary: var(--color-orange-500);
   --on-primary: var(--color-blue-950);
   --primary-container: var(--color-blue-800);
   --on-primary-container: var(--color-blue-100);
@@ -209,22 +208,22 @@ body.dark {
   --secondary-container: var(--color-blue-800);
   --on-secondary-container: var(--color-blue-100);
 
-  --selected: var(--color-blue-500);
-  --on-selected: #ffffff;
+  --selected: var(--color-orange-500);
+  --on-selected: var(--color-blue-950);
 
   --tertiary: var(--color-sand-300);
   --on-tertiary: var(--color-blue-950);
   --tertiary-container: var(--color-blue-800);
   --on-tertiary-container: var(--color-sand-200);
 
-  /* error defaults from material 3, unchanged */
+  /* material 3 default error colours */
   --error: #ffb4ab;
   --on-error: #690005;
   --error-container: #93000a;
   --on-error-container: #ffdad6;
 
-  /* #f68221 on the navy is 7.4:1, where on paper it is 2.6:1 */
-  --heading: var(--color-orange-500);
+  /* headings stay light so orange is kept for accents */
+  --heading: var(--color-haze-100);
   --accent-text: var(--color-orange-500);
 
   --background: var(--color-navy-900);
@@ -239,24 +238,32 @@ body.dark {
   --surface-container-low: var(--color-navy-800);
   --surface-container: var(--color-navy-700);
   --surface-container-high: var(--color-navy-600);
-  --surface-container-highest: color-mix(in oklab, var(--color-navy-600) 80%, white);
+  --surface-container-highest: color-mix(
+    in oklab,
+    var(--color-navy-600) 80%,
+    white
+  );
 
   --outline: var(--color-blue-400);
-  --outline-variant: color-mix(in oklab, var(--color-haze-100) 20%, var(--color-navy-900));
+  --outline-variant: color-mix(
+    in oklab,
+    var(--color-haze-100) 20%,
+    var(--color-navy-900)
+  );
 
   --inverse-surface: var(--color-navy-950);
   --inverse-on-surface: var(--color-haze-100);
 
-  --bar: var(--color-navy-950);
+  --bar: var(--color-blue-500);
   --on-bar: var(--color-haze-100);
   --avatar: var(--color-orange-500);
   --on-avatar: var(--color-blue-950);
 
-  /* declared in both blocks: a role missing from dark would inherit the light value */
+  /* declared in both themes, otherwise dark inherits the light value */
   --shadow: #000000;
   --scrim: #000000;
 
-  /* brand tint for beerCSS's state layer and slider track; the default grey reads too bright */
+  /* brand tint for beerCSS's state layer; the default grey is too bright */
   --active: color-mix(in oklab, var(--color-haze-100) 14%, transparent);
 }
 
@@ -294,21 +301,18 @@ body.dark {
   }
 }
 
-/* sits after beercss, so these beat the framework; prefer it over !important */
+/* sits after beercss, so these win without !important */
 @layer components {
-  /* must live here: beerCSS paints h1-h6 with --on-surface from a layer later than base */
+  /* beerCSS colours headings in a layer after base, so this has to live here */
   :is(h1, h2, h3, h4, h5, h6) {
     color: var(--heading);
   }
+}
 
-  p {
-    text-align: justify;
-    hyphens: auto;
-  }
-
-  :is(.text-center, .text-right) p {
-    text-align: inherit;
-  }
+/* theme switch crossfade (see navbar.tsx) */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 150ms;
 }
 
 /* anchored sections have to clear the 5rem sticky header */
@@ -316,24 +320,24 @@ body.dark {
   scroll-margin-block-start: 5rem;
 }
 
-/* first on purpose: for !important the cascade reverses, so an earlier layer wins */
+/* must be the first layer: with !important, earlier layers win */
 @layer overrides {
-  /* 0, not transparent: a 1px border made .field 50px around its 48px control */
+  /* 0, not transparent: a border makes .field taller than its control */
   .field.border {
     border: 0 !important;
   }
 
-  /* beerCSS gives it --outline-variant, which reads as no border beside a field */
+  /* beerCSS's --outline-variant is too faint next to a field */
   :is(.button, button).border {
     border-color: var(--outline) !important;
   }
 
-  /* unselected chips take --outline too; the selected chip must keep border-transparent */
+  /* the selected chip keeps border-transparent */
   button.chip:not(.border-transparent) {
     border-color: var(--outline) !important;
   }
 
-  /* deliberate: 2px boundaries, where material 3 draws 1px */
+  /* 2px borders instead of material 3's 1px */
   .border:not(table, .field, .list, menu, article),
   :is(.button, button).border,
   .chip {
@@ -353,18 +357,18 @@ body.dark {
     border-block-start-width: 2px !important;
   }
 
-  /* :not(.rounded-none) is load-bearing: the !important would otherwise undo a flush seam */
+  /* :not(.rounded-none) so square-cornered elements can opt out */
   :is(.field, .button, button, article, .chip, .badge, menu):not(.rounded-none),
   .field > :is(input, textarea, select) {
     border-radius: var(--radius-box) !important;
   }
 
-  /* beerCSS buttons are content-box; full-width rows overflowed their column by 2rem */
+  /* beerCSS buttons are content-box, so full-width ones overflowed */
   :is(.button, button) {
     box-sizing: border-box !important;
   }
 
-  /* keeps the room the 1px line left, so text does not shift when focused */
+  /* so text doesn't shift when the field is focused */
   .field.border > :is(input, textarea, select) {
     padding-inline: 1.375rem !important;
   }
@@ -373,36 +377,25 @@ body.dark {
     padding-inline-start: 2.875rem !important;
   }
 
-  /* 2.625rem, not beerCSS's 2.9375rem: keeps "Iedereens routes" on one line */
+  /* tighter than beerCSS so "Iedereens routes" fits on one line */
   .field.border.suffix > :is(input, textarea, select) {
     padding-inline-end: 2.625rem !important;
   }
 
-  /* beerCSS's all:unset drops white-space:pre on selects; long options double the field height */
+  /* stop long options wrapping (beerCSS's all:unset resets white-space) */
   .field > select {
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
   }
 
-  /* beercss insets the filled track 0.5rem past the handle's centre, leaving a gap */
-  .slider > span:not([class]) {
-    inset-inline-end: var(--_end) !important;
-  }
-
-  /* beercss collapses the handle to a hairline while focused */
-  .slider > input:not(:disabled):is(:focus)::-webkit-slider-thumb,
-  .slider > input:not(:disabled):is(:focus)::-moz-range-thumb {
-    transform: none !important;
-  }
-
-  /* beerCSS puts a shadow on every article; this design separates surfaces by tone only */
+  /* no article shadows; surfaces are separated by colour */
   article {
     box-shadow: none !important;
   }
 }
 
-/* material 3 wants 48px targets; beerCSS draws 40px buttons and owns ::after, so ::before */
+/* 48px touch area around 40px buttons; ::before because beerCSS uses ::after */
 .tap-target {
   position: relative;
 }
@@ -411,25 +404,4 @@ body.dark {
   position: absolute;
   inset: -0.25rem; /* 40px visual + 4px on each side = 48px */
   border-radius: inherit;
-}
-
-/* non-essential motion stops; colour feedback stays (the flash is put back below) */
-/* the project's one sanctioned !important: it must outrank framework animations declared later */
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-
-  *,
-  ::before,
-  ::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-delay: 0s !important;
-  }
-
-  /* put back: colour-only feedback, and the only cue naming the linked card */
-  .animate-flash {
-    animation: var(--animate-flash) !important;
-  }
 }

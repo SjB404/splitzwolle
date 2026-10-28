@@ -8,7 +8,8 @@ import Container from "./container.tsx";
 import Icon from "./icon.tsx";
 import MapSnapshot from "./mapSnapshot.tsx";
 import RouteShape from "./routeShape.tsx";
-import { MOTION_TRANSITION } from "../motion.ts";
+import { cachedRoutePath } from "../data/routePreview.ts";
+import { LIST_ITEM } from "../motion.ts";
 import { ROUTES_PATH, publicRoutePath } from "../data/navigation.ts";
 import {
   ROUTES,
@@ -27,7 +28,7 @@ export default function PopularRoutesPreview() {
   }, [query]);
 
   return (
-    /* content-visibility:auto keeps this band out of the first paint; 48rem is its measured height */
+    /* content-visibility:auto skips rendering until scrolled near; 48rem is its rough height */
     <section className="py-band [contain-intrinsic-size:auto_48rem] [content-visibility:auto]">
       <Container>
         <SectionHeading
@@ -45,8 +46,11 @@ export default function PopularRoutesPreview() {
             matches.length === 1 ? "route" : "routes"
           }`}
           action={
-            /* bare <a> needs .button; .border's default text is 2.5:1 on white, so text-ink fixes it */
-            <Link to={ROUTES_PATH} className="button border text-ink ripple h-12">
+            /* bare <a> needs .button; text-ink fixes .border's low-contrast text */
+            <Link
+              to={ROUTES_PATH}
+              className="button border text-ink ripple h-12"
+            >
               Alle routes bekijken
             </Link>
           }
@@ -61,25 +65,27 @@ export default function PopularRoutesPreview() {
           />
         ) : (
           <div className="mt-10 grid gap-6">
-            <AnimatePresence initial={false}>
+            <AnimatePresence initial={false} mode="popLayout">
               {matches.slice(0, ROUTE_PREVIEW_COUNT).map((route) => {
                 const coords = routeCoordinates(route);
 
                 return (
                   <m.article
                     key={route.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={MOTION_TRANSITION}
-                    className="s12 m6 l4 xl:col-span-3 no-padding group relative flex flex-col overflow-hidden transition-transform motion-safe:hover:-translate-y-1 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-(--primary)"
+                    {...LIST_ITEM}
+                    className="s12 m6 l4 xl:col-span-3 no-padding group relative flex flex-col overflow-hidden transition-[translate] hover:-translate-y-1 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-(--primary)"
                   >
                     <div className="relative aspect-[16/10] overflow-hidden rounded-none surface-container">
                       <MapSnapshot
                         points={coords}
                         alt={`Kaart met de route ${route.title}`}
                         className="h-full w-full object-cover"
-                        fallback={<RouteShape points={coords} />}
+                        fallback={
+                          <RouteShape
+                            points={coords}
+                            path={cachedRoutePath(route)}
+                          />
+                        }
                       />
 
                       <span className="chip surface-container-lowest absolute right-4 top-4 text-[11px] font-semibold">
@@ -112,14 +118,14 @@ export default function PopularRoutesPreview() {
                           ({route.reviews} beoordelingen)
                         </span>
 
-                        <span className="ml-auto inline-flex items-center gap-1 text-sm font-semibold text-accent transition-transform group-hover:translate-x-0.5">
+                        <span className="ml-auto inline-flex items-center gap-1 text-sm font-semibold text-accent transition-[translate] group-hover:translate-x-0.5">
                           Bekijk{" "}
                           <Icon name="arrow_forward" className="text-base" />
                         </span>
                       </div>
                     </div>
 
-                    {/* overlay link: a stretched ::after fails because beerCSS's reset makes every element relative */}
+                    {/* overlay link, since beerCSS makes every element relative (no stretched ::after) */}
                     <Link
                       to={publicRoutePath(route.id)}
                       aria-label={`Open de route ${route.title}`}

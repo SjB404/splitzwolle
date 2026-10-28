@@ -5,7 +5,7 @@ interface EmptyStateProps {
   icon: string;
   title: string;
   description: string;
-  /* 3 when nested under a SectionHeading (h2): skipping a level breaks the outline */
+  /* 3 when nested under a SectionHeading (h2) */
   titleLevel?: 2 | 3;
   action?: ReactNode;
 }

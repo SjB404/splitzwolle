@@ -1,13 +1,13 @@
-/* handwritten slice of the google maps api; it loads from a cdn, no types package needed */
+/* hand-written types for the parts of the google maps api we use */
 
 declare namespace google.maps {
-  /* google's name for a coordinate; structurally the app's LatLng, so routes pass straight in */
+  /* same shape as the app's LatLng */
   interface LatLngLiteral {
     lat: number;
     lng: number;
   }
 
-  /* const object, not an enum: erasableSyntaxOnly forbids enums; numbers are the api's own */
+  /* const object, not an enum (erasableSyntaxOnly) */
   const ControlPosition: {
     TOP_LEFT: 1;
     TOP_CENTER: 2;
@@ -46,10 +46,13 @@ declare namespace google.maps {
     /* advanced markers need some map id; DEMO_MAP_ID is the api's own dev id */
     mapId?: string;
     restriction?: { latLngBounds: LatLngBounds; strictBounds?: boolean };
-    /* tiles can't read css; theme is pushed in from the <body> class */
+    /* tiles can't read css, so the theme is passed in */
     colorScheme?: "LIGHT" | "DARK";
+    /* the api's RenderingType enum values are these strings */
+    renderingType?: "RASTER" | "VECTOR";
     disableDefaultUI?: boolean;
     zoomControl?: boolean;
+    keyboardShortcuts?: boolean;
     zoomControlOptions?: {
       position: (typeof ControlPosition)[keyof typeof ControlPosition];
     };
@@ -65,6 +68,7 @@ declare namespace google.maps {
     addListener(event: string, handler: () => void): MapsEventListener;
     fitBounds(bounds: LatLngBounds, padding?: number): void;
     getZoom(): number | undefined;
+    setZoom(zoom: number): void;
     setOptions(options: MapOptions): void;
   }
 
@@ -104,7 +108,7 @@ declare namespace google.maps {
     }
   }
 
-  /* a separate service that can be refused on its own (billing, enablement), hence null not throw */
+  /* can be refused separately from the main api, hence null */
   interface RouteWaypoint {
     location: LatLngLiteral;
   }

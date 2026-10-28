@@ -8,6 +8,7 @@ import {
   CONTACT_CITY_LINE,
 } from "../data/contact.ts";
 import "beercss/scoped";
+import "./contactPage.css";
 
 const SUBJECT_OPTIONS = [
   { value: "Vraag over een route", icon: "route" },
@@ -37,7 +38,8 @@ async function apiPost(body: unknown) {
     return {
       status: 0,
       body: {
-        error: err instanceof Error ? err.message : TEXT.common.serverUnreachable,
+        error:
+          err instanceof Error ? err.message : TEXT.common.serverUnreachable,
       },
     };
   }
@@ -161,11 +163,7 @@ function SubjectSelect({
         className="cursor-pointer! font-medium!"
         onClick={() => setOpen((o) => !o)}
         onKeyDown={(e) => {
-          if (
-            e.key === "Enter" ||
-            e.key === " " ||
-            e.key === "ArrowDown"
-          ) {
+          if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
             e.preventDefault();
             setOpen(true);
           }
@@ -251,15 +249,13 @@ function ContactForm() {
 
     setError(
       body?.error ||
-        "Er is iets misgegaan bij het verzenden. Probeer het opnieuw."
+        "Er is iets misgegaan bij het verzenden. Probeer het opnieuw.",
     );
   };
 
   return (
     <article className="border round flex-1! m-0! p-10!">
-      <h2 className="font-display! mb-6! text-xl!">
-        Stuur een bericht
-      </h2>
+      <h2 className="font-display! mb-6! text-xl!">Stuur een bericht</h2>
 
       <form
         onSubmit={handleSubmit}
@@ -292,10 +288,7 @@ function ContactForm() {
           <label htmlFor="email">E-mailadres</label>
         </div>
 
-        <SubjectSelect
-          value={onderwerp}
-          onChange={setOnderwerp}
-        />
+        <SubjectSelect value={onderwerp} onChange={setOnderwerp} />
 
         <div className="field label textarea border round m-0!">
           <textarea
@@ -329,11 +322,7 @@ function ContactForm() {
           </article>
         )}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="responsive large"
-        >
+        <button type="submit" disabled={loading} className="responsive large">
           {loading ? (
             <>
               <progress className="circle small" />
@@ -351,12 +340,7 @@ function ContactForm() {
   );
 }
 
-function ContactDetailCard({
-  icon,
-  label,
-  value,
-  sub,
-}: ContactDetail) {
+function ContactDetailCard({ icon, label, value, sub }: ContactDetail) {
   return (
     <article className="border round flex! flex-1! m-0! items-center!">
       <div className="row w-full!">
@@ -365,17 +349,11 @@ function ContactDetailCard({
         </div>
 
         <div className="max">
-          <div className="small-text secondary-text">
-            {label}
-          </div>
+          <div className="small-text secondary-text">{label}</div>
 
-          <div className="no-margin text-[1.1rem]!">
-            {value}
-          </div>
+          <div className="no-margin text-[1.1rem]!">{value}</div>
 
-          <div className="small-text secondary-text text-xs!">
-            {sub}
-          </div>
+          <div className="small-text secondary-text text-xs!">{sub}</div>
         </div>
       </div>
     </article>
@@ -393,7 +371,7 @@ function FAQAccordionItem({
 }) {
   return (
     <article className="border round no-padding text-inherit!">
-      <details open={isOpen}>
+      <details className="faq" open={isOpen}>
         <summary
           /* beercss scoped build applies .beer * { all: revert }; tailwind utilities inside need ! */
           className="none horizontal-padding h-12! rounded-box! flex! items-center!"
@@ -404,9 +382,7 @@ function FAQAccordionItem({
           aria-expanded={isOpen}
         >
           <div className="row">
-            <div className="max bold text-inherit!">
-              {item.question}
-            </div>
+            <div className="max bold text-inherit!">{item.question}</div>
 
             <i className="circle small primary-container">
               {isOpen ? "remove" : "add"}
@@ -415,9 +391,7 @@ function FAQAccordionItem({
         </summary>
 
         <div className="padding">
-          <p className="no-margin secondary-text">
-            {item.answer}
-          </p>
+          <p className="no-margin secondary-text">{item.answer}</p>
         </div>
       </details>
     </article>
@@ -444,10 +418,7 @@ export default function ContactPage() {
 
             <div className="beer flex! flex-col! h-full! gap-4!">
               {CONTACT_ITEMS.map((detail) => (
-                <ContactDetailCard
-                  key={detail.label}
-                  {...detail}
-                />
+                <ContactDetailCard key={detail.label} {...detail} />
               ))}
             </div>
           </div>
@@ -456,9 +427,7 @@ export default function ContactPage() {
 
       <section className="py-band">
         <Container>
-          <h2
-            className="mb-6 font-display text-2xl font-bold on-background"
-          >
+          <h2 className="mb-6 font-display text-2xl font-bold on-background">
             Veelgestelde vragen
           </h2>
 
@@ -469,9 +438,7 @@ export default function ContactPage() {
                 item={item}
                 isOpen={openFAQ === index}
                 onToggle={() =>
-                  setOpenFAQ((current) =>
-                    current === index ? null : index
-                  )
+                  setOpenFAQ((current) => (current === index ? null : index))
                 }
               />
             ))}

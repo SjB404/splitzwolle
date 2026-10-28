@@ -2,12 +2,16 @@
 import "@testing-library/jest-dom";
 import type { TestingLibraryMatchers } from "@testing-library/jest-dom/matchers";
 import { cleanup } from "@testing-library/react";
+import { MotionGlobalConfig } from "motion/react";
 
 /* jest-dom's own /vitest entry types the one-parameter Assertion<T> of vitest 4 and older;
    vitest 5 splits it into Assertion<R, T>, whose parameter list an augmentation must repeat exactly */
 declare module "vitest" {
   interface Assertion<R, T> extends TestingLibraryMatchers<any, R> {}
-  interface AsymmetricMatchersContaining extends TestingLibraryMatchers<any, any> {}
+  interface AsymmetricMatchersContaining extends TestingLibraryMatchers<
+    any,
+    any
+  > {}
 }
 
 /* jsdom has no matchMedia; motion and theme code read it */
@@ -38,6 +42,13 @@ beforeEach(() => {
 Object.defineProperty(window, "scrollTo", { writable: true, value: vi.fn() });
 Element.prototype.scrollIntoView = vi.fn() as unknown as () => void;
 
+/* jsdom has no ResizeObserver; the map uses it to follow its frame */
+globalThis.ResizeObserver ??= class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
 /* jsdom only implements part of <dialog>; fill in what is missing */
 const dialogPrototype = globalThis.HTMLDialogElement?.prototype;
 
@@ -54,3 +65,6 @@ if (dialogPrototype) {
 afterEach(() => {
   cleanup();
 });
+
+/* animations finish instantly in tests; anything leaving still unmounts a frame later, so use waitFor */
+MotionGlobalConfig.skipAnimations = true;

@@ -11,8 +11,8 @@ import {
 
 const WIDTHS = [320, 390, 768, 1024, 1440, 1920];
 
-/* --radius-box, 1.5rem at the app's root size */
-const CORNER = "24px";
+/* --radius-box, 1.75rem at the app's root size */
+const CORNER = "28px";
 const BOXES =
   "article, .chip, .badge, .field, .field > input, .field > select, .field > textarea, .button, menu";
 const MENU_ROW = "header a.button.left-align";

@@ -1,23 +1,26 @@
-/* flat projection on purpose: over 2km of city the error vs mercator is under a pixel */
+/* flat projection is fine at city scale */
 
 import { useMemo } from "react";
 import type { LatLng } from "../types.ts";
 
-/* 320x200 is the cards' 16:10 ratio at half resolution; css scales it */
+/* the cards' 16:10 ratio; css scales it */
 const VIEW = { width: 320, height: 200 };
 
 const PADDING = 26;
 
 interface RouteShapeProps {
   points: LatLng[];
+  // the street route to draw instead of straight lines between the stops (when we have it)
+  path?: LatLng[];
   className?: string;
 }
 
 export default function RouteShape({
   points,
+  path,
   className = "",
 }: RouteShapeProps) {
-  const shape = useMemo(() => project(points), [points]);
+  const shape = useMemo(() => project(points, path), [points, path]);
 
   if (shape.dots.length === 0) return null;
 
@@ -59,33 +62,29 @@ export default function RouteShape({
   );
 }
 
-function project(points: LatLng[]): {
+function project(
+  points: LatLng[],
+  path: LatLng[] = points,
+): {
   polyline: string;
   dots: { x: number; y: number }[];
 } {
-  /* drop non-finite coordinates: paths can arrive from the api too */
-  const clean = points.filter(
-    (point) =>
-      point && Number.isFinite(point.lat) && Number.isFinite(point.lng),
-  );
-  /* the routes api repeats points where a route doubles back; duplicate svg keys otherwise */
-  const distinct = clean.filter(
-    (point, index) =>
-      index === 0 ||
-      point.lat !== clean[index - 1].lat ||
-      point.lng !== clean[index - 1].lng,
-  );
+  const stops = cleanPoints(points);
+  const line = cleanPoints(path);
 
-  if (distinct.length === 0) return { polyline: "", dots: [] };
+  if (stops.length === 0) return { polyline: "", dots: [] };
 
+  // the line and the stops share one frame, fitted around both
+  const all = [...stops, ...line];
   const meanLatitude =
-    distinct.reduce((sum, point) => sum + point.lat, 0) / distinct.length;
+    all.reduce((sum, point) => sum + point.lat, 0) / all.length;
   const squeeze = Math.cos((meanLatitude * Math.PI) / 180);
-  const flat = distinct.map((point) => ({
+  const flatten = (point: LatLng) => ({
     x: point.lng * squeeze,
     y: -point.lat,
-  }));
+  });
 
+  const flat = all.map(flatten);
   const xs = flat.map((point) => point.x);
   const ys = flat.map((point) => point.y);
   const minX = Math.min(...xs);
@@ -94,7 +93,7 @@ function project(points: LatLng[]): {
   const spanX = Math.max(Math.max(...xs) - minX, 1e-6);
   const spanY = Math.max(Math.max(...ys) - minY, 1e-6);
 
-  /* one scale for both axes; fitting each axis separately spiked east-west routes (measured) */
+  /* same scale on both axes so routes aren't distorted */
   const scale = Math.min(
     (VIEW.width - 2 * PADDING) / spanX,
     (VIEW.height - 2 * PADDING) / spanY,
@@ -102,15 +101,31 @@ function project(points: LatLng[]): {
   const offsetX = (VIEW.width - spanX * scale) / 2;
   const offsetY = (VIEW.height - spanY * scale) / 2;
 
-  const dots = flat.map((point) => ({
-    x: offsetX + (point.x - minX) * scale,
-    y: offsetY + (point.y - minY) * scale,
-  }));
+  const toView = (point: LatLng) => {
+    const { x, y } = flatten(point);
+    return { x: offsetX + (x - minX) * scale, y: offsetY + (y - minY) * scale };
+  };
 
   return {
-    polyline: dots
+    polyline: line
+      .map(toView)
       .map((dot) => `${dot.x.toFixed(1)},${dot.y.toFixed(1)}`)
       .join(" "),
-    dots,
+    dots: stops.map(toView),
   };
+}
+
+// drops broken coordinates and repeated points (routes that double back)
+function cleanPoints(points: LatLng[]): LatLng[] {
+  const clean = points.filter(
+    (point) =>
+      point && Number.isFinite(point.lat) && Number.isFinite(point.lng),
+  );
+
+  return clean.filter(
+    (point, index) =>
+      index === 0 ||
+      point.lat !== clean[index - 1].lat ||
+      point.lng !== clean[index - 1].lng,
+  );
 }

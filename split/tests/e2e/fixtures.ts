@@ -24,6 +24,14 @@ export const test = base.extend<{ errors: string[] }>({
         body: "",
       }),
     );
+    /* no express api in this suite: every call answers with nothing, so pages show their fallbacks */
+    await page.route("http://localhost:3000/api/**", (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: "null",
+      }),
+    );
 
     await provide(errors);
   },

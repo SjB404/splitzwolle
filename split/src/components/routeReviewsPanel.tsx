@@ -1,11 +1,15 @@
-import { useState } from "react";
-import { m } from "motion/react";
+import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
+import { Link } from "react-router-dom";
+import { AnimatePresence, m } from "motion/react";
 import Icon from "./icon.tsx";
 import StarRating from "./starRating.tsx";
-import { MOTION_TRANSITION } from "../motion.ts";
-import { ROUTE_REVIEWS, buildReviewBreakdown } from "../data/routes.ts";
+import { COLLAPSE } from "../motion.ts";
+import { buildReviewBreakdown } from "../data/routes.ts";
+import { fetchReviews, postReview } from "../data/reviews.ts";
+import { LOGIN_PATH } from "../data/navigation.ts";
 import { formatRating } from "../format.ts";
-import type { Route } from "../types.ts";
+import type { Route, RouteReview } from "../types.ts";
 
 const RATING_SCALE_MAX = 5;
 
@@ -15,48 +19,65 @@ interface RouteReviewsPanelProps {
 
 export default function RouteReviewsPanel({ route }: RouteReviewsPanelProps) {
   const [open, setOpen] = useState(false);
+  // null until the first time the panel is opened
+  const [reviews, setReviews] = useState<RouteReview[] | null>(null);
   const breakdown = buildReviewBreakdown(route.reviews);
 
+  // only load the reviews once someone actually opens the panel
+  useEffect(() => {
+    if (!open || reviews) return;
+
+    let current = true;
+    fetchReviews(route.id).then((result) => {
+      if (current) setReviews(result.reviews);
+    });
+
+    return () => {
+      current = false;
+    };
+  }, [open, reviews, route.id]);
+
   return (
-    <section className="surface mt-6 overflow-hidden rounded-box border-2 border-line">
-      {/* transparent: beerCSS fills a bare button with the brand colour, but this row is not an action */}
-      <button
-        type="button"
-        aria-expanded={open}
-        onClick={() => setOpen((current) => !current)}
-        className="flex w-full flex-wrap items-center gap-x-3 gap-y-2 rounded-none p-4 text-left ripple transparent"
-      >
-        <StarRating value={route.rating} />
-        <span className="text-sm font-semibold text-ink">
-          {formatRating(route.rating)}
-        </span>
-        <span className="text-xs text-ink-muted">
-          ({route.reviews} beoordelingen)
-        </span>
+    // same surface as the other cards, so it reads as a card and not as the page background
+    <section className="surface-container-low overflow-hidden rounded-box border-2 border-line">
+      {/* one 52px row: with the 28px corner the closed panel is a pill, and a card once it opens */}
+      <div className="flex min-h-13 flex-wrap items-center gap-x-4 gap-y-2 rounded-none py-1.5 pl-6 pr-1.5">
+        <h2 className="text-lg font-bold">Reviews</h2>
+        {/* on a phone: one star and the score, so the bar stays a single-row pill */}
+        <p className="flex items-center gap-x-2 text-sm text-ink-muted">
+          <span className="hidden sm:inline-flex">
+            <StarRating value={route.rating} />
+          </span>
+          <Icon name="star" className="fill text-base text-accent sm:hidden" />
+          <span className="font-semibold text-ink">
+            {formatRating(route.rating)}
+          </span>
+          <span className="hidden sm:inline">
+            ({route.reviews} beoordelingen)
+          </span>
+        </p>
 
-        <span className="ml-auto inline-flex items-center gap-1 text-sm font-semibold text-accent">
-          {open ? "Reviews verbergen" : "Reviews bekijken"}
-          <Icon
-            name={open ? "expand_less" : "expand_more"}
-            className="text-base"
-          />
-        </span>
-      </button>
-
-      {/* open animates height; closing is instant by design, so no exit animation */}
-      {open && (
-        <m.div
-          initial={{ height: 0, opacity: 0 }}
-          animate={{ height: "auto", opacity: 1 }}
-          transition={MOTION_TRANSITION}
-          className="overflow-hidden rounded-none"
+        <button
+          type="button"
+          aria-expanded={open}
+          onClick={() => setOpen((current) => !current)}
+          className="button border text-ink ripple tap-target ml-auto"
         >
-          <div className="border-t-2 border-line rounded-none p-4">
-            <h2 className="mb-4 text-lg font-bold">
-              Reviews ({route.reviews})
-            </h2>
+          <span className="sm:hidden">{open ? "Verbergen" : "Bekijken"}</span>
+          <span className="hidden sm:inline">
+            {open ? "Reviews verbergen" : "Reviews bekijken"}
+          </span>
+          <Icon
+            name="expand_more"
+            className={`transition-[rotate] ${open ? "rotate-180" : ""}`}
+          />
+        </button>
+      </div>
 
-            <div className="grid gap-y-8 lg:gap-x-10">
+      <AnimatePresence initial={false}>
+        {open && (
+          <m.div {...COLLAPSE} className="overflow-hidden rounded-none">
+            <div className="grid gap-6 rounded-none border-t-2 border-line p-5 sm:p-6">
               <div className="s12 l4">
                 <article className="p-5">
                   <p className="font-display text-4xl font-bold text-heading">
@@ -89,58 +110,107 @@ export default function RouteReviewsPanel({ route }: RouteReviewsPanelProps) {
               </div>
 
               <div className="s12 l8">
-                <ul className="flex flex-col gap-4">
-                  {ROUTE_REVIEWS.map((review) => (
-                    <li key={review.id}>
-                      <article className="p-5">
-                        <div className="flex items-center gap-3">
-                          <span className="circle bg-avatar flex h-10 w-10 flex-none items-center justify-center text-sm font-semibold text-on-avatar">
-                            {review.initials}
-                          </span>
+                {reviews === null ? (
+                  <p className="text-sm text-ink-muted">Reviews laden…</p>
+                ) : reviews.length === 0 ? (
+                  <p className="text-sm text-ink-muted">
+                    Nog geen reviews. Schrijf de eerste!
+                  </p>
+                ) : (
+                  <ul className="flex flex-col gap-4">
+                    {reviews.map((review) => (
+                      <li key={review.id}>
+                        <ReviewCard review={review} />
+                      </li>
+                    ))}
+                  </ul>
+                )}
 
-                          <div className="min-w-0">
-                            <p className="font-semibold text-ink">
-                              {review.author}
-                            </p>
-                            <p className="text-xs text-ink-muted">
-                              {review.date}
-                            </p>
-                          </div>
-
-                          <span className="ml-auto inline-flex flex-none items-center gap-2">
-                            <StarRating value={review.rating} />
-                            <span className="text-sm font-semibold text-ink">
-                              {formatRating(review.rating)}
-                            </span>
-                          </span>
-                        </div>
-
-                        <p className="mt-4 text-[15px] leading-relaxed text-ink-muted">
-                          {review.text}
-                        </p>
-                      </article>
-                    </li>
-                  ))}
-                </ul>
-
-                <ReviewForm />
+                <ReviewForm
+                  routeId={route.id}
+                  onPosted={(review) =>
+                    setReviews((current) => [review, ...(current ?? [])])
+                  }
+                />
               </div>
             </div>
-          </div>
-        </m.div>
-      )}
+          </m.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
 
-function ReviewForm() {
-  const [rating, setRating] = useState(RATING_SCALE_MAX);
+function ReviewCard({ review }: { review: RouteReview }) {
+  return (
+    <article className="p-5">
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="circle bg-avatar flex h-10 w-10 flex-none items-center justify-center text-sm font-semibold text-on-avatar">
+          {review.initials}
+        </span>
+
+        <div className="min-w-0">
+          <p className="font-semibold text-ink">{review.author}</p>
+          {review.date && (
+            <p className="text-xs text-ink-muted">{review.date}</p>
+          )}
+        </div>
+
+        <span className="ml-auto inline-flex flex-none items-center gap-2">
+          <StarRating value={review.rating} />
+          <span className="text-sm font-semibold text-ink">
+            {formatRating(review.rating)}
+          </span>
+        </span>
+      </div>
+
+      <p className="mt-4 text-[15px] leading-relaxed text-ink-muted">
+        {review.text}
+      </p>
+    </article>
+  );
+}
+
+type FormStatus = "idle" | "sending" | "sent" | "login" | "error";
+
+function ReviewForm({
+  routeId,
+  onPosted,
+}: {
+  routeId: string;
+  onPosted: (review: RouteReview) => void;
+}) {
+  const [rating, setRating] = useState(0);
+  const [text, setText] = useState("");
+  const [status, setStatus] = useState<FormStatus>("idle");
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (rating === 0 || text.trim() === "") return;
+
+    setStatus("sending");
+    const result = await postReview(routeId, rating, text.trim());
+
+    if (result === "ok") {
+      onPosted({
+        id: `new-${Date.now()}`,
+        author: "Jij",
+        initials: "J",
+        date: "Zojuist",
+        rating,
+        text: text.trim(),
+      });
+      setRating(0);
+      setText("");
+      setStatus("sent");
+      return;
+    }
+
+    setStatus(result);
+  }
 
   return (
-    <form
-      className="mt-8 flex flex-col gap-5"
-      onSubmit={(event) => event.preventDefault()}
-    >
+    <form className="mt-8 flex flex-col gap-5" onSubmit={submit}>
       <div>
         <h3 className="text-lg font-bold">Schrijf een review</h3>
         <p className="mt-1 text-sm text-ink-muted">
@@ -148,41 +218,92 @@ function ReviewForm() {
         </p>
       </div>
 
-      <div>
-        <p className="text-sm font-medium text-ink">Beoordeling</p>
+      <StarPicker value={rating} onChange={setRating} />
 
-        {/* mx-0 cancels beerCSS's inline margins on .slider */}
-        <label className="slider mx-0 mt-1 w-full max-w-sm">
-          <span className="sr-only">
-            Kies een beoordeling tussen 1 en {RATING_SCALE_MAX} sterren
-          </span>
-          <input
-            type="range"
-            min="1"
-            max={RATING_SCALE_MAX}
-            step="1"
-            defaultValue={RATING_SCALE_MAX}
-            onChange={(event) => setRating(Number(event.currentTarget.value))}
-          />
-          {/* the empty span is the filled part of the beerCSS slider track */}
-          <span />
-        </label>
-
-        <p className="mt-1 text-xs text-ink-muted">
-          {rating} van {RATING_SCALE_MAX} sterren
-        </p>
-      </div>
-
-      <div className="field border label">
-        <textarea id="review-text" placeholder=" " />
+      <div className="field border label textarea">
+        <textarea
+          id="review-text"
+          placeholder=" "
+          value={text}
+          onChange={(event) => setText(event.target.value)}
+        />
         <label htmlFor="review-text">Jouw ervaring</label>
       </div>
 
-      <div>
-        <button type="submit" className="ripple tap-target">
-          Review plaatsen
+      <div className="flex flex-wrap items-center gap-4">
+        <button
+          type="submit"
+          className="ripple tap-target"
+          disabled={rating === 0 || text.trim() === "" || status === "sending"}
+        >
+          {status === "sending" ? "Bezig…" : "Review plaatsen"}
         </button>
+
+        <p aria-live="polite" className="text-sm text-ink-muted">
+          {status === "sent" && "Bedankt voor je review!"}
+          {status === "error" &&
+            "Er ging iets mis bij het plaatsen. Probeer het later opnieuw."}
+          {status === "login" && (
+            <>
+              <Link
+                to={LOGIN_PATH}
+                className="font-semibold text-accent underline"
+              >
+                Log in
+              </Link>{" "}
+              om een review te plaatsen.
+            </>
+          )}
+        </p>
       </div>
     </form>
+  );
+}
+
+// five star buttons that work like radio buttons (arrow keys aren't needed, each star is a tab stop)
+function StarPicker({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (value: number) => void;
+}) {
+  const [hover, setHover] = useState(0);
+  const shown = hover || value;
+
+  return (
+    <div>
+      <p id="review-rating-label" className="text-sm font-medium text-ink">
+        Beoordeling
+      </p>
+      <div
+        role="radiogroup"
+        aria-labelledby="review-rating-label"
+        className="mt-1 flex"
+        onMouseLeave={() => setHover(0)}
+      >
+        {Array.from({ length: RATING_SCALE_MAX }, (_, index) => index + 1).map(
+          (star) => (
+            <button
+              key={star}
+              type="button"
+              role="radio"
+              aria-checked={value === star}
+              aria-label={`${star} van ${RATING_SCALE_MAX} sterren`}
+              onClick={() => onChange(star)}
+              onMouseEnter={() => setHover(star)}
+              className="circle transparent ripple tap-target text-accent"
+            >
+              <Icon
+                name="star"
+                className={`text-2xl transition-transform ${
+                  star <= shown ? "fill scale-110" : "text-ink-muted"
+                }`}
+              />
+            </button>
+          ),
+        )}
+      </div>
+    </div>
   );
 }

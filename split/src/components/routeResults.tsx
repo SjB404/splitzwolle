@@ -7,7 +7,8 @@ import Icon from "./icon.tsx";
 import StarRating from "./starRating.tsx";
 import MapSnapshot from "./mapSnapshot.tsx";
 import RouteShape from "./routeShape.tsx";
-import { MOTION_TRANSITION } from "../motion.ts";
+import { cachedRoutePath } from "../data/routePreview.ts";
+import { LIST_ITEM, MOTION_EXIT, MOTION_TRANSITION } from "../motion.ts";
 import { ROUTE_PAGE_SIZE, routeCoordinates } from "../data/routes.ts";
 import { publicRoutePath } from "../data/navigation.ts";
 import { formatRating } from "../format.ts";
@@ -54,7 +55,7 @@ export default function RouteResults({
           <m.p
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
+            exit={{ opacity: 0, y: 8, transition: MOTION_EXIT }}
             transition={MOTION_TRANSITION}
             className="surface-container-highest min-h-12 content-center rounded-box border-2 border-line px-5 text-sm font-semibold text-ink"
           >
@@ -85,7 +86,7 @@ export default function RouteResults({
   return (
     <>
       <div className="mt-8 grid gap-5">
-        <AnimatePresence initial={false}>
+        <AnimatePresence initial={false} mode="popLayout">
           {visibleRoutes.map((route) => {
             const saved = savedIds.includes(route.id);
             const coords = routeCoordinates(route);
@@ -93,19 +94,20 @@ export default function RouteResults({
             return (
               <m.article
                 key={route.id}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={MOTION_TRANSITION}
-                className="s12 m6 no-padding group relative flex flex-col overflow-hidden transition-transform motion-safe:hover:-translate-y-1 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-(--primary)"
+                {...LIST_ITEM}
+                className="s12 m6 l4 no-padding group relative flex flex-col overflow-hidden transition-[translate] hover:-translate-y-1 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-(--primary)"
               >
-                {/* 21/9: a 2-up card is ~760px at 1600 wide, where 16:10 would be 475px tall */}
-                <div className="relative aspect-[21/9] overflow-hidden rounded-none surface-container">
+                <div className="relative aspect-[16/10] overflow-hidden rounded-none surface-container">
                   <MapSnapshot
                     points={coords}
                     alt={`Kaart met de route ${route.title}`}
                     className="h-full w-full object-cover"
-                    fallback={<RouteShape points={coords} />}
+                    fallback={
+                      <RouteShape
+                        points={coords}
+                        path={cachedRoutePath(route)}
+                      />
+                    }
                   />
 
                   <div className="absolute left-4 top-4 flex flex-wrap gap-2">
@@ -179,7 +181,7 @@ export default function RouteResults({
                   </div>
                 </div>
 
-                {/* overlay link: a stretched ::after fails because beerCSS's reset makes every element relative */}
+                {/* overlay link, since beerCSS makes every element relative (no stretched ::after) */}
                 <Link
                   to={publicRoutePath(route.id)}
                   aria-label={`Open de route ${route.title}`}

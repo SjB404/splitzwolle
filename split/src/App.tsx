@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { LazyMotion, MotionConfig, domAnimation } from "motion/react";
+import { useEffect, useRef } from "react";
+import { LazyMotion, MotionConfig, domMax } from "motion/react";
 import {
   BrowserRouter,
   Navigate,
@@ -54,27 +54,40 @@ function AppLayout() {
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation();
+  const lastPath = useRef<string | null>(null);
 
   useEffect(() => {
+    // a new page just starts at the top, only anchors on the same page scroll smoothly
+    const samePage = lastPath.current === pathname;
+    lastPath.current = pathname;
+
+    const behavior = samePage ? "smooth" : "instant";
     const target = hash ? document.getElementById(hash.slice(1)) : null;
 
-    if (target) {
-      /* scroll animates because index.css sets html { scroll-behavior: smooth } */
-      target.scrollIntoView();
+    // an input (the navbar's search link) is centred and focused, anything else scrolls to its top
+    if (target instanceof HTMLInputElement) {
+      target.scrollIntoView({ behavior, block: "center" });
+      target.focus({ preventScroll: true });
       return;
     }
 
-    window.scrollTo(0, 0);
+    if (target) {
+      target.scrollIntoView({ behavior });
+      return;
+    }
+
+    window.scrollTo({ top: 0, behavior });
   }, [pathname, hash]);
 
   return null;
 }
 
-/* lazyMotion strict: use m.div, never motion.div; reducedMotion="user" follows the os setting */
+// domMax because the card lists use layout animations; reducedMotion="never"
+// since the animations are short and functional
 function App() {
   return (
-    <LazyMotion features={domAnimation} strict>
-      <MotionConfig reducedMotion="user">
+    <LazyMotion features={domMax} strict>
+      <MotionConfig reducedMotion="never">
         <BrowserRouter>
           <ScrollToTop />
           <Routes>

@@ -434,15 +434,13 @@ describe("RoutesPage, a route's own page", () => {
 
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     expect(
-      screen.queryByRole("heading", { name: `Reviews (${ROUTE.reviews})` }),
+      screen.queryByRole("heading", { name: "Schrijf een review" }),
     ).toBeNull();
 
     fireEvent.click(toggle);
 
     expect(
-      await screen.findByRole("heading", {
-        name: `Reviews (${ROUTE.reviews})`,
-      }),
+      await screen.findByRole("heading", { name: "Schrijf een review" }),
     ).toBeInTheDocument();
   });
 

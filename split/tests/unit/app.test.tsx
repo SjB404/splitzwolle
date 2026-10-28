@@ -112,7 +112,10 @@ describe("the router", () => {
       name: /Stel je route samen/,
     });
 
-    expect(window.scrollTo).toHaveBeenCalledWith(0, 0);
+    expect(window.scrollTo).toHaveBeenCalledWith({
+      top: 0,
+      behavior: "instant",
+    });
   });
 
   it("scrolls to the band a hash names, instead of the top", async () => {

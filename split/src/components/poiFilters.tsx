@@ -1,4 +1,4 @@
-/* chip medium = 40px; tap-target gives the 48px minimum hit area without growing the visual */
+/* tap-target gives a 48px hit area without making the chip bigger */
 
 import ClearFiltersButton from "./clearFiltersButton.tsx";
 import FilterSelect from "./filterSelect.tsx";

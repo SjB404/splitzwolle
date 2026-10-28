@@ -207,10 +207,9 @@ describe("mapOptions", () => {
     expect(options.gestureHandling).toBe("cooperative");
     expect(options.disableDefaultUI).toBe(true);
     expect(options.clickableIcons).toBe(false);
-    /* zoom control pinned top-right, away from the share button */
-    expect(options.zoomControlOptions).toEqual({
-      position: 7,
-    });
+    /* google's zoom control and shortcuts button are off; the map draws its own zoom pill */
+    expect(options.zoomControl).toBe(false);
+    expect(options.keyboardShortcuts).toBe(false);
     expect(bounds).toEqual(AREA_CORNERS);
     /* strictBounds would also stop fitBounds from framing the places */
     expect(options.restriction).not.toHaveProperty("strictBounds");

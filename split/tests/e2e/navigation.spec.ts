@@ -7,6 +7,7 @@ import {
   LOGIN_PATH,
   NAV_LINKS,
   ROUTES_PATH,
+  ROUTE_SEARCH_ID,
   UNKNOWN_PATH,
   isActiveLink,
 } from "./app";
@@ -79,7 +80,8 @@ test.describe("the top bar", { tag: "@nav" }, () => {
       .getByRole("link", { name: "Zoek een route" })
       .click();
 
-    await expect(page).toHaveURL(ROUTES_PATH);
+    await expect(page).toHaveURL(`${ROUTES_PATH}#${ROUTE_SEARCH_ID}`);
+    await expect(page.locator(`#${ROUTE_SEARCH_ID}`)).toBeFocused();
   });
 });
 
@@ -90,7 +92,7 @@ test.describe("the account link", { tag: "@nav" }, () => {
 
     await page
       .getByRole("banner")
-      .getByRole("link", { name: "Inloggen op je account" })
+      .getByRole("link", { name: "Inloggen", exact: true })
       .click();
 
     await expect(page).toHaveURL(LOGIN_PATH);

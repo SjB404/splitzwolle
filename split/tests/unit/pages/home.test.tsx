@@ -47,14 +47,17 @@ describe("HomePage", () => {
     );
   });
 
-  it("switches to today's map with one word", () => {
+  it("switches to today's map with one word", async () => {
     renderWithRouter(<HomePage />);
 
     fireEvent.click(screen.getByRole("button", { name: "Nu" }));
 
-    expect(screen.getByRole("button", { name: "Nu" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
+    // the handle glides over, so the pressed state flips once it passes halfway
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Nu" })).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      ),
     );
     expect(screen.getByRole("button", { name: "Toen" })).toHaveAttribute(
       "aria-pressed",

@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { AnimatePresence, m } from "motion/react";
 import Icon from "./icon.tsx";
+import { POPUP } from "../motion.ts";
 import { builderPath } from "../data/navigation.ts";
 
 interface RouteShareButtonProps {
@@ -52,7 +54,7 @@ export default function RouteShareButton({ placeIds }: RouteShareButtonProps) {
   }
 
   return (
-    /* flex-col-reverse: a note appearing after a copy grows upward, not over the button */
+    /* flex-col-reverse so the copy note grows upward */
     <div className="flex flex-col-reverse items-end gap-2">
       <div ref={wrapper} className="relative">
         <button
@@ -61,31 +63,36 @@ export default function RouteShareButton({ placeIds }: RouteShareButtonProps) {
           aria-label="Deel deze route"
           aria-expanded={showHint}
           title={
-            ready ? "Kopieer een link naar deze route" : "Kies eerst twee plekken"
+            ready
+              ? "Kopieer een link naar deze route"
+              : "Kies eerst twee plekken"
           }
           className="button circle surface border ripple tap-target text-accent"
         >
           <Icon name="share" />
         </button>
 
-        {showHint && (
-          <div
-            role="alert"
-            className="surface-container-highest absolute right-0 bottom-full z-30 mb-2 w-64 rounded-box border-2 border-line p-4 text-left"
-          >
-            <p className="text-sm text-ink">
-              Kies eerst twee plekken op de kaart. Een route heeft minstens
-              twee stopplaatsen.
-            </p>
-            <button
-              type="button"
-              onClick={() => setHintOpen(false)}
-              className="button border text-ink ripple tap-target mt-3"
+        <AnimatePresence>
+          {showHint && (
+            <m.div
+              {...POPUP}
+              role="alert"
+              className="surface-container-highest absolute right-0 bottom-full z-30 mb-2 w-64 origin-bottom-right rounded-box border-2 border-line p-4 text-left"
             >
-              Sluiten
-            </button>
-          </div>
-        )}
+              <p className="text-sm text-ink">
+                Kies eerst twee plekken op de kaart. Een route heeft minstens
+                twee stopplaatsen.
+              </p>
+              <button
+                type="button"
+                onClick={() => setHintOpen(false)}
+                className="button border text-ink ripple tap-target mt-3"
+              >
+                Sluiten
+              </button>
+            </m.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <p

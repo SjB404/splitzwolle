@@ -64,31 +64,31 @@ describe("RouteShareButton", () => {
     expect(bubble.className).toContain("bottom-full");
   });
 
-  it("closes the popup with its own action", () => {
+  it("closes the popup with its own action", async () => {
     renderWithRouter(<RouteShareButton placeIds={["peperbus"]} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Deel deze route" }));
     fireEvent.click(screen.getByRole("button", { name: "Sluiten" }));
 
-    expect(screen.queryByRole("alert")).toBeNull();
+    await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
   });
 
-  it("closes the popup on escape", () => {
+  it("closes the popup on escape", async () => {
     renderWithRouter(<RouteShareButton placeIds={["peperbus"]} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Deel deze route" }));
     fireEvent.keyDown(document, { key: "Escape" });
 
-    expect(screen.queryByRole("alert")).toBeNull();
+    await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
   });
 
-  it("closes the popup when the click lands outside it", () => {
+  it("closes the popup when the click lands outside it", async () => {
     renderWithRouter(<RouteShareButton placeIds={["peperbus"]} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Deel deze route" }));
     fireEvent.mouseDown(document.body);
 
-    expect(screen.queryByRole("alert")).toBeNull();
+    await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
   });
 
   it("closes the popup once a second place makes a route", async () => {

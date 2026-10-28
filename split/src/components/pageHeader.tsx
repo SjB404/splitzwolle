@@ -1,4 +1,4 @@
-/* pt-header not py-band: only the space below the title follows the section rhythm */
+/* pt-header: only the space below the title uses the section spacing */
 
 import type { ReactNode } from "react";
 import PageTitle from "./pageTitle.tsx";

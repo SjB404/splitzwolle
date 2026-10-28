@@ -1,6 +1,6 @@
 /* the map instance is built outside react; this component only reads and draws it */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import "./areaMap.css";
 import Icon from "./icon.tsx";
 import RouteShape from "./routeShape.tsx";
@@ -24,7 +24,7 @@ import type {
 
 const LINE_STYLE = { casing: 10, line: 5, zIndex: 1 };
 
-/* keep in sync with the preview card: w-56 = 224px, 296px measured tallest */
+/* preview card size; keep in sync with the card (w-56) */
 const PREVIEW_WIDTH = 224;
 const PREVIEW_HEIGHT = 296;
 const PREVIEW_GAP = 12;
@@ -60,6 +60,7 @@ export default function AreaMap({
   className = "",
 }: AreaMapProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
+  const frameRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const linesRef = useRef<google.maps.Polyline[]>([]);
   const dotsRef = useRef(
@@ -71,7 +72,7 @@ export default function AreaMap({
   /* api listeners live outside react, so callbacks are read via refs */
   const clickRef = useRef(onClickPoint);
   const spreadRef = useRef<() => void>(() => {});
-  /* map is built outside react; this counter tells the effects a map now exists */
+  /* bumped when a map is created so the effects re-run */
   const [mapGeneration, setMapGeneration] = useState(0);
   const [colorScheme, setColorScheme] = useState(mapColorScheme());
   /* no key: the api never loads, so start in the failed state */
@@ -82,6 +83,33 @@ export default function AreaMap({
     y: number;
     below: boolean;
   } | null>(null);
+
+  // google maps redraws the whole map on every size change, which made resizing the window lag.
+  // the map gets a fixed px size that only catches up with its frame once resizing stops
+  useLayoutEffect(() => {
+    const frame = frameRef.current;
+    const host = hostRef.current;
+    if (!frame || !host) return;
+
+    function matchFrame() {
+      host!.style.width = `${frame!.clientWidth}px`;
+      host!.style.height = `${frame!.clientHeight}px`;
+    }
+
+    matchFrame();
+
+    let timer: number | undefined;
+    const observer = new ResizeObserver(() => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(matchFrame, 150);
+    });
+    observer.observe(frame);
+
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(timer);
+    };
+  }, []);
 
   useEffect(() => {
     clickRef.current = onClickPoint;
@@ -97,7 +125,7 @@ export default function AreaMap({
     const centre = dot.left - box.left + dot.width / 2;
     const top = dot.top - box.top;
     const bottom = dot.bottom - box.top;
-    /* the frame clips: flip the card below the dot when there is no room above */
+    /* flip the card below the dot when there's no room above */
     const below =
       top < PREVIEW_HEIGHT + PREVIEW_GAP &&
       box.height - bottom >= PREVIEW_HEIGHT + PREVIEW_GAP;
@@ -110,7 +138,7 @@ export default function AreaMap({
     });
   }
 
-  /* the map calls this via a ref set every render, so it always sees current points and zoom */
+  /* called via a ref so it always sees the current points and zoom */
   function spreadDots() {
     const map = mapRef.current;
     const zoom = map?.getZoom();
@@ -118,7 +146,13 @@ export default function AreaMap({
 
     const placed: { x: number; y: number }[] = [];
 
-    for (const point of points) {
+    // numbered stops go first and never move, so the route line always meets them;
+    // only the plain dots get pushed out of the way
+    const stopsFirst = [...points].sort(
+      (a, b) => Number(order?.has(b.id)) - Number(order?.has(a.id)),
+    );
+
+    for (const point of stopsFirst) {
       const dot = dotsRef.current.get(point.id);
       if (!dot || !isCoordinate(point.coordinates)) continue;
 
@@ -126,7 +160,7 @@ export default function AreaMap({
       let x = world.x;
       let y = world.y;
 
-      for (const other of placed) {
+      for (const other of order?.has(point.id) ? [] : placed) {
         const dx = x - other.x;
         const dy = y - other.y;
         const distance = Math.max(Math.hypot(dx, dy), 0.001);
@@ -140,10 +174,8 @@ export default function AreaMap({
 
       placed.push({ x, y });
 
-      dot.element.style.setProperty(
-        "--dot-shift",
-        `${clamp(x - world.x)}px ${clamp(y - world.y)}px`,
-      );
+      dot.element.style.setProperty("--dot-x", `${clamp(x - world.x)}px`);
+      dot.element.style.setProperty("--dot-y", `${clamp(y - world.y)}px`);
     }
   }
 
@@ -151,7 +183,7 @@ export default function AreaMap({
     spreadRef.current = spreadDots;
   });
 
-  /* the api reads colorScheme at map creation and ignores setOptions afterwards (measured) */
+  /* colorScheme only applies at creation; setOptions ignores it */
   useEffect(() => {
     const observer = new MutationObserver(() =>
       setColorScheme(mapColorScheme()),
@@ -163,7 +195,7 @@ export default function AreaMap({
 
   useEffect(() => {
     const host = hostRef.current;
-    /* refs captured once: a ref read inside a cleanup may no longer hold the same value */
+    /* copy refs for the cleanup, they may have changed by then */
     const dots = dotsRef.current;
     const lines = linesRef.current;
     if (!host) return;
@@ -189,7 +221,7 @@ export default function AreaMap({
 
     return () => {
       alive = false;
-      /* react owns the host element, the api owns its contents: clear it so a remount starts clean */
+      /* clear google's leftover dom so a remount starts clean */
       host.replaceChildren();
       lines.length = 0;
       dots.clear();
@@ -265,7 +297,7 @@ export default function AreaMap({
     if (!bounds.isEmpty()) map.fitBounds(bounds, 56);
   }, [mapGeneration, points]);
 
-  /* filtered to real coordinates: an invalid path must never blank the map */
+  /* skip invalid coordinates so a bad path can't blank the map */
   const linePath = useMemo(
     () =>
       (line?.path ?? [])
@@ -317,9 +349,12 @@ export default function AreaMap({
 
   return (
     <div className={`relative ${className}`}>
-      <div className="surface relative overflow-hidden rounded-box border-2 border-line">
-        {/* rounded-none: the frame clips its own corner; google's dom is squared in areaMap.css */}
-        <div ref={hostRef} className={`${heightClassName} w-full rounded-none`} />
+      <div
+        ref={frameRef}
+        className={`surface relative overflow-hidden [contain:layout_paint] rounded-box border-2 border-line ${heightClassName}`}
+      >
+        {/* rounded-none: the frame clips its own corner. the size is set in px by the effect above */}
+        <div ref={hostRef} className="absolute left-0 top-0 rounded-none" />
 
         {mapGeneration === 0 && (
           <p className="absolute inset-0 grid place-items-center text-sm text-ink-muted">
@@ -340,7 +375,40 @@ export default function AreaMap({
       )}
 
       <MapChip label={label} className="absolute left-4 top-4 z-10" />
+      {mapGeneration > 0 && (
+        <ZoomControls
+          onZoom={(step) => {
+            const map = mapRef.current;
+            map?.setZoom((map.getZoom() ?? 14) + step);
+          }}
+        />
+      )}
       <p className="sr-only">{description}</p>
+    </div>
+  );
+}
+
+// + and - as one vertical pill, in the site's own style instead of google's square buttons
+function ZoomControls({ onZoom }: { onZoom: (step: number) => void }) {
+  return (
+    <div className="surface-container-lowest absolute right-4 top-4 z-10 flex flex-col overflow-hidden rounded-full border-2 border-line">
+      <button
+        type="button"
+        aria-label="Inzoomen"
+        onClick={() => onZoom(1)}
+        className="circle transparent ripple rounded-none text-ink"
+      >
+        <Icon name="add" />
+      </button>
+      <span className="mx-2 h-0.5 rounded-none bg-(--outline-variant)" />
+      <button
+        type="button"
+        aria-label="Uitzoomen"
+        onClick={() => onZoom(-1)}
+        className="circle transparent ripple rounded-none text-ink"
+      >
+        <Icon name="remove" />
+      </button>
     </div>
   );
 }
@@ -363,7 +431,7 @@ function PreviewCard({
 
   return (
     <div
-      className={`surface-container-lowest pointer-events-none absolute z-20 w-56 -translate-x-1/2 overflow-hidden rounded-xl border-2 border-line ${
+      className={`surface-container-lowest pointer-events-none absolute z-20 w-56 -translate-x-1/2 overflow-hidden rounded-box border-2 border-line ${
         below ? "translate-y-3" : "-translate-y-[calc(100%+0.75rem)]"
       }`}
       style={{ left: x, top: y }}
@@ -442,8 +510,14 @@ function MapUnavailable({
   );
 }
 
-/* the dot keeps the fixed orange: it must match the route line colour */
-function MapChip({ label, className = "" }: { label: string; className?: string }) {
+/* fixed orange to match the route line */
+function MapChip({
+  label,
+  className = "",
+}: {
+  label: string;
+  className?: string;
+}) {
   return (
     <span
       className={`chip surface-container-lowest text-xs font-semibold ${className}`}
@@ -469,8 +543,9 @@ function paintDot(
 
   element.className = [
     "flex items-center justify-center rounded-full border-2 font-bold leading-none transition-transform",
-    "[translate:var(--dot-shift,0_0)]",
-    /* before:-inset-3.5 = 48px touch area (measured: -inset-3 gave 44px); tap-target won't fit */
+    /* markers are anchored at their bottom centre; +50% puts the dot's centre on the spot */
+    "[translate:var(--dot-x,0px)_calc(var(--dot-y,0px)_+_50%)]",
+    /* before:-inset-3.5 gives a 48px touch area */
     "before:absolute before:-inset-3.5 before:content-['']",
     current
       ? "border-white bg-orange-500 text-white"

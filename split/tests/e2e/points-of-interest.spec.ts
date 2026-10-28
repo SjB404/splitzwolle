@@ -22,9 +22,8 @@ const cardOf = (page: Page, name: string) =>
 const countLabel = (count: number) =>
   new RegExp(`^${count} bezienswaardig(heid|heden)$`);
 
-/* the --selected token as computed rgb: orange in light, blue in dark */
-const SELECTED_LIGHT = "rgb(246, 130, 33)";
-const SELECTED_DARK = "rgb(40, 44, 109)";
+/* the --selected token as computed rgb: orange in both themes */
+const SELECTED = "rgb(246, 130, 33)";
 
 /* the flash keeps the seed colour while its alpha fades, so match the seed's numbers */
 const flashSeed = (seed: string) =>
@@ -88,15 +87,16 @@ test.describe("the places overview", { tag: "@poi" }, () => {
 
     const chip = page.getByRole("button", { name: "Alles", exact: true });
 
-    await expect(chip).toHaveCSS("background-color", SELECTED_LIGHT);
+    await expect(chip).toHaveCSS("background-color", SELECTED);
     await expect(chip).toHaveCSS("color", "rgb(255, 255, 255)");
 
     await page
       .getByRole("button", { name: "Schakel naar donker thema" })
       .click();
 
-    await expect(chip).toHaveCSS("background-color", SELECTED_DARK);
-    await expect(chip).toHaveCSS("color", "rgb(255, 255, 255)");
+    /* same orange, but dark blue text on it instead of white */
+    await expect(chip).toHaveCSS("background-color", SELECTED);
+    await expect(chip).not.toHaveCSS("color", "rgb(255, 255, 255)");
   });
 
   test("searches on name, area and category", async ({ page }) => {
@@ -250,14 +250,14 @@ test.describe("the places overview", { tag: "@poi" }, () => {
       );
 
     await page.goto(url, { waitUntil: "commit" });
-    await expect.poll(outlineOf).toMatch(flashSeed(SELECTED_LIGHT));
+    await expect.poll(outlineOf).toMatch(flashSeed(SELECTED));
 
     await page
       .getByRole("button", { name: "Schakel naar donker thema" })
       .click();
     await page.goto(url, { waitUntil: "commit" });
 
-    await expect.poll(outlineOf).toMatch(flashSeed(SELECTED_DARK));
+    await expect.poll(outlineOf).toMatch(flashSeed(SELECTED));
   });
 
   test("flashes the card a url names even under reduced motion", async ({
@@ -273,7 +273,7 @@ test.describe("the places overview", { tag: "@poi" }, () => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.goto(pointOfInterestPath(place.id), { waitUntil: "commit" });
 
-    await expect.poll(outlineOf).toMatch(flashSeed(SELECTED_LIGHT));
+    await expect.poll(outlineOf).toMatch(flashSeed(SELECTED));
   });
 
   test("hands a place to the route builder", async ({ page }) => {

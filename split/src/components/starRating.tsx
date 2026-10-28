@@ -1,4 +1,4 @@
-/* empty stars: muted ink, never a faded accent; selection uses beerCSS's i.fill, not colour alone */
+/* filled vs outlined icons, so selection doesn't rely on colour alone */
 
 import Icon from "./icon.tsx";
 import { formatRating } from "../format.ts";

@@ -1,11 +1,6 @@
 @layer overrides {
-  /* beerCSS's border-radius: inherit leaks our card corner into google's dom (measured: 168 elements) */
+  /* beercss gives every element border-radius: inherit, which leaks our card corner into google's dom */
   .gm-style *:not(gmp-advanced-marker, gmp-advanced-marker *) {
     border-radius: 0 !important;
-  }
-
-  /* our justified body copy outranks google's own text-align: center on its hint <p> */
-  .gm-style-mot {
-    text-align: inherit !important;
   }
 }

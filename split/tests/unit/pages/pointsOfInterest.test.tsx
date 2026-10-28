@@ -1,4 +1,4 @@
-import { fireEvent, screen, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import PointsOfInterestPage from "../../../src/pages/pointsOfInterestPage.tsx";
 import { POINTS_OF_INTEREST } from "../../../src/data/pointsOfInterest.ts";
 import {
@@ -39,7 +39,7 @@ describe("PointsOfInterestPage", () => {
     expect(screen.getByText("9 bezienswaardigheden")).toBeInTheDocument();
   });
 
-  it("narrows the list and the count with a category chip", () => {
+  it("narrows the list and the count with a category chip", async () => {
     renderWithRouter(<PointsOfInterestPage />);
 
     fireEvent.click(screen.getByRole("button", { name: "Musea" }));
@@ -48,11 +48,11 @@ describe("PointsOfInterestPage", () => {
       "aria-pressed",
       "true",
     );
-    expect(placeLinks()).toHaveLength(3);
+    await waitFor(() => expect(placeLinks()).toHaveLength(3));
     expect(screen.getByText("3 bezienswaardigheden")).toBeInTheDocument();
   });
 
-  it("searches on name, area and category", () => {
+  it("searches on name, area and category", async () => {
     renderWithRouter(<PointsOfInterestPage />);
 
     fireEvent.change(
@@ -64,7 +64,7 @@ describe("PointsOfInterestPage", () => {
       },
     );
 
-    expect(placeLinks()).toHaveLength(1);
+    await waitFor(() => expect(placeLinks()).toHaveLength(1));
     expect(
       screen.getByRole("heading", {
         level: 3,
@@ -147,7 +147,7 @@ describe("PointsOfInterestPage", () => {
     expect(card).not.toHaveClass("secondary-container");
   });
 
-  it("drops the selection when the place is filtered away", () => {
+  it("drops the selection when the place is filtered away", async () => {
     renderWithRouter(<PointsOfInterestPage />);
     const card = screen
       .getByRole("heading", { level: 3, name: "Sassenpoort" })
@@ -159,18 +159,22 @@ describe("PointsOfInterestPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Musea" }));
 
     expect(chipTexts()).toContain("Alle bezienswaardigheden");
-    expect(screen.queryByRole("button", { name: "Op de kaart" })).toBeNull();
+    await waitFor(() =>
+      expect(screen.queryByRole("button", { name: "Op de kaart" })).toBeNull(),
+    );
   });
 
-  it("resets the filters to the whole list", () => {
+  it("resets the filters to the whole list", async () => {
     renderWithRouter(<PointsOfInterestPage />);
 
     fireEvent.click(screen.getByRole("button", { name: "Culinair" }));
-    expect(placeLinks()).toHaveLength(2);
+    await waitFor(() => expect(placeLinks()).toHaveLength(2));
 
     fireEvent.click(screen.getByRole("button", { name: "Filters wissen" }));
 
-    expect(placeLinks()).toHaveLength(POINTS_OF_INTEREST.length);
+    await waitFor(() =>
+      expect(placeLinks()).toHaveLength(POINTS_OF_INTEREST.length),
+    );
     expect(screen.getByText("9 bezienswaardigheden")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Filters wissen" })).toBeNull();
   });

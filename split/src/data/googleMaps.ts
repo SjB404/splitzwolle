@@ -1,4 +1,4 @@
-/* the key comes from VITE_GOOGLE_MAPS_API_KEY (gitignored .env.local); never hardcode it */
+/* the key comes from VITE_GOOGLE_MAPS_API_KEY in .env.local; never hardcode it */
 
 import type { LatLng, RouteGeometry, TravelMode } from "../types.ts";
 import { AREA_CENTER, AREA_CORNERS } from "./area.ts";
@@ -12,16 +12,73 @@ export const hasGoogleMapsKey = API_KEY.length > 0;
 
 /* static maps is a second service on the same key, off by default */
 export const hasStaticMaps = env.VITE_GOOGLE_MAPS_STATIC_MAPS === "true";
-/* without a cloud map id the api's DEMO_MAP_ID is used, and its styles cannot be set */
+/* without a cloud map id the api uses DEMO_MAP_ID, which can't be styled */
 const CLOUD_MAP_ID = (env.VITE_GOOGLE_MAPS_MAP_ID ?? "").trim();
 /* the api is a singleton; a second load only warns, so cache the promise */
 let loadPromise: Promise<void> | null = null;
 
-/* the routes api can be refused on a key without it; one refusal is remembered */
+/* remember if the routes api refuses this key */
 let routesRefused = false;
 
-/* api is rate limited; the same request is answered from memory */
+/* cache identical requests, the api is rate limited */
 const directionsCache = new Map<string, RouteGeometry | null>();
+
+// successful routes are also kept in localStorage for 30 days (the longest google allows),
+// so a route someone looks at again costs no request
+const STORED_ROUTES_KEY = "zwolle-routes:directions";
+const STORED_ROUTE_DAYS = 30;
+
+interface StoredRoute {
+  geometry: RouteGeometry;
+  savedAt: number;
+}
+
+function readStoredRoutes(): Record<string, StoredRoute> {
+  try {
+    return JSON.parse(localStorage.getItem(STORED_ROUTES_KEY) ?? "{}");
+  } catch {
+    return {};
+  }
+}
+
+function storedRoute(key: string): RouteGeometry | null {
+  const entry = readStoredRoutes()[key];
+  const maxAge = STORED_ROUTE_DAYS * 24 * 60 * 60 * 1000;
+
+  return entry && Date.now() - entry.savedAt < maxAge ? entry.geometry : null;
+}
+
+function storeRoute(key: string, geometry: RouteGeometry) {
+  const maxAge = STORED_ROUTE_DAYS * 24 * 60 * 60 * 1000;
+  const routes = readStoredRoutes();
+
+  // drop expired entries while we're at it, so the storage doesn't keep growing
+  for (const [other, entry] of Object.entries(routes)) {
+    if (Date.now() - entry.savedAt >= maxAge) delete routes[other];
+  }
+  routes[key] = { geometry, savedAt: Date.now() };
+
+  try {
+    localStorage.setItem(STORED_ROUTES_KEY, JSON.stringify(routes));
+  } catch {
+    // storage full or blocked: the in-memory cache still works for this visit
+  }
+}
+
+function directionsKey(points: LatLng[], mode: TravelMode): string {
+  return `${mode}:${points.map(formatLatLng).join("|")}`;
+}
+
+// a route that is already cached (this visit or a stored one), without making a request
+export function cachedDirections(
+  points: LatLng[],
+  mode: TravelMode,
+): RouteGeometry | null {
+  if (points.length < 2) return null;
+  const key = directionsKey(points, mode);
+
+  return directionsCache.get(key) ?? storedRoute(key);
+}
 
 /* the script still loads when the key is rejected, so that is tracked separately */
 let authFailed = false;
@@ -62,7 +119,7 @@ export function loadGoogleMaps(): Promise<void> {
     const query = new URLSearchParams({
       key: API_KEY,
       v: "weekly",
-      /* loading=async is the api's recommendation; it warns without it */
+      /* loading=async avoids a console warning */
       loading: "async",
       libraries: "maps,marker",
       language: "nl",
@@ -81,22 +138,23 @@ export function loadGoogleMaps(): Promise<void> {
   return loadPromise;
 }
 
-/* per map, not at import: LatLngBounds cannot exist before the api has loaded */
+/* built per map: LatLngBounds needs the api to be loaded */
 export function mapOptions(): google.maps.MapOptions {
   return {
     center: AREA_CENTER,
     zoom: 14,
     mapId: CLOUD_MAP_ID.length > 0 ? CLOUD_MAP_ID : "DEMO_MAP_ID",
     disableDefaultUI: true,
-    zoomControl: true,
-    /* zoom control moves top-right: bottom-right is the share button's corner */
-    zoomControlOptions: {
-      position: google.maps.ControlPosition.RIGHT_TOP,
-    },
+    /* we draw our own zoom control (areaMap.tsx); google's can't be styled */
+    zoomControl: false,
+    /* hides google's keyboard shortcuts button */
+    keyboardShortcuts: false,
+    /* image tiles are much cheaper to redraw than the default vector (webgl) map, which made resizing lag */
+    renderingType: "RASTER",
     clickableIcons: false,
     gestureHandling: "cooperative",
     minZoom: 13,
-    /* strictBounds deliberately off: it also blocks fitBounds (measured: zoomed past the places) */
+    /* strictBounds off: it also breaks fitBounds */
     restriction: {
       latLngBounds: new google.maps.LatLngBounds(
         AREA_CORNERS.southWest,
@@ -138,7 +196,7 @@ export function staticMapUrl(points: LatLng[]): string | null {
   const coordinates = points.map(formatLatLng).join("|");
   const brand = routeLineColors().line.replace("#", "0x");
 
-  /* 320x200 at scale 2 is 640x400: the cards' 16:10 ratio, crisp on retina */
+  /* the cards' 16:10 ratio, scale 2 for retina */
   const query = [
     `key=${API_KEY}`,
     "size=320x200",
@@ -166,8 +224,15 @@ export async function requestDirections(
 ): Promise<RouteGeometry | null> {
   if (points.length < 2) return null;
 
-  const key = `${mode}:${points.map(formatLatLng).join("|")}`;
+  const key = directionsKey(points, mode);
   if (directionsCache.has(key)) return directionsCache.get(key) ?? null;
+
+  const stored = storedRoute(key);
+  if (stored) {
+    directionsCache.set(key, stored);
+    return stored;
+  }
+
   if (routesRefused) return null;
 
   try {
@@ -178,7 +243,7 @@ export async function requestDirections(
       destination: points[points.length - 1],
       intermediates: points.slice(1, -1).map((point) => ({ location: point })),
       travelMode: mode === "bicycling" ? "BICYCLING" : "WALKING",
-      /* fields asked by name: the path and two numbers only, nothing else billable */
+      /* only request the fields we use, to keep billing down */
       fields: ["path", "distanceMeters", "durationMillis"],
     });
 
@@ -201,9 +266,9 @@ export async function requestDirections(
     };
 
     directionsCache.set(key, geometry);
+    storeRoute(key, geometry);
     return geometry;
   } catch {
-    /* routes api refused on this key; remembered for the session */
     routesRefused = true;
     directionsCache.set(key, null);
     return null;

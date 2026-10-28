@@ -1,20 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
 import { AnimatePresence, m } from "motion/react";
 import Icon from "./icon.tsx";
 import Container, { CONTAINER } from "./container.tsx";
-import { MOTION_SWAP, MOTION_TRANSITION } from "../motion.ts";
+import { COLLAPSE, MOTION_SWAP } from "../motion.ts";
 import {
   CONTACT_PATH,
   HOME_PATH,
   LOGIN_PATH,
   POI_PATH,
   ROUTES_PATH,
+  ROUTE_SEARCH_ID,
   isActiveLink,
 } from "../data/navigation.ts";
+import { useSessionUser, userInitials } from "../data/session.ts";
 import type { NavLink } from "../types.ts";
 
-/* exported so tests can pin them; the only place that reads them */
+/* exported for tests */
 // oxlint-disable-next-line react/only-export-components
 export const NAV_LINKS: NavLink[] = [
   { label: "Home", to: HOME_PATH },
@@ -26,10 +29,35 @@ export const NAV_LINKS: NavLink[] = [
 export default function Navbar() {
   const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const user = useSessionUser();
+  const header = useRef<HTMLElement>(null);
+
+  // close the menu with escape or a click/tap anywhere outside the bar
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setMenuOpen(false);
+    }
+    function onPointerDown(event: PointerEvent) {
+      if (!header.current?.contains(event.target as Node)) setMenuOpen(false);
+    }
+
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("pointerdown", onPointerDown);
+
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("pointerdown", onPointerDown);
+    };
+  }, [menuOpen]);
 
   return (
-    <header className="app-bar sticky top-0 z-50 bg-bar text-on-bar px-0">
-      {/* px-0 cancels beerCSS header padding; .max is beerCSS's spacer pushing the actions right */}
+    <header
+      ref={header}
+      className="app-bar sticky top-0 z-50 bg-bar text-on-bar px-0"
+    >
+      {/* px-0 cancels beerCSS header padding; .max pushes the actions right */}
       <nav className={`${CONTAINER} w-full gap-2 sm:gap-6`}>
         <Link
           to="/"
@@ -62,23 +90,35 @@ export default function Navbar() {
         <ThemeToggle />
 
         {/* .circle only rounds the box; an icon link needs .button for size */}
+        {/* jumps to the route search box; ScrollToTop in App.tsx focuses it */}
         <Link
-          to={ROUTES_PATH}
+          to={{ pathname: ROUTES_PATH, hash: ROUTE_SEARCH_ID }}
+          onClick={() => document.getElementById(ROUTE_SEARCH_ID)?.focus()}
           className="button circle transparent ripple tap-target hidden text-on-bar sm:inline-flex"
           aria-label="Zoek een route"
         >
           <Icon name="search" />
         </Link>
 
-        <Link
-          to={LOGIN_PATH}
-          className="button circle bg-avatar ripple tap-target text-xs font-semibold text-on-avatar"
-          aria-label="Inloggen op je account"
-        >
-          JB
-        </Link>
+        {user ? (
+          <Link
+            to={LOGIN_PATH}
+            className="button circle bg-avatar ripple tap-target text-xs font-semibold text-on-avatar"
+            aria-label={`Je account (${user.email})`}
+          >
+            {userInitials(user.email)}
+          </Link>
+        ) : (
+          <Link
+            to={LOGIN_PATH}
+            className="button circle transparent ripple tap-target text-on-bar"
+            aria-label="Inloggen"
+          >
+            <Icon name="person" />
+          </Link>
+        )}
 
-        {/* -me-2 offsets the glyph's 8px inset in its 40px circle, lining the icon up with the gutter */}
+        {/* -me-2 lines the icon up with the page gutter */}
         <button
           type="button"
           className="circle transparent ripple tap-target -me-2 text-on-bar lg:hidden"
@@ -86,64 +126,64 @@ export default function Navbar() {
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen((open) => !open)}
         >
-          <AnimatePresence initial={false} mode="wait">
-            <m.span
-              key={menuOpen ? "close" : "menu"}
-              initial={{ opacity: 0, rotate: -90, scale: 0.6 }}
-              animate={{ opacity: 1, rotate: 0, scale: 1 }}
-              exit={{ opacity: 0, rotate: 90, scale: 0.6 }}
-              transition={MOTION_SWAP}
-              className="inline-flex"
-            >
-              <Icon name={menuOpen ? "close" : "menu"} />
-            </m.span>
-          </AnimatePresence>
+          <IconSwap name={menuOpen ? "close" : "menu"} />
         </button>
       </nav>
 
+      {/* absolute so the menu drops over the page instead of pushing everything down */}
       <AnimatePresence initial={false}>
         {menuOpen && (
           <m.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={MOTION_TRANSITION}
-            className="overflow-hidden lg:hidden"
+            {...COLLAPSE}
+            className="absolute inset-x-0 top-full overflow-hidden rounded-none bg-bar lg:hidden"
           >
-            <Container className="w-full pb-4">
-              {/* not an inverted pill: bar text is white in light mode, an inversion would be orange on white */}
-              <div className="flex flex-col gap-1">
-                {NAV_LINKS.map((link, index) => {
-                  const active = isActiveLink(pathname, link.to);
+            <Container className="flex w-full flex-col gap-1 pb-4">
+              {/* not inverted: that would be orange on white in light mode */}
+              {NAV_LINKS.map((link) => {
+                const active = isActiveLink(pathname, link.to);
 
-                  return (
-                    <m.div
-                      key={link.label}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ ...MOTION_SWAP, delay: index * 0.03 }}
-                    >
-                      <Link
-                        to={link.to}
-                        onClick={() => setMenuOpen(false)}
-                        aria-current={active ? "page" : undefined}
-                        className={`button left-align min-h-12 w-full ripple ${
-                          active
-                            ? "bg-on-bar/20 text-on-bar"
-                            : "transparent text-on-bar"
-                        }`}
-                      >
-                        {link.label}
-                      </Link>
-                    </m.div>
-                  );
-                })}
-              </div>
+                return (
+                  <Link
+                    key={link.label}
+                    to={link.to}
+                    onClick={() => setMenuOpen(false)}
+                    aria-current={active ? "page" : undefined}
+                    className={`button left-align min-h-12 w-full ripple ${
+                      active
+                        ? "bg-on-bar/20 text-on-bar"
+                        : "transparent text-on-bar"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
             </Container>
           </m.div>
         )}
       </AnimatePresence>
     </header>
+  );
+}
+
+// crossfades between two icons stacked in one grid cell
+// (inline-grid, because beercss's "grid" class is a 12 column grid)
+function IconSwap({ name }: { name: string }) {
+  return (
+    <span className="inline-grid">
+      <AnimatePresence initial={false}>
+        <m.span
+          key={name}
+          initial={{ opacity: 0, rotate: -45, scale: 0.8 }}
+          animate={{ opacity: 1, rotate: 0, scale: 1 }}
+          exit={{ opacity: 0, rotate: 45, scale: 0.8 }}
+          transition={MOTION_SWAP}
+          className="inline-flex [grid-area:1/1]"
+        >
+          <Icon name={name} />
+        </m.span>
+      </AnimatePresence>
+    </span>
   );
 }
 
@@ -181,29 +221,32 @@ function ThemeToggle() {
     }
   }, [theme]);
 
+  function toggleTheme() {
+    const next: Theme = isDark ? "light" : "dark";
+    const update = () => {
+      applyTheme(next);
+      flushSync(() => setTheme(next));
+    };
+
+    // view transitions give a quick crossfade; other browsers just switch instantly
+    if (document.startViewTransition) {
+      document.startViewTransition(update);
+    } else {
+      update();
+    }
+  }
+
   return (
     <button
       type="button"
       className="circle transparent ripple tap-target text-on-bar"
-      onClick={() => setTheme(isDark ? "light" : "dark")}
+      onClick={toggleTheme}
       aria-pressed={isDark}
       aria-label={
         isDark ? "Schakel naar licht thema" : "Schakel naar donker thema"
       }
     >
-      {/* App sets reducedMotion="user": the rotation is dropped but the fade stays */}
-      <AnimatePresence initial={false} mode="wait">
-        <m.span
-          key={isDark ? "light" : "dark"}
-          initial={{ rotate: -90, scale: 0.6, opacity: 0 }}
-          animate={{ rotate: 0, scale: 1, opacity: 1 }}
-          exit={{ rotate: 90, scale: 0.6, opacity: 0 }}
-          transition={MOTION_SWAP}
-          className="inline-flex"
-        >
-          <Icon name={isDark ? "light_mode" : "dark_mode"} />
-        </m.span>
-      </AnimatePresence>
+      <IconSwap name={isDark ? "light_mode" : "dark_mode"} />
     </button>
   );
 }

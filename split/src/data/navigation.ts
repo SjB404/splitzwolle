@@ -1,7 +1,9 @@
 export const LOGIN_PATH = "/login";
 export const HOME_PATH = "/";
 export const ROUTES_PATH = "/routes";
-/* kept so old /planning links still land somewhere; the planner was folded into the builder */
+// the search box on the routes page; the navbar search icon links to it
+export const ROUTE_SEARCH_ID = "route-search";
+/* kept so old /planning links still work */
 export const PLANNING_PATH = "/planning";
 export const POI_PATH = "/points-of-interest";
 /* register lives as a hash on the login page; there is no /inloggen route */
@@ -30,7 +32,7 @@ export function publicRoutePath(routeId: string): string {
   return `${PUBLIC_ROUTE_PATH}/${encodeURIComponent(routeId)}`;
 }
 
-/* a hash, not a path: the page is the same page; ids are ascii slugs, so no escaping needed */
+/* a hash, not a path; ids are ascii slugs, so no escaping needed */
 const POI_ANCHOR_PREFIX = "poi-";
 
 export function pointOfInterestAnchor(poiId: string): string {

@@ -1,9 +1,10 @@
-/* the range is uncontrolled: a controlled one writes the value back and the thumb jumps on a missed render */
-
-import { memo, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
+import { animate } from "motion/react";
+import type { AnimationPlaybackControls } from "motion/react";
 import "./hero.css";
 import Container from "./container.tsx";
+import { MOTION_TRANSITION } from "../motion.ts";
 import { MAP_IMAGES, MAP_SIZE } from "../data/maps.ts";
 import type { MapPicture } from "../types.ts";
 
@@ -43,24 +44,34 @@ const MapImage = memo(function MapImage({
 
 export default function Hero() {
   const [position, setPosition] = useState(INITIAL_MAP_POSITION);
-  /* bump remounts the range: writing to the node leaves React's value tracker stale */
-  const [sliderKey, setSliderKey] = useState(0);
+  const slider = useRef<HTMLInputElement>(null);
+  const glide = useRef<AnimationPlaybackControls | null>(null);
+
+  // stop a running glide if the component unmounts
+  useEffect(() => () => glide.current?.stop(), []);
 
   const layer: MapLayer = position < 50 ? "historic" : "current";
 
   const historicOpacity = (1 - position / 100).toFixed(2);
-
-  /* the css reads --historic-opacity; a drag patches one style instead of re-rendering */
   const fadeStyle = { "--historic-opacity": historicOpacity } as CSSProperties;
 
-  /* beerCSS repaints the filled track only on events: remount and update in rAF (none fires) */
+  // the buttons slide the handle to the end instead of jumping there
   function showMapLayer(nextLayer: MapLayer) {
-    setPosition(nextLayer === "historic" ? 0 : 100);
-    setSliderKey((key) => key + 1);
+    const input = slider.current;
+    if (!input) return;
 
-    requestAnimationFrame(() =>
-      globalThis.__BeerCssGlobals__?.slider?.updateAllSliders?.(),
-    );
+    const target = nextLayer === "historic" ? 0 : 100;
+
+    glide.current?.stop();
+    glide.current = animate(Number(input.value), target, {
+      ...MOTION_TRANSITION,
+      onUpdate: (value) => {
+        // the input is uncontrolled, so write the value to it and let beercss redraw the track
+        input.value = String(value);
+        setPosition(value);
+        globalThis.__BeerCssGlobals__?.slider?.updateAllSliders?.();
+      },
+    });
   }
 
   return (
@@ -72,8 +83,8 @@ export default function Hero() {
         </h1>
 
         <div
-          /* contain: resizing the map must not invalidate the page; the stacked pictures are heavy to re-raster */
-          className="surface [contain:layout_paint] mx-auto mt-6 flex w-fit flex-col overflow-hidden rounded-box border-2 border-line motion-safe:animate-rise sm:mt-8 sm:flex-row"
+          /* contain: resizing the map shouldn't relayout the whole page */
+          className="surface [contain:layout_paint] mx-auto mt-6 flex w-fit flex-col overflow-hidden rounded-box border-2 border-line sm:mt-8 sm:flex-row"
           style={fadeStyle}
         >
           {/* rounded-none: the panel clips its own corner, so children stay square */}
@@ -96,8 +107,8 @@ export default function Hero() {
                 type="button"
                 onClick={() => showMapLayer(id)}
                 aria-pressed={layer === id}
-                /* bg-transparent is tailwind; beerCSS .transparent forces color: inherit !important */
-                /* h-10 everywhere: sm:h-9 + tap-target measured 44px, under material 3's 48px */
+                /* tailwind's bg-transparent, since beerCSS's .transparent forces color: inherit */
+                /* h-10 so tap-target reaches 48px */
                 className={`tap-target ripple flex h-10 flex-none items-center bg-transparent px-0 text-xs ${
                   index === 0 ? "order-3 sm:order-1" : "order-1 sm:order-3"
                 } ${
@@ -117,16 +128,19 @@ export default function Hero() {
                   Schakel tussen de historische kaart van 1652 en de actuele
                   plattegrond
                 </span>
+                {/* uncontrolled: beercss reads and redraws the native input itself */}
                 <input
-                  key={sliderKey}
+                  ref={slider}
                   type="range"
                   min="0"
                   max="100"
-                  defaultValue={position}
-                  onChange={(event) =>
-                    setPosition(Number(event.currentTarget.value))
-                  }
-                  /* input takes the label's full 40px hit area; a 16px track is too thin to hit */
+                  step="any"
+                  defaultValue={INITIAL_MAP_POSITION}
+                  onChange={(event) => {
+                    glide.current?.stop();
+                    setPosition(Number(event.currentTarget.value));
+                  }}
+                  /* input fills the label so the thin track is easier to hit */
                   className="[block-size:100%]"
                 />
                 {/* the empty span is the filled part of the slider track */}

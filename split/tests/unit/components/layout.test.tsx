@@ -184,15 +184,16 @@ describe("Navbar", () => {
     );
   });
 
-  it("offers a search link and the account link, both with a spoken name", () => {
+  it("offers a search link and the login link, both with a spoken name", () => {
     renderNavbar();
 
     expect(
       screen.getByRole("link", { name: "Zoek een route" }),
-    ).toHaveAttribute("href", "/routes");
-    expect(
-      screen.getByRole("link", { name: "Inloggen op je account" }),
-    ).toHaveAttribute("href", LOGIN_PATH);
+    ).toHaveAttribute("href", "/routes#route-search");
+    expect(screen.getByRole("link", { name: "Inloggen" })).toHaveAttribute(
+      "href",
+      LOGIN_PATH,
+    );
   });
 
   it("opens and closes the mobile menu, reporting its state", () => {

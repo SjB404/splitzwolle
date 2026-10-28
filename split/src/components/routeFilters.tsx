@@ -2,6 +2,7 @@ import ClearFiltersButton from "./clearFiltersButton.tsx";
 import FilterSelect from "./filterSelect.tsx";
 import SearchField from "./searchField.tsx";
 import { ROUTE_DIFFICULTIES, ROUTE_THEMES } from "../data/routes.ts";
+import { ROUTE_SEARCH_ID } from "../data/navigation.ts";
 import type {
   RouteDifficultyFilter,
   RouteDistanceFilter,
@@ -60,12 +61,12 @@ export default function RouteFilters({
       className="mt-8 flex flex-wrap items-end gap-x-4 gap-y-3"
     >
       <SearchField
-        id="route-search"
+        id={ROUTE_SEARCH_ID}
         label="Zoek op titel, wijk of thema"
         placeholder="Zoek op titel, wijk of thema…"
         value={filters.query}
         onChange={(value) => onFilterChange({ query: value })}
-        className="min-w-0 grow basis-56 text-sm"
+        className="min-w-0 grow basis-full text-sm lg:basis-72"
       />
 
       <FilterSelect

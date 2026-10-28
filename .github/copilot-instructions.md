@@ -28,8 +28,8 @@ All visual conventions live in the design system. **Read `docs/DESIGN.md` before
 code** — do not re-derive styles by scanning the project.
 
 - Source of truth: `docs/DESIGN.md` (BeerCSS/Tailwind wiring, themes, color roles, type, shape,
-  component recipes, map artwork, content rules) — §16 lists every deliberate deviation from the
-  Material 3 spec.
+  component recipes, pages, maps, motion, accessibility, BeerCSS gotchas). The deliberate
+  deviations from Material 3 (2px borders, one radius, no elevation) are in its §5.
 - Upstream spec digest: `docs/reference/material-3-reference.md` (component metrics, type scale,
   motion curves, accessibility) — consult it for spec numbers, DESIGN.md for decisions.
   Auto-applied rules for `split/src/**/*.{ts,tsx,css}`:
@@ -42,14 +42,16 @@ code** — do not re-derive styles by scanning the project.
 
 Vite 8 + React 19 + TypeScript, Tailwind CSS v4 via `@tailwindcss/vite`, **BeerCSS 5**
 (Material 3 components + Material Symbols icons), **`react-router-dom`** for the client-side pages,
-**`motion`** for enter/exit animation, oxlint.
+**`motion`** for short functional animation (see `docs/DESIGN.md` §9), oxlint.
 **Google Maps** (the JavaScript API, loaded as a script by `src/data/googleMaps.ts`) draws every
 map except the hero's — see `docs/DESIGN.md` §8. The key is `VITE_GOOGLE_MAPS_API_KEY` in
-`split/.env.local`; without it every map falls back to the map artwork. What that key is allowed to
+`split/.env.local`; without it every map shows a fallback panel (the route shape or a pin icon and
+a message). What that key is allowed to
 cost — free caps, prices, the SKUs to avoid — is in `docs/maps-costs.md`.
 Express is a declared dependency for `split/backend/`, the API behind the login and contact flows
-(`/api/auth`, `/api/users/register`, `/api/contact`); the reviews and admin-user routers
-(`/api/reviews`, `/api/admin/users`) are built and tested too, waiting for their callers. Its own
+(`/api/auth`, `/api/users/register`, `/api/contact`) and the route reviews (`/api/reviews`, called
+from `src/data/reviews.ts`); the admin-user router (`/api/admin/users`) is built and tested too,
+waiting for its caller. Its own
 tsconfig project typechecks it (`tsc -b`), it configures itself from the environment
 (`split/.env.example`), and it is covered by its own suite — `test:backend`.
 
@@ -86,7 +88,8 @@ tsconfig project typechecks it (`tsc -b`), it configures itself from the environ
   the data with plain node — `area.ts`, `maps.ts`, `routeGeometry.ts`, `directions.ts`,
   `navigation.ts`, `savedRoutes.ts`, `contact.ts` — the details the footer and the contact page
   share — `loginData.ts` — the login page's Dutch copy and the api base url —
-  `googleMaps.ts` — the loader, the options, the colours, the Places/Routes calls — and
+  `googleMaps.ts` — the loader, the options, the colours, the Routes call — `api.ts` (the shared
+  fetch helper for the API), `session.ts` (who is logged in), `reviews.ts` (route reviews) — and
   `usePlannedRoute.ts`, the route between the picked places); `src/format.ts`
   formats the Dutch `nl-NL` values. `savedRoutes.ts` is the reader's own list in `localStorage`,
   which is why it also exports the one hook that watches it.
@@ -144,7 +147,7 @@ the suite follows a content change. The e2e groups are tagged (`@smoke`, `@nav`,
   every place is inside that box, every route is built from those places, and the map is given the box
   as its `restriction` so it cannot be panned out of the area.
 - **Nothing is positioned by hand.** Every place's coordinates, address and `placeId` come from
-  Google's **Places API** (resolved once, see `docs/DESIGN.md` §8), and a route's line comes from the
+  Google's **Places API** (resolved once and stored in `src/data/pointsOfInterest.ts`), and a route's line comes from the
   **Routes API**. The 0-100 artwork layer that used to draw pins on the exported picture is gone, and
   so are the places it was drawn for: check the api before adding a place rather than guessing.
 - **A route stores the places it visits** (`Route.poiIds`) and no geometry: `routePoints` and

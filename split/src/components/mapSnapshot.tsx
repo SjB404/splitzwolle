@@ -1,4 +1,4 @@
-/* static maps api is opt-in (VITE_GOOGLE_MAPS_STATIC_MAPS): otherwise every card logs an error */
+/* static maps is opt-in (VITE_GOOGLE_MAPS_STATIC_MAPS), otherwise every card logs an error */
 
 import { useState } from "react";
 import type { ReactNode } from "react";

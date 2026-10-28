@@ -1,6 +1,6 @@
 import type { ContactDetails } from "../types.ts";
 
-/* canonical contact details: the footer band and the contact page both read these */
+/* shared by the footer and the contact page */
 export const CONTACT_DETAILS: ContactDetails = {
   email: "info@zwolleroutes.nl",
   phone: "+31 38 421 6200",

@@ -15,7 +15,7 @@ export default function ClearFiltersButton({
       onClick={onClick}
       className={`button border text-ink ripple tap-target ${className}`}
     >
-      {/* outlined beerCSS buttons default to primary text (2.5:1 on white) */}
+      {/* beerCSS's default primary text has too little contrast on white */}
       <Icon name="close" className="mr-1.5 text-base" />
       Filters wissen
     </button>

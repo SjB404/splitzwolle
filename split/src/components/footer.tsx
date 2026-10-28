@@ -31,14 +31,14 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
   },
 ];
 
-/* re-exported so tests and other modules keep importing it from this file */
+/* re-exported so existing imports keep working */
 export { CONTACT_DETAILS };
 
 export default function Footer() {
   return (
     /* px-0 cancels beerCSS footer padding; CONTAINER supplies the gutter */
     <footer id="contact" className="inverse-surface px-0 py-10">
-      {/* w-full: beerCSS makes <footer> a grid; mx-auto shrinks grid items to content */}
+      {/* w-full: beerCSS makes <footer> a grid, so mx-auto would shrink this */}
       <Container className="flex w-full flex-col gap-10">
         <div className="flex flex-col gap-10 xl:flex-row xl:justify-between">
           <div className="max-w-sm">
@@ -49,19 +49,19 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* flex, not the 12-column grid: the grid multiplies its gap by 11 */}
+          {/* flex, not beerCSS's 12-column grid */}
           <div className="flex flex-wrap gap-x-12 gap-y-8 sm:gap-x-20">
             {FOOTER_COLUMNS.map((column) => (
               <nav
                 key={column.title}
                 aria-label={column.title}
-                /* mt-0 cancels beerCSS's 1rem sibling margin; gap-y-8 spaces */
+                /* mt-0 cancels beerCSS's sibling margin */
                 className="mt-0 flex flex-col items-start gap-2"
               >
                 <h2 className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
                   {column.title}
                 </h2>
-                {/* the div matters: beerCSS turns a <ul> under <nav> into an absolute menu overlay */}
+                {/* wrapper div: beerCSS turns a <ul> directly under <nav> into a menu */}
                 <div>
                   <ul className="flex flex-col gap-1 text-sm text-ink-muted">
                     {column.links.map((link) => (

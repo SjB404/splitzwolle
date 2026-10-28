@@ -1,4 +1,4 @@
-/* the two hero artworks are imported (not public/) so vite fingerprints them; 1520x984 webp, 400-570 kB each */
+/* imported (not public/) so vite fingerprints them */
 
 import type { MapImageId, MapPicture } from "../types.ts";
 

@@ -487,25 +487,21 @@ test.describe("a route's card", { tag: "@list" }, () => {
 
     const toggle = page.getByRole("button", { name: /Reviews bekijken/ });
 
+    const form = page.getByRole("heading", {
+      level: 3,
+      name: "Schrijf een review",
+    });
+
     await expect(toggle).toHaveAttribute("aria-expanded", "false");
-    await expect(
-      page.getByRole("heading", { name: `Reviews (${route.reviews})` }),
-    ).toHaveCount(0);
+    await expect(form).toHaveCount(0);
 
     await toggle.click();
 
-    await expect(
-      page.getByRole("heading", { name: `Reviews (${route.reviews})` }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("heading", { level: 3, name: "Schrijf een review" }),
-    ).toBeVisible();
+    await expect(form).toBeVisible();
 
     await page.getByRole("button", { name: /Reviews verbergen/ }).click();
 
-    await expect(
-      page.getByRole("heading", { name: `Reviews (${route.reviews})` }),
-    ).toHaveCount(0);
+    await expect(form).toHaveCount(0);
   });
 
   test("answers a route id that does not exist with the catch-all page", async ({
