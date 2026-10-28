@@ -48,13 +48,13 @@ export default function RouteShareButton({ placeIds }: RouteShareButtonProps) {
       await navigator.clipboard.writeText(link);
       setNote("Link gekopieerd. Plak hem waar je wilt.");
     } catch {
-      /* some browsers deny the clipboard api; show the link to copy by hand */
+      // some browsers block the clipboard api, then the link is shown so it can be copied by hand
       setNote(`Kopieer de link: ${link}`);
     }
   }
 
   return (
-    /* flex-col-reverse so the copy note grows upward */
+    // flex-col-reverse so the copy note grows upward
     <div className="flex flex-col-reverse items-end gap-2">
       <div ref={wrapper} className="relative">
         <button

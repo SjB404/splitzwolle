@@ -1,4 +1,4 @@
-/* beerCSS field suffix: the chevron lands trailing only because it is not the first child */
+// beercss only puts the chevron at the end because it isn't the first child
 
 import "./filterSelect.css";
 import type { SelectOption } from "../types.ts";
@@ -21,7 +21,7 @@ export default function FilterSelect<Value extends string>({
   onChange,
   className = "s12 m6 l3",
 }: FilterSelectProps<Value>) {
-  /* the first option is the resting value; anything else counts as an active choice */
+  // the first option is the default, anything else means the filter is on
   const resting = options[0]?.value;
   const active = value !== resting;
 

@@ -11,7 +11,7 @@ import {
 } from "../data/navigation.ts";
 import type { FooterColumn } from "../types.ts";
 
-/* contact details live in data/contact.ts, shared with the contact page */
+// contact details live in data/contact.ts, shared with the contact page
 // oxlint-disable-next-line react/only-export-components
 export const FOOTER_COLUMNS: FooterColumn[] = [
   {
@@ -31,14 +31,14 @@ export const FOOTER_COLUMNS: FooterColumn[] = [
   },
 ];
 
-/* re-exported so existing imports keep working */
+// re-exported so existing imports keep working
 export { CONTACT_DETAILS };
 
 export default function Footer() {
   return (
-    /* px-0 cancels beerCSS footer padding; CONTAINER supplies the gutter */
+    // px-0 cancels the beercss footer padding, CONTAINER adds the gutter instead
     <footer id="contact" className="inverse-surface px-0 py-10">
-      {/* w-full: beerCSS makes <footer> a grid, so mx-auto would shrink this */}
+      {/* w-full because beercss makes <footer> a grid and mx-auto would shrink this */}
       <Container className="flex w-full flex-col gap-10">
         <div className="flex flex-col gap-10 xl:flex-row xl:justify-between">
           <div className="max-w-sm">
@@ -49,19 +49,19 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* flex, not beerCSS's 12-column grid */}
+          {/* flex, not beercss's 12-column grid */}
           <div className="flex flex-wrap gap-x-12 gap-y-8 sm:gap-x-20">
             {FOOTER_COLUMNS.map((column) => (
               <nav
                 key={column.title}
                 aria-label={column.title}
-                /* mt-0 cancels beerCSS's sibling margin */
+                // mt-0 cancels beercss's sibling margin
                 className="mt-0 flex flex-col items-start gap-2"
               >
                 <h2 className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
                   {column.title}
                 </h2>
-                {/* wrapper div: beerCSS turns a <ul> directly under <nav> into a menu */}
+                {/* wrapper div because beercss turns a <ul> right under <nav> into a menu */}
                 <div>
                   <ul className="flex flex-col gap-1 text-sm text-ink-muted">
                     {column.links.map((link) => (

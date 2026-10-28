@@ -1,4 +1,4 @@
-/* beerCSS: the magnifier must be the field's first child, or it renders on the right */
+// beercss needs the magnifier as the field's first child or it ends up on the right
 
 import Icon from "./icon.tsx";
 

@@ -1,4 +1,4 @@
-/* coordinates, addresses and place ids come from google's places api, never typed by hand */
+// coordinates, addresses and place ids come from google's places api, never typed by hand
 
 import { haversineKm, STREET_FACTOR } from "./routeGeometry.ts";
 import type {
@@ -41,7 +41,7 @@ export function hasActivePoiFilters(filters: PoiFilterState): boolean {
   return restingKeys.some((key) => filters[key] !== INITIAL_POI_FILTERS[key]);
 }
 
-/* every distance on the site is measured from here */
+// every distance on the site is measured from here
 const GROTE_MARKT: LatLng = { lat: 52.5122429, lng: 6.0927568 };
 
 const RESOLVED_PLACES: Omit<PointOfInterest, "distanceKm">[] = [
@@ -184,6 +184,7 @@ export function getPointOfInterest(id: string): PointOfInterest | undefined {
   return POINTS_OF_INTEREST.find((point) => point.id === id);
 }
 
+// places matching the search text and category, sorted by name, distance or otherwise rating
 export function filterPointsOfInterest(
   filters: PoiFilterState,
 ): PointOfInterest[] {

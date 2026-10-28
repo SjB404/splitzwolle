@@ -1,9 +1,9 @@
-/* flat projection is fine at city scale */
+// flat projection is fine at city scale
 
 import { useMemo } from "react";
 import type { LatLng } from "../types.ts";
 
-/* the cards' 16:10 ratio; css scales it */
+// the cards' 16:10 ratio, css scales it
 const VIEW = { width: 320, height: 200 };
 
 const PADDING = 26;
@@ -89,11 +89,11 @@ function project(
   const ys = flat.map((point) => point.y);
   const minX = Math.min(...xs);
   const minY = Math.min(...ys);
-  /* a single place has no span to scale against; 1e-6 avoids dividing by zero */
+  // a single place has no width or height to scale to, 1e-6 stops a divide by zero
   const spanX = Math.max(Math.max(...xs) - minX, 1e-6);
   const spanY = Math.max(Math.max(...ys) - minY, 1e-6);
 
-  /* same scale on both axes so routes aren't distorted */
+  // same scale on both axes so routes aren't distorted
   const scale = Math.min(
     (VIEW.width - 2 * PADDING) / spanX,
     (VIEW.height - 2 * PADDING) / spanY,

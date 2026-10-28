@@ -7,7 +7,7 @@ export const AREA_BOUNDS = {
   east: 6.107,
 };
 
-/* the two-corner shape the maps api wants for a restriction */
+// the two-corner shape the maps api wants for a restriction
 export const AREA_CORNERS: { southWest: LatLng; northEast: LatLng } = {
   southWest: { lat: AREA_BOUNDS.south, lng: AREA_BOUNDS.west },
   northEast: { lat: AREA_BOUNDS.north, lng: AREA_BOUNDS.east },

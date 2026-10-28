@@ -1,4 +1,4 @@
-/* searchIndex.json stands in for the collaborator's endpoint; swap this for a fetch later */
+// searchIndex.json stands in for a real search endpoint, swap this for a fetch later
 
 import searchIndex from "./searchIndex.json";
 import type { SearchIndex, SearchKind } from "../types.ts";

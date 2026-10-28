@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-/* beercss runtime only; its stylesheet is layered in index.css */
+// only the beercss js, its css gets layered in index.css
 import "beercss/dist/cdn/beer.min.js";
 import "./index.css";
 import App from "./App.tsx";

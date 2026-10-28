@@ -1,7 +1,7 @@
 import type { LatLng, TravelMode } from "../types.ts";
 import { formatLatLng } from "./googleMaps.ts";
 
-/* coordinates and the | must stay literal, not percent-encoded */
+// coordinates and the | must stay literal, not percent-encoded
 export function directionsUrl(points: LatLng[], mode: TravelMode): string {
   const coordinates = points.map(formatLatLng);
   const query = [
@@ -11,7 +11,7 @@ export function directionsUrl(points: LatLng[], mode: TravelMode): string {
     `travelmode=${mode}`,
   ];
 
-  /* the api takes at most 9 waypoints */
+  // the api takes at most 9 waypoints
   if (coordinates.length > 2) {
     query.push(`waypoints=${coordinates.slice(1, -1).join("|")}`);
   }

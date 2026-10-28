@@ -1,4 +1,4 @@
-/* items-baseline: beerCSS fields reserve label room, so centring sits the count too low */
+// items-baseline because beercss fields leave room for a label, so centring puts the count too low
 
 import type { ReactNode } from "react";
 import SearchField from "./searchField.tsx";

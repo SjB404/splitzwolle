@@ -31,12 +31,14 @@ import {
   publicRoutePath,
 } from "./data/navigation.ts";
 
+// old /routes/<id> links go to the new /routes/public/<id> url
 function LegacyRouteRedirect() {
   const { routeId } = useParams<{ routeId: string }>();
 
   return <Navigate to={publicRoutePath(routeId ?? "")} replace />;
 }
 
+// navbar and footer around every page, the login page has no footer
 function AppLayout() {
   const { pathname } = useLocation();
   const hideFooter = pathname === LOGIN_PATH;
@@ -53,13 +55,17 @@ function AppLayout() {
 }
 
 function ScrollToTop() {
-  const { pathname, hash } = useLocation();
+  const { pathname, hash, state } = useLocation();
   const lastPath = useRef<string | null>(null);
+  // a page can change its own hash without any scrolling by navigating with { scroll: false } as state
+  const keepScroll = (state as { scroll?: boolean } | null)?.scroll === false;
 
   useEffect(() => {
     // a new page just starts at the top, only anchors on the same page scroll smoothly
     const samePage = lastPath.current === pathname;
     lastPath.current = pathname;
+
+    if (samePage && keepScroll) return;
 
     const behavior = samePage ? "smooth" : "instant";
     const target = hash ? document.getElementById(hash.slice(1)) : null;
@@ -77,12 +83,12 @@ function ScrollToTop() {
     }
 
     window.scrollTo({ top: 0, behavior });
-  }, [pathname, hash]);
+  }, [pathname, hash, keepScroll]);
 
   return null;
 }
 
-// domMax because the card lists use layout animations; reducedMotion="never"
+// domMax because the card lists use layout animations, reducedMotion="never"
 // since the animations are short and functional
 function App() {
   return (

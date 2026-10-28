@@ -43,7 +43,7 @@ export default function RouteResults({
     return () => clearTimeout(timer);
   }, [notice]);
 
-  /* the live region stays mounted so screen readers announce the text when it arrives */
+  // the live region stays mounted so screen readers announce the text when it arrives
   const noticeElement = (
     <div
       role="status"
@@ -133,7 +133,7 @@ export default function RouteResults({
                     {route.theme}
                   </span>
 
-                  {/* wrapper needed: .tap-target's own position: relative wins over absolute */}
+                  {/* needs a wrapper because .tap-target's own position: relative wins over absolute */}
                   <div className="absolute right-4 top-4 z-10">
                     <button
                       type="button"
@@ -181,7 +181,7 @@ export default function RouteResults({
                   </div>
                 </div>
 
-                {/* overlay link, since beerCSS makes every element relative (no stretched ::after) */}
+                {/* overlay link, since beercss makes every element relative (no stretched ::after) */}
                 <Link
                   to={publicRoutePath(route.id)}
                   aria-label={`Open de route ${route.title}`}

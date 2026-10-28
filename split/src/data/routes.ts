@@ -156,6 +156,7 @@ export const ROUTES: Route[] = [
   },
 ];
 
+// turns a route's poi ids into the actual places, ids that don't exist are skipped
 export function routePoints(route: Route): PointOfInterest[] {
   return route.poiIds
     .map((id) => getPointOfInterest(id))
@@ -166,6 +167,7 @@ export function routeCoordinates(route: Route): LatLng[] {
   return routePoints(route).map((point) => point.coordinates);
 }
 
+// other routes, same theme first and then the best rated
 export function getRelatedRoutes(route: Route, limit = 3): Route[] {
   return ROUTES.filter((candidate) => candidate.id !== route.id)
     .sort((a, b) => {
@@ -185,6 +187,7 @@ export const INITIAL_ROUTE_FILTERS: RouteFilterState = {
   ownership: "all",
 };
 
+// true when any filter isn't on its default, then the reset button shows up
 export function hasActiveRouteFilters(filters: RouteFilterState): boolean {
   const restingKeys = Object.keys(
     INITIAL_ROUTE_FILTERS,
@@ -193,6 +196,7 @@ export function hasActiveRouteFilters(filters: RouteFilterState): boolean {
   return restingKeys.some((key) => filters[key] !== INITIAL_ROUTE_FILTERS[key]);
 }
 
+// every route that matches the search text and all the chosen filters
 export function filterRoutes(
   filters: RouteFilterState,
   savedIds: string[] = [],
@@ -201,7 +205,7 @@ export function filterRoutes(
 
   return ROUTES.filter((route) => {
     if (needle) {
-      /* place names count as searchable text too */
+      // place names count as searchable text too
       const haystack = [
         route.title,
         route.area,
@@ -218,7 +222,7 @@ export function filterRoutes(
       return false;
     if (filters.ownership === "community" && savedIds.includes(route.id))
       return false;
-    /* in the centre: short < 1.5 km, long > 2.5 km */
+    // all routes are in the centre so short is under 1.5 km and long is over 2.5 km
     if (filters.distance === "short" && route.distanceKm >= 1.5) return false;
     if (
       filters.distance === "medium" &&
@@ -234,7 +238,7 @@ export function filterRoutes(
   });
 }
 
-/* no reviews api yet: the sample histogram is built from each route's own review total */
+// the reviews api has no count per star, so the bars are faked by spreading the route's review total over these percentages
 const REVIEW_DISTRIBUTION = [0.71, 0.19, 0.06, 0.03, 0.01];
 
 export function buildReviewBreakdown(totalReviews: number): StarBucket[] {

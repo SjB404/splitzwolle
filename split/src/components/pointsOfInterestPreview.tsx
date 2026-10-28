@@ -28,7 +28,7 @@ export default function PointsOfInterestPreview() {
   }, [query]);
 
   return (
-    /* content-visibility:auto skips rendering until scrolled near; 32rem is its rough height */
+    // content-visibility:auto skips rendering until you scroll near it, 32rem is about its height
     <section className="py-band [contain-intrinsic-size:auto_32rem] [content-visibility:auto]">
       <Container>
         <SectionHeading
@@ -67,7 +67,7 @@ export default function PointsOfInterestPreview() {
               return (
                 <li
                   key={point.id}
-                  /* flex not grid: a bare `grid` class is beerCSS's 12 column grid */
+                  // flex not grid, a bare `grid` class is beercss's 12 column grid
                   className="flex basis-[calc(50%-0.75rem)] sm:basis-[calc(33.333%-1rem)] lg:basis-[calc(20%-1.2rem)]"
                 >
                   <Link

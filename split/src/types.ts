@@ -1,4 +1,4 @@
-/* real-world coordinate */
+// real-world coordinate
 export interface LatLng {
   lat: number;
   lng: number;
@@ -20,10 +20,10 @@ export type RouteTheme =
 
 export type RouteDifficulty = "Makkelijk" | "Gemiddeld";
 
-/* "Toen" sits on the historic map layer, "Nu" is present-day */
+// "Toen" sits on the historic map layer, "Nu" is present-day
 export type PoiEra = "Toen" | "Nu";
 
-/* sent to the directions api verbatim */
+// sent to the directions api verbatim
 export type TravelMode = "walking" | "bicycling";
 
 export interface RouteGeometry {
@@ -115,7 +115,7 @@ export interface SearchIndex {
   pointsOfInterest: SearchRecord[];
 }
 
-/* the value is a union, so a typo is a compile error and not an empty list */
+// the value is a union, so a typo is a compile error and not an empty list
 export interface SelectOption<Value extends string = string> {
   value: Value;
   label: string;

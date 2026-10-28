@@ -37,7 +37,13 @@ declare namespace google.maps {
   class LatLngBounds {
     constructor(southWest?: LatLngLiteral, northEast?: LatLngLiteral);
     extend(point: LatLngLiteral): void;
+    contains(point: LatLngLiteral): boolean;
     isEmpty(): boolean;
+  }
+
+  // what a map click hands its listener, domEvent is the browser's own event
+  interface MapMouseEvent {
+    domEvent: Event;
   }
 
   interface MapOptions {
@@ -65,8 +71,15 @@ declare namespace google.maps {
 
   class Map {
     constructor(element: HTMLElement, options: MapOptions);
+    addListener(
+      event: "click",
+      handler: (event: MapMouseEvent) => void,
+    ): MapsEventListener;
     addListener(event: string, handler: () => void): MapsEventListener;
     fitBounds(bounds: LatLngBounds, padding?: number): void;
+    // undefined until the map has drawn once
+    getBounds(): LatLngBounds | undefined;
+    panTo(latLng: LatLngLiteral): void;
     getZoom(): number | undefined;
     setZoom(zoom: number): void;
     setOptions(options: MapOptions): void;

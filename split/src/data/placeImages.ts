@@ -1,4 +1,4 @@
-/* assets must stay out of pointsOfInterest.ts's import graph: e2e reads it with plain node */
+// kept out of pointsOfInterest.ts because the e2e tests read that file with plain node, which can't import images
 
 import annoStadsmuseum from "../assets/place_images/annostadsmuseum.webp";
 import balletjeshuis from "../assets/place_images/balletjeshuis.webp";

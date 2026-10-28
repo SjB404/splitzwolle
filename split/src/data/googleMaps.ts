@@ -1,4 +1,4 @@
-/* the key comes from VITE_GOOGLE_MAPS_API_KEY in .env.local; never hardcode it */
+// the key comes from VITE_GOOGLE_MAPS_API_KEY in .env.local, don't hardcode it
 
 import type { LatLng, RouteGeometry, TravelMode } from "../types.ts";
 import { AREA_CENTER, AREA_CORNERS } from "./area.ts";
@@ -7,20 +7,20 @@ const env: Record<string, string | undefined> = import.meta.env;
 
 const API_KEY = (env.VITE_GOOGLE_MAPS_API_KEY ?? "").trim();
 
-/* false with no key configured; every map falls back to the artwork */
+// false when there's no key, every map then falls back to the artwork
 export const hasGoogleMapsKey = API_KEY.length > 0;
 
-/* static maps is a second service on the same key, off by default */
+// static maps is a second service on the same key, off by default
 export const hasStaticMaps = env.VITE_GOOGLE_MAPS_STATIC_MAPS === "true";
-/* without a cloud map id the api uses DEMO_MAP_ID, which can't be styled */
+// without a cloud map id the api uses DEMO_MAP_ID, which can't be styled
 const CLOUD_MAP_ID = (env.VITE_GOOGLE_MAPS_MAP_ID ?? "").trim();
-/* the api is a singleton; a second load only warns, so cache the promise */
+// the api can only be loaded once (a second load just warns) so the promise is cached
 let loadPromise: Promise<void> | null = null;
 
-/* remember if the routes api refuses this key */
+// remember if the routes api refuses this key
 let routesRefused = false;
 
-/* cache identical requests, the api is rate limited */
+// cache identical requests, the api is rate limited
 const directionsCache = new Map<string, RouteGeometry | null>();
 
 // successful routes are also kept in localStorage for 30 days (the longest google allows),
@@ -61,7 +61,7 @@ function storeRoute(key: string, geometry: RouteGeometry) {
   try {
     localStorage.setItem(STORED_ROUTES_KEY, JSON.stringify(routes));
   } catch {
-    // storage full or blocked: the in-memory cache still works for this visit
+    // storage full or blocked, the in-memory cache still works for this visit
   }
 }
 
@@ -80,11 +80,11 @@ export function cachedDirections(
   return directionsCache.get(key) ?? storedRoute(key);
 }
 
-/* the script still loads when the key is rejected, so that is tracked separately */
+// the script still loads when the key is rejected, so that is tracked separately
 let authFailed = false;
 const authListeners = new Set<() => void>();
 
-/* fires at once if the key was already rejected; returns an unsubscribe */
+// fires right away if the key was already rejected, returns a function to unsubscribe
 export function onGoogleMapsAuthFailure(listener: () => void): () => void {
   authListeners.add(listener);
   if (authFailed) listener();
@@ -98,7 +98,7 @@ const CALLBACK_NAME = "__zwolleRoutesGoogleMapsReady";
 
 type MapsWindow = Window & { __zwolleRoutesGoogleMapsReady?: () => void };
 
-/** resolves when the api and the maps and marker libraries have loaded */
+// resolves when the api and the maps and marker libraries have loaded
 export function loadGoogleMaps(): Promise<void> {
   if (loadPromise) return loadPromise;
 
@@ -113,13 +113,13 @@ export function loadGoogleMaps(): Promise<void> {
       authListeners.forEach((listener) => listener());
     };
 
-    /* the global must exist before the script loads; the api calls it when ready */
+    // the global has to exist before the script loads, the api calls it when it's ready
     (window as MapsWindow)[CALLBACK_NAME] = () => resolve();
 
     const query = new URLSearchParams({
       key: API_KEY,
       v: "weekly",
-      /* loading=async avoids a console warning */
+      // loading=async avoids a console warning
       loading: "async",
       libraries: "maps,marker",
       language: "nl",
@@ -138,23 +138,23 @@ export function loadGoogleMaps(): Promise<void> {
   return loadPromise;
 }
 
-/* built per map: LatLngBounds needs the api to be loaded */
+// built per map because LatLngBounds needs the api to be loaded
 export function mapOptions(): google.maps.MapOptions {
   return {
     center: AREA_CENTER,
     zoom: 14,
     mapId: CLOUD_MAP_ID.length > 0 ? CLOUD_MAP_ID : "DEMO_MAP_ID",
     disableDefaultUI: true,
-    /* we draw our own zoom control (areaMap.tsx); google's can't be styled */
+    // we draw our own zoom control (areaMap.tsx) because google's can't be styled
     zoomControl: false,
-    /* hides google's keyboard shortcuts button */
+    // hides google's keyboard shortcuts button
     keyboardShortcuts: false,
-    /* image tiles are much cheaper to redraw than the default vector (webgl) map, which made resizing lag */
+    // image tiles are much cheaper to redraw than the default vector (webgl) map, which made resizing lag
     renderingType: "RASTER",
     clickableIcons: false,
     gestureHandling: "cooperative",
     minZoom: 13,
-    /* strictBounds off: it also breaks fitBounds */
+    // strictBounds is off because it also breaks fitBounds
     restriction: {
       latLngBounds: new google.maps.LatLngBounds(
         AREA_CORNERS.southWest,
@@ -172,7 +172,7 @@ interface RouteLineColors {
 export function routeLineColors(): RouteLineColors {
   return {
     line: cssToken("--color-orange-500", "#f68221"),
-    /* white in both themes; an orange line alone disappears into the tiles */
+    // white in both themes, an orange line on its own disappears into the tiles
     casing: "#ffffff",
   };
 }
@@ -196,7 +196,7 @@ export function staticMapUrl(points: LatLng[]): string | null {
   const coordinates = points.map(formatLatLng).join("|");
   const brand = routeLineColors().line.replace("#", "0x");
 
-  /* the cards' 16:10 ratio, scale 2 for retina */
+  // the cards' 16:10 ratio, scale 2 for retina
   const query = [
     `key=${API_KEY}`,
     "size=320x200",
@@ -214,7 +214,7 @@ export function staticMapUrl(points: LatLng[]): string | null {
 
   query.push(`markers=color:${brand}|size:small|${coordinates}`);
 
-  /* the api wants pipes, commas and colons literal, so the query is built by hand */
+  // the api wants pipes, commas and colons literal, so the query is built by hand
   return `https://maps.googleapis.com/maps/api/staticmap?${query.join("&")}`;
 }
 
@@ -243,7 +243,7 @@ export async function requestDirections(
       destination: points[points.length - 1],
       intermediates: points.slice(1, -1).map((point) => ({ location: point })),
       travelMode: mode === "bicycling" ? "BICYCLING" : "WALKING",
-      /* only request the fields we use, to keep billing down */
+      // only request the fields we use, to keep billing down
       fields: ["path", "distanceMeters", "durationMillis"],
     });
 

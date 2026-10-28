@@ -1,4 +1,4 @@
-/* tap-target gives a 48px hit area without making the chip bigger */
+// tap-target gives a 48px hit area without making the chip bigger
 
 import ClearFiltersButton from "./clearFiltersButton.tsx";
 import FilterSelect from "./filterSelect.tsx";

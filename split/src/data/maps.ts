@@ -1,4 +1,4 @@
-/* imported (not public/) so vite fingerprints them */
+// imported (not public/) so vite fingerprints them
 
 import type { MapImageId, MapPicture } from "../types.ts";
 

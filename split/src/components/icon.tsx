@@ -1,4 +1,4 @@
-/* the glyph name must be in the icon_names subset in index.html */
+// the glyph name must be in the icon_names subset in index.html
 
 interface IconProps {
   name: string;

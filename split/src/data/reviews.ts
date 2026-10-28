@@ -4,7 +4,7 @@ import { apiRequest, isOk } from "./api.ts";
 import { ROUTE_REVIEWS } from "./routes.ts";
 import type { RouteReview } from "../types.ts";
 
-// what a row in the reviews table looks like; the table has no author column
+// what a row in the reviews table looks like, there's no author column
 interface ReviewRow {
   id?: number | string;
   rating: number;
@@ -19,6 +19,7 @@ const DATE_FORMAT = new Intl.DateTimeFormat("nl-NL", {
   year: "numeric",
 });
 
+// database row to the shape the review cards use
 function toReview(row: ReviewRow, index: number): RouteReview {
   const created = row.created_at ?? row.createdAt;
 
@@ -49,6 +50,7 @@ export async function fetchReviews(
 
 export type PostReviewResult = "ok" | "login" | "error";
 
+// "login" means the api said 401, you have to be logged in to post
 export async function postReview(
   routeId: string,
   rating: number,

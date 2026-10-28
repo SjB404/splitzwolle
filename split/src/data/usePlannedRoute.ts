@@ -1,4 +1,5 @@
-/* straight connector first; the api's road-following line replaces it when it answers */
+// the route between the picked stops
+// straight lines show up right away, google's route along the streets replaces them once it answers
 
 import { useEffect, useMemo, useState } from "react";
 import { requestDirections } from "./googleMaps.ts";
@@ -19,6 +20,7 @@ export function usePlannedRoute(
   points: PointOfInterest[],
   mode: TravelMode,
 ): PlannedRoute {
+  // a key for this exact mode and set of stops, so a late answer for an older pick gets ignored
   const signature = `${mode}:${points.map((point) => point.id).join(">")}`;
   const [answer, setAnswer] = useState<{
     signature: string;

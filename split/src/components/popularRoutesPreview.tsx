@@ -28,7 +28,7 @@ export default function PopularRoutesPreview() {
   }, [query]);
 
   return (
-    /* content-visibility:auto skips rendering until scrolled near; 48rem is its rough height */
+    // content-visibility:auto skips rendering until you scroll near it, 48rem is about its height
     <section className="py-band [contain-intrinsic-size:auto_48rem] [content-visibility:auto]">
       <Container>
         <SectionHeading
@@ -46,7 +46,7 @@ export default function PopularRoutesPreview() {
             matches.length === 1 ? "route" : "routes"
           }`}
           action={
-            /* bare <a> needs .button; text-ink fixes .border's low-contrast text */
+            // a bare <a> needs .button, text-ink fixes the low contrast text from .border
             <Link
               to={ROUTES_PATH}
               className="button border text-ink ripple h-12"
@@ -125,7 +125,7 @@ export default function PopularRoutesPreview() {
                       </div>
                     </div>
 
-                    {/* overlay link, since beerCSS makes every element relative (no stretched ::after) */}
+                    {/* overlay link, since beercss makes every element relative (no stretched ::after) */}
                     <Link
                       to={publicRoutePath(route.id)}
                       aria-label={`Open de route ${route.title}`}

@@ -5,11 +5,12 @@ export const PACE_KM_PER_HOUR: Record<TravelMode, number> = {
   bicycling: 15,
 };
 
-/* walking distance ≈ straight line × 1.25; poi distances use the same factor */
+// walking distance is about the straight line times 1.25, poi distances use the same factor
 export const STREET_FACTOR = 1.25;
 
 const EARTH_RADIUS_KM = 6371;
 
+// straight line distance in km between two coordinates (haversine formula, so the curve of the earth is included)
 export function haversineKm(from: LatLng, to: LatLng): number {
   const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
   const deltaLat = toRadians(to.lat - from.lat);
@@ -26,6 +27,7 @@ export function minutesFor(distanceKm: number, mode: TravelMode): number {
   return Math.max(1, Math.round((distanceKm / PACE_KM_PER_HOUR[mode]) * 60));
 }
 
+// a route with straight lines between the stops, used until google's real route comes back
 export function straightRoute(
   points: LatLng[],
   mode: TravelMode,

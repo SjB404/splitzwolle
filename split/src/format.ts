@@ -6,7 +6,7 @@ export function formatDistance(kilometres: number): string {
   return `${formatDecimal(kilometres)} km`;
 }
 
-/** 75 → "1 u 15", 45 → "45 min", 120 → "2 u" */
+// 75 -> "1 u 15", 45 -> "45 min", 120 -> "2 u"
 export function formatDuration(minutes: number): string {
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;

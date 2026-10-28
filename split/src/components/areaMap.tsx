@@ -1,6 +1,7 @@
-/* the map instance is built outside react; this component only reads and draws it */
+// the map itself is made outside react, this component only reads it and draws on it
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import "./areaMap.css";
 import Icon from "./icon.tsx";
 import RouteShape from "./routeShape.tsx";
@@ -12,6 +13,7 @@ import {
   onGoogleMapsAuthFailure,
   routeLineColors,
 } from "../data/googleMaps.ts";
+import { builderPath } from "../data/navigation.ts";
 import { poiCategoryIcon } from "../data/pointsOfInterest.ts";
 import { PLACE_IMAGES } from "../data/placeImages.ts";
 import { formatDistance, formatRating } from "../format.ts";
@@ -24,22 +26,33 @@ import type {
 
 const LINE_STYLE = { casing: 10, line: 5, zIndex: 1 };
 
-/* preview card size; keep in sync with the card (w-56) */
+// preview card size, keep in sync with the card (w-56), the height fits the open card with its button
 const PREVIEW_WIDTH = 224;
-const PREVIEW_HEIGHT = 296;
+const PREVIEW_HEIGHT = 320;
 const PREVIEW_GAP = 12;
 
-/* min gap between dots, px; MAX_SHIFT handles what still overlaps */
+// min gap between dots in px, MAX_SHIFT handles whatever still overlaps
 const DOT_GAP = 32;
 
 const MAX_SHIFT = 14;
+
+// where a preview card goes, in px inside the map's wrapper
+interface Preview {
+  id: string;
+  x: number;
+  y: number;
+  below: boolean;
+}
 
 interface AreaMapProps {
   points: PointOfInterest[];
   line?: RouteGeometry | null;
   order?: Map<string, number>;
+  // the highlighted dot is bigger and its card stays open until onDeselect
   highlightId?: string | null;
   onClickPoint?: (id: string) => void;
+  // closes the open card: its close button, escape, or a click on an empty bit of map
+  onDeselect?: () => void;
   clickHint?: string;
   label: string;
   description: string;
@@ -53,6 +66,7 @@ export default function AreaMap({
   order,
   highlightId = null,
   onClickPoint,
+  onDeselect,
   clickHint = "Klik om deze plek te kiezen",
   label,
   description,
@@ -69,22 +83,21 @@ export default function AreaMap({
       { marker: google.maps.marker.AdvancedMarkerElement; element: HTMLElement }
     >(),
   );
-  /* api listeners live outside react, so callbacks are read via refs */
+  // api listeners live outside react, so callbacks are read via refs
   const clickRef = useRef(onClickPoint);
+  const deselectRef = useRef(onDeselect);
   const spreadRef = useRef<() => void>(() => {});
-  /* bumped when a map is created so the effects re-run */
+  const pinRef = useRef<() => void>(() => {});
+  // bumped when a map is created so the effects re-run
   const [mapGeneration, setMapGeneration] = useState(0);
   const [colorScheme, setColorScheme] = useState(mapColorScheme());
-  /* no key: the api never loads, so start in the failed state */
+  // no key: the api never loads, so start in the failed state
   const [failed, setFailed] = useState(!hasGoogleMapsKey);
-  const [preview, setPreview] = useState<{
-    id: string;
-    x: number;
-    y: number;
-    below: boolean;
-  } | null>(null);
+  // hover is the dot under the mouse, pinned is the highlighted dot's card that stays open
+  const [hover, setHover] = useState<Preview | null>(null);
+  const [pinned, setPinned] = useState<Preview | null>(null);
 
-  // google maps redraws the whole map on every size change, which made resizing the window lag.
+  // google maps redraws the whole map on every size change, which made resizing the window lag
   // the map gets a fixed px size that only catches up with its frame once resizing stops
   useLayoutEffect(() => {
     const frame = frameRef.current;
@@ -113,11 +126,12 @@ export default function AreaMap({
 
   useEffect(() => {
     clickRef.current = onClickPoint;
-  }, [onClickPoint]);
+    deselectRef.current = onDeselect;
+  }, [onClickPoint, onDeselect]);
 
-  function showPreview(id: string, element: HTMLElement) {
+  function previewAt(id: string, element: HTMLElement): Preview | null {
     const wrapper = element.closest(".relative");
-    if (!wrapper) return;
+    if (!wrapper) return null;
 
     const dot = element.getBoundingClientRect();
     const box = wrapper.getBoundingClientRect();
@@ -125,20 +139,43 @@ export default function AreaMap({
     const centre = dot.left - box.left + dot.width / 2;
     const top = dot.top - box.top;
     const bottom = dot.bottom - box.top;
-    /* flip the card below the dot when there's no room above */
-    const below =
-      top < PREVIEW_HEIGHT + PREVIEW_GAP &&
-      box.height - bottom >= PREVIEW_HEIGHT + PREVIEW_GAP;
+    // flip the card below the dot when there's no room above, sticking out the bottom
+    // is fine but sticking out the top puts it under the sticky header
+    const below = top < PREVIEW_HEIGHT + PREVIEW_GAP;
 
-    setPreview({
+    return {
       id,
       x: Math.max(half + 8, Math.min(centre, box.width - half - 8)),
       y: below ? bottom : top,
       below,
-    });
+    };
   }
 
-  /* called via a ref so it always sees the current points and zoom */
+  // keeps the open card on its dot, runs every time the map moves
+  // the card hides while its dot is panned out of view so it never points at nothing
+  function placePinned() {
+    const dot = highlightId ? dotsRef.current.get(highlightId) : undefined;
+    const frame = frameRef.current?.getBoundingClientRect();
+
+    if (!highlightId || !dot || !frame) {
+      setPinned(null);
+      return;
+    }
+
+    const box = dot.element.getBoundingClientRect();
+    const x = box.left + box.width / 2;
+    const y = box.top + box.height / 2;
+    const visible =
+      box.width > 0 &&
+      x >= frame.left &&
+      x <= frame.right &&
+      y >= frame.top &&
+      y <= frame.bottom;
+
+    setPinned(visible ? previewAt(highlightId, dot.element) : null);
+  }
+
+  // called via a ref so it always sees the current points and zoom
   function spreadDots() {
     const map = mapRef.current;
     const zoom = map?.getZoom();
@@ -146,7 +183,7 @@ export default function AreaMap({
 
     const placed: { x: number; y: number }[] = [];
 
-    // numbered stops go first and never move, so the route line always meets them;
+    // numbered stops go first and never move, so the route line always meets them
     // only the plain dots get pushed out of the way
     const stopsFirst = [...points].sort(
       (a, b) => Number(order?.has(b.id)) - Number(order?.has(a.id)),
@@ -181,9 +218,10 @@ export default function AreaMap({
 
   useEffect(() => {
     spreadRef.current = spreadDots;
+    pinRef.current = placePinned;
   });
 
-  /* colorScheme only applies at creation; setOptions ignores it */
+  // colorScheme only works when the map is created, setOptions ignores it
   useEffect(() => {
     const observer = new MutationObserver(() =>
       setColorScheme(mapColorScheme()),
@@ -195,12 +233,13 @@ export default function AreaMap({
 
   useEffect(() => {
     const host = hostRef.current;
-    /* copy refs for the cleanup, they may have changed by then */
+    // copy refs for the cleanup, they may have changed by then
     const dots = dotsRef.current;
     const lines = linesRef.current;
     if (!host) return;
 
     let alive = true;
+    let frame = 0;
 
     loadGoogleMaps()
       .then(() => {
@@ -212,7 +251,24 @@ export default function AreaMap({
         });
 
         mapRef.current = map;
-        map.addListener("idle", () => spreadRef.current());
+        map.addListener("idle", () => {
+          spreadRef.current();
+          pinRef.current();
+        });
+        // the open card follows its dot while the map is dragged or zoomed, at most once a frame
+        map.addListener("bounds_changed", () => {
+          cancelAnimationFrame(frame);
+          frame = requestAnimationFrame(() => pinRef.current());
+        });
+        // a click on empty map closes the open card, clicks on a dot are the dot's business
+        map.addListener("click", (event: google.maps.MapMouseEvent) => {
+          const target = event.domEvent?.target;
+          const onDot =
+            target instanceof Node &&
+            [...dots.values()].some(({ element }) => element.contains(target));
+
+          if (!onDot) deselectRef.current?.();
+        });
         setMapGeneration((current) => current + 1);
       })
       .catch(() => {
@@ -221,7 +277,8 @@ export default function AreaMap({
 
     return () => {
       alive = false;
-      /* clear google's leftover dom so a remount starts clean */
+      cancelAnimationFrame(frame);
+      // clear google's leftover dom so a remount starts clean
       host.replaceChildren();
       lines.length = 0;
       dots.clear();
@@ -255,11 +312,13 @@ export default function AreaMap({
           clickRef.current?.(point.id),
         );
         element.addEventListener("mouseenter", () =>
-          showPreview(point.id, element),
+          setHover(previewAt(point.id, element)),
         );
-        element.addEventListener("mouseleave", () => setPreview(null));
-        element.addEventListener("focus", () => showPreview(point.id, element));
-        element.addEventListener("blur", () => setPreview(null));
+        element.addEventListener("mouseleave", () => setHover(null));
+        element.addEventListener("focus", () =>
+          setHover(previewAt(point.id, element)),
+        );
+        element.addEventListener("blur", () => setHover(null));
 
         dotsRef.current.set(point.id, { marker, element });
       }
@@ -285,7 +344,44 @@ export default function AreaMap({
     });
 
     spreadRef.current();
+    pinRef.current();
   }, [mapGeneration, points, order, highlightId]);
+
+  // google puts the markers on the page a moment after the map is ready, so on a fresh load
+  // the open card waits until its dot actually has a size
+  useEffect(() => {
+    const dot = highlightId ? dotsRef.current.get(highlightId) : undefined;
+    if (!dot) return;
+
+    const observer = new ResizeObserver(() => pinRef.current());
+    observer.observe(dot.element);
+
+    return () => observer.disconnect();
+  }, [mapGeneration, points, highlightId]);
+
+  const highlightSpot = points.find(
+    (point) => point.id === highlightId,
+  )?.coordinates;
+
+  // only pans when the picked place is off screen, so picking a visible one doesn't move the map
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !isCoordinate(highlightSpot)) return;
+
+    const bounds = map.getBounds();
+    if (bounds && !bounds.contains(highlightSpot)) map.panTo(highlightSpot);
+  }, [mapGeneration, highlightSpot]);
+
+  useEffect(() => {
+    if (!highlightId || !onDeselect) return;
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") onDeselect?.();
+    }
+
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [highlightId, onDeselect]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -297,7 +393,7 @@ export default function AreaMap({
     if (!bounds.isEmpty()) map.fitBounds(bounds, 56);
   }, [mapGeneration, points]);
 
-  /* skip invalid coordinates so a bad path can't blank the map */
+  // skip invalid coordinates so a bad path can't blank the map
   const linePath = useMemo(
     () =>
       (line?.path ?? [])
@@ -336,8 +432,10 @@ export default function AreaMap({
     ];
   }, [mapGeneration, linePath, colorScheme]);
 
-  const previewPoint = preview
-    ? (points.find((point) => point.id === preview.id) ?? null)
+  // a hovered dot shows its own card for a moment, otherwise the open card shows
+  const shown = hover ?? pinned;
+  const shownPoint = shown
+    ? (points.find((point) => point.id === shown.id) ?? null)
     : null;
 
   if (failed)
@@ -353,7 +451,7 @@ export default function AreaMap({
         ref={frameRef}
         className={`surface relative overflow-hidden [contain:layout_paint] rounded-box border-2 border-line ${heightClassName}`}
       >
-        {/* rounded-none: the frame clips its own corner. the size is set in px by the effect above */}
+        {/* rounded-none because the frame already clips the corner, the size is set in px by the effect above */}
         <div ref={hostRef} className="absolute left-0 top-0 rounded-none" />
 
         {mapGeneration === 0 && (
@@ -364,13 +462,14 @@ export default function AreaMap({
       </div>
 
       {/* outside the clipping frame, so an edge dot still gets a whole card */}
-      {previewPoint && preview && (
+      {shownPoint && shown && (
         <PreviewCard
-          point={previewPoint}
+          point={shownPoint}
           hint={clickHint}
-          x={preview.x}
-          y={preview.y}
-          below={preview.below}
+          x={shown.x}
+          y={shown.y}
+          below={shown.below}
+          onClose={shown.id === highlightId ? onDeselect : undefined}
         />
       )}
 
@@ -380,6 +479,8 @@ export default function AreaMap({
           onZoom={(step) => {
             const map = mapRef.current;
             map?.setZoom((map.getZoom() ?? 14) + step);
+            // with a place picked, zoom in on that place instead of the middle of the map
+            if (map && isCoordinate(highlightSpot)) map.panTo(highlightSpot);
           }}
         />
       )}
@@ -413,30 +514,48 @@ function ZoomControls({ onZoom }: { onZoom: (step: number) => void }) {
   );
 }
 
-/* pointer-events-none so the card can never steal hover from its dot */
+// a hover card is pointer-events-none so it can never steal hover from its dot
+// the open card (with onClose) is clickable and gets the same orange edge as the picked list card
 function PreviewCard({
   point,
   hint,
   x,
   y,
   below,
+  onClose,
 }: {
   point: PointOfInterest;
   hint: string;
   x: number;
   y: number;
   below: boolean;
+  onClose?: () => void;
 }) {
   const image = point.image ?? PLACE_IMAGES[point.id];
+  const open = onClose !== undefined;
 
   return (
     <div
-      className={`surface-container-lowest pointer-events-none absolute z-20 w-56 -translate-x-1/2 overflow-hidden rounded-box border-2 border-line ${
-        below ? "translate-y-3" : "-translate-y-[calc(100%+0.75rem)]"
-      }`}
+      className={`surface-container-lowest absolute z-20 w-56 -translate-x-1/2 overflow-hidden rounded-box border-2 ${
+        open ? "border-selected" : "pointer-events-none border-line"
+      } ${below ? "translate-y-3" : "-translate-y-[calc(100%+0.75rem)]"}`}
       style={{ left: x, top: y }}
     >
-      {/* rounded-none: the card clips its corner, so children stay square */}
+      {open && (
+        // needs a wrapper because .tap-target's own position: relative wins over absolute
+        <div className="absolute right-2 top-2 z-10">
+          <button
+            type="button"
+            aria-label={`${point.name} sluiten`}
+            onClick={onClose}
+            className="button circle ripple tap-target surface-container-lowest border text-ink"
+          >
+            <Icon name="close" />
+          </button>
+        </div>
+      )}
+
+      {/* rounded-none since the card already clips the corner */}
       {image ? (
         <img
           src={image}
@@ -467,8 +586,19 @@ function PreviewCard({
 
         <p className="mt-2 flex items-center gap-1 text-xs font-semibold text-accent">
           <Icon name="star" className="fill text-base" />
-          {formatRating(point.rating)} · {hint}
+          {formatRating(point.rating)}
+          {!open && ` · ${hint}`}
         </p>
+
+        {open && (
+          <Link
+            to={builderPath([point.id])}
+            className="button border text-ink ripple tap-target mt-3 w-full"
+          >
+            <Icon name="route" className="mr-1 text-base" />
+            In een route
+          </Link>
+        )}
       </div>
     </div>
   );
@@ -510,7 +640,7 @@ function MapUnavailable({
   );
 }
 
-/* fixed orange to match the route line */
+// fixed orange to match the route line
 function MapChip({
   label,
   className = "",
@@ -543,9 +673,9 @@ function paintDot(
 
   element.className = [
     "flex items-center justify-center rounded-full border-2 font-bold leading-none transition-transform",
-    /* markers are anchored at their bottom centre; +50% puts the dot's centre on the spot */
+    // markers are anchored at their bottom centre so +50% puts the middle of the dot on the spot
     "[translate:var(--dot-x,0px)_calc(var(--dot-y,0px)_+_50%)]",
-    /* before:-inset-3.5 gives a 48px touch area */
+    // before:-inset-3.5 gives a 48px touch area
     "before:absolute before:-inset-3.5 before:content-['']",
     current
       ? "border-white bg-orange-500 text-white"

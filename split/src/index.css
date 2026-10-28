@@ -3,7 +3,7 @@
 
 @import "tailwindcss";
 
-/* skip beerCSS's icon fonts and dark.css; the theme is a class on <body> */
+/* skip beercss's icon fonts and dark.css, the theme is a class on <body> */
 @import "beercss/src/cdn/settings/reset.css" layer(beercss);
 @import "beercss/src/cdn/settings/global.css" layer(beercss);
 @import "beercss/src/cdn/settings/light.css" layer(beercss);
@@ -57,7 +57,7 @@
   --color-haze-200: color-mix(in oklab, var(--seed-blue) 13%, white);
   --color-haze-300: color-mix(in oklab, var(--seed-blue) 20%, white);
 
-  /* blue-tinted greys for light mode; plain white/blue mixes turn lavender */
+  /* blue tinted greys for light mode, plain white/blue mixes turn lavender */
   --color-mist-50: oklch(from var(--seed-blue) 0.985 0.004 h);
   --color-mist-100: oklch(from var(--seed-blue) 0.965 0.007 h);
   --color-mist-200: oklch(from var(--seed-blue) 0.93 0.01 h);
@@ -88,29 +88,6 @@
   --spacing-band: clamp(2rem, 4vw, 3.25rem);
   --spacing-hero: clamp(0.5rem, 1.2vw, 1rem);
   --spacing-header: clamp(1.5rem, 2.6vw, 2.5rem);
-
-  /* animates outline because border and shadow are !important in overrides */
-  --animate-flash: flash 2s var(--ease-standard);
-
-  @keyframes flash {
-    0%,
-    12.5% {
-      outline-color: var(--selected);
-    }
-
-    12.6%,
-    25% {
-      outline-color: transparent;
-    }
-
-    25.1% {
-      outline-color: var(--selected);
-    }
-
-    100% {
-      outline-color: transparent;
-    }
-  }
 }
 
 /* inline keeps the var() reference, so these follow the light/dark class on <body> */
@@ -128,7 +105,7 @@
   --color-on-selected: var(--on-selected);
 }
 
-/* body.light repeated, otherwise beerCSS's own purple theme wins */
+/* body.light repeated, otherwise beercss's own purple theme wins */
 :root,
 body.light {
   color-scheme: light;
@@ -263,7 +240,7 @@ body.dark {
   --shadow: #000000;
   --scrim: #000000;
 
-  /* brand tint for beerCSS's state layer; the default grey is too bright */
+  /* brand tint for beercss's state layer, the default grey is too bright */
   --active: color-mix(in oklab, var(--color-haze-100) 14%, transparent);
 }
 
@@ -295,7 +272,7 @@ body.dark {
     touch-action: manipulation;
   }
 
-  /* beerCSS already draws the 2px primary ring; this adds the offset */
+  /* beercss already draws the 2px primary ring, this adds the offset */
   :focus-visible {
     outline-offset: 2px;
   }
@@ -303,7 +280,7 @@ body.dark {
 
 /* sits after beercss, so these win without !important */
 @layer components {
-  /* beerCSS colours headings in a layer after base, so this has to live here */
+  /* beercss colours headings in a layer after base, so this has to live here */
   :is(h1, h2, h3, h4, h5, h6) {
     color: var(--heading);
   }
@@ -327,7 +304,7 @@ body.dark {
     border: 0 !important;
   }
 
-  /* beerCSS's --outline-variant is too faint next to a field */
+  /* beercss's --outline-variant is too faint next to a field */
   :is(.button, button).border {
     border-color: var(--outline) !important;
   }
@@ -363,7 +340,7 @@ body.dark {
     border-radius: var(--radius-box) !important;
   }
 
-  /* beerCSS buttons are content-box, so full-width ones overflowed */
+  /* beercss buttons are content-box, so full-width ones overflowed */
   :is(.button, button) {
     box-sizing: border-box !important;
   }
@@ -377,25 +354,25 @@ body.dark {
     padding-inline-start: 2.875rem !important;
   }
 
-  /* tighter than beerCSS so "Iedereens routes" fits on one line */
+  /* tighter than beercss so "Iedereens routes" fits on one line */
   .field.border.suffix > :is(input, textarea, select) {
     padding-inline-end: 2.625rem !important;
   }
 
-  /* stop long options wrapping (beerCSS's all:unset resets white-space) */
+  /* stop long options wrapping (beercss's all:unset resets white-space) */
   .field > select {
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
   }
 
-  /* no article shadows; surfaces are separated by colour */
+  /* no article shadows, surfaces are separated by colour */
   article {
     box-shadow: none !important;
   }
 }
 
-/* 48px touch area around 40px buttons; ::before because beerCSS uses ::after */
+/* 48px touch area around 40px buttons, ::before because beercss uses ::after */
 .tap-target {
   position: relative;
 }

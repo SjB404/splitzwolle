@@ -36,7 +36,7 @@ import type {
   TravelMode,
 } from "../types.ts";
 
-/* the picker's points are all in-area points, not the filtered list */
+// the picker's points are all in-area points, not the filtered list
 const AREA_POINTS = pointsInArea(POINTS_OF_INTEREST);
 
 const AREA_MAP_LEGEND: MapLegendItem[] = [
@@ -45,6 +45,7 @@ const AREA_MAP_LEGEND: MapLegendItem[] = [
   { shape: "current", label: "Plek van nu" },
 ];
 
+// handles /routes, /routes/public/<id> (a ready made route) and /routes/custom/<ids> (a route you build yourself)
 export default function RoutesPage() {
   const navigate = useNavigate();
   const { placeIds, routeId } = useParams<{
@@ -59,6 +60,7 @@ export default function RoutesPage() {
   const publicRoute = routeId
     ? (ROUTES.find((route) => route.id === routeId) ?? null)
     : null;
+  // a public route uses its own stops, otherwise the stops come from the url
   const pickedIds = useMemo(
     () =>
       publicRoute
@@ -92,6 +94,7 @@ export default function RoutesPage() {
     [pickedIds],
   );
 
+  // the picked places are kept in the url so a custom route can be shared as a link
   function setPicked(next: string[]) {
     navigate(next.length > 0 ? builderPath(next) : ROUTES_PATH);
   }

@@ -6,7 +6,7 @@ import Container from "./container.tsx";
 import SectionHeading from "./sectionHeading.tsx";
 import Icon from "./icon.tsx";
 import { formatDistance, formatRating } from "../format.ts";
-import { builderPath, pointOfInterestAnchor } from "../data/navigation.ts";
+import { builderPath } from "../data/navigation.ts";
 import { poiCategoryIcon } from "../data/pointsOfInterest.ts";
 import { PLACE_IMAGES } from "../data/placeImages.ts";
 import { LIST_ITEM } from "../motion.ts";
@@ -15,21 +15,18 @@ import type { PointOfInterest } from "../types.ts";
 interface PoiResultsProps {
   points: PointOfInterest[];
   selectedId: string | null;
-  /* a url-named card flashes its edge; the selected tone is also the page background */
-  flashId: string | null;
-  onSelect: (id: string) => void;
+  onShowOnMap: (id: string) => void;
   onReset: () => void;
 }
 
 export default function PoiResults({
   points,
   selectedId,
-  flashId,
-  onSelect,
+  onShowOnMap,
   onReset,
 }: PoiResultsProps) {
   return (
-    /* skipped while off screen; a url naming a card still scrolls to it fine */
+    // not rendered while off screen, 80rem is about its height
     <section className="py-band [contain-intrinsic-size:auto_80rem] [content-visibility:auto]">
       <Container>
         <SectionHeading
@@ -50,21 +47,16 @@ export default function PoiResults({
             <AnimatePresence initial={false} mode="popLayout">
               {points.map((point) => {
                 const selected = point.id === selectedId;
-                const flashing = point.id === flashId;
                 const image = point.image ?? PLACE_IMAGES[point.id];
 
                 return (
                   <m.article
                     {...LIST_ITEM}
                     key={point.id}
-                    id={pointOfInterestAnchor(point.id)}
-                    /* scroll-mt-20 clears the sticky bar; the flash shows which card a link meant */
-                    className={`s12 m6 l4 no-padding flex scroll-mt-20 flex-col overflow-hidden transition-colors ${
-                      selected && !flashing ? "secondary-container" : ""
-                    } ${
-                      flashing
-                        ? "outline-2 -outline-offset-2 outline-transparent animate-flash"
-                        : ""
+                    aria-current={selected || undefined}
+                    // an outline and not a border, because the overrides pin every article border with !important
+                    className={`s12 m6 l4 no-padding flex flex-col overflow-hidden outline-2 -outline-offset-2 transition-colors ${
+                      selected ? "outline-selected" : "outline-transparent"
                     }`}
                   >
                     {image && (
@@ -114,11 +106,14 @@ export default function PoiResults({
                         <div className="ml-auto flex flex-wrap items-center gap-2">
                           <button
                             type="button"
-                            aria-pressed={selected}
-                            onClick={() => onSelect(point.id)}
+                            onClick={() => onShowOnMap(point.id)}
                             className="button border text-ink ripple tap-target"
                           >
-                            {selected ? "Op de kaart" : "Toon op kaart"}
+                            <Icon
+                              name="location_on"
+                              className="mr-1 text-base"
+                            />
+                            Toon op kaart
                           </button>
 
                           <Link

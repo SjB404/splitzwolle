@@ -14,7 +14,7 @@ export default function RoutePlanSummary({
 }: RoutePlanSummaryProps) {
   if (plan.points.length < 2) {
     return (
-      /* min-h-12: the text wraps to two lines on a phone */
+      // min-h-12 because the text wraps to two lines on a phone
       <p className="surface-container-low mt-6 flex min-h-12 items-center gap-2 rounded-box border-2 border-line px-4 text-sm text-ink-muted">
         <Icon name="route" className="text-base" />
         {plan.points.length === 0

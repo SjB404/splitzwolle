@@ -1,4 +1,4 @@
-/* pt-header: only the space below the title uses the section spacing */
+// pt-header so only the space under the title uses the section spacing
 
 import type { ReactNode } from "react";
 import PageTitle from "./pageTitle.tsx";

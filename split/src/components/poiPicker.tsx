@@ -14,7 +14,7 @@ const MODES: { mode: TravelMode; label: string; icon: string }[] = [
 
 interface PoiPickerProps {
   points: PointOfInterest[];
-  /* picked ids, in visit order */
+  // picked ids, in visit order
   pickedIds: string[];
   mode: TravelMode;
   onToggle: (id: string) => void;
@@ -39,7 +39,7 @@ export default function PoiPicker({
             type="button"
             aria-pressed={mode === item.mode}
             onClick={() => onModeChange(item.mode)}
-            /* tap-target gives a 48px hit area without making the chip bigger */
+            // tap-target gives a 48px hit area without making the chip bigger
             className={`chip medium tap-target ripple ${
               mode === item.mode ? "bg-selected text-on-selected border-transparent" : ""
             }`}

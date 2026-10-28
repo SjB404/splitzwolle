@@ -1,12 +1,12 @@
 export const LOGIN_PATH = "/login";
 export const HOME_PATH = "/";
 export const ROUTES_PATH = "/routes";
-// the search box on the routes page; the navbar search icon links to it
+// the search box on the routes page, the navbar search icon links to it
 export const ROUTE_SEARCH_ID = "route-search";
-/* kept so old /planning links still work */
+// kept so old /planning links still work
 export const PLANNING_PATH = "/planning";
 export const POI_PATH = "/points-of-interest";
-/* register lives as a hash on the login page; there is no /inloggen route */
+// register is a hash on the login page, there's no /inloggen route
 export const REGISTER_PATH = `${LOGIN_PATH}#registreren`;
 export const CONTACT_PATH = "/contact"
 
@@ -17,11 +17,11 @@ export function isActiveLink(pathname: string, to: string): boolean {
   return pathname === path || pathname.startsWith(`${path}/`);
 }
 
-/* the two urls the routes page answers */
+// the two urls the routes page answers
 export const CUSTOM_ROUTE_PATH = `${ROUTES_PATH}/custom`;
 export const PUBLIC_ROUTE_PATH = `${ROUTES_PATH}/public`;
 
-/* /routes/custom/<ids joined by ,> */
+// /routes/custom/<ids joined by ,>
 export function builderPath(placeIds: string[]): string {
   if (placeIds.length === 0) return ROUTES_PATH;
 
@@ -32,7 +32,7 @@ export function publicRoutePath(routeId: string): string {
   return `${PUBLIC_ROUTE_PATH}/${encodeURIComponent(routeId)}`;
 }
 
-/* a hash, not a path; ids are ascii slugs, so no escaping needed */
+// a hash not a path, ids are plain ascii slugs so nothing needs escaping
 const POI_ANCHOR_PREFIX = "poi-";
 
 export function pointOfInterestAnchor(poiId: string): string {
@@ -43,7 +43,7 @@ export function pointOfInterestPath(poiId: string): string {
   return `${POI_PATH}#${pointOfInterestAnchor(poiId)}`;
 }
 
-/* the place a url's hash names; whether it exists is the page's business */
+// gets the place id out of a url hash, the page checks if it actually exists
 export function parsePointOfInterestAnchor(hash: string): string | null {
   const anchor = hash.replace(/^#/, "");
 
@@ -60,6 +60,6 @@ export function parsePlaceIds(segment: string | undefined): string[] {
     .map((id) => decodeURIComponent(id.trim()))
     .filter((id) => id.length > 0);
 
-  /* the same place twice in a url is still one stop */
+  // the same place twice in a url is still one stop
   return [...new Set(ids)];
 }

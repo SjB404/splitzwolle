@@ -83,11 +83,11 @@ export default function Hero() {
         </h1>
 
         <div
-          /* contain: resizing the map shouldn't relayout the whole page */
+          // contain so resizing the map doesn't relayout the whole page
           className="surface [contain:layout_paint] mx-auto mt-6 flex w-fit flex-col overflow-hidden rounded-box border-2 border-line sm:mt-8 sm:flex-row"
           style={fadeStyle}
         >
-          {/* rounded-none: the panel clips its own corner, so children stay square */}
+          {/* rounded-none since the panel already clips the corner */}
           <div className="relative rounded-none sm:min-w-0">
             <MapImage
               image={MAP_IMAGES.satellite}
@@ -107,8 +107,8 @@ export default function Hero() {
                 type="button"
                 onClick={() => showMapLayer(id)}
                 aria-pressed={layer === id}
-                /* tailwind's bg-transparent, since beerCSS's .transparent forces color: inherit */
-                /* h-10 so tap-target reaches 48px */
+                // tailwind's bg-transparent because beercss's .transparent also forces color: inherit
+                // h-10 so tap-target reaches 48px
                 className={`tap-target ripple flex h-10 flex-none items-center bg-transparent px-0 text-xs ${
                   index === 0 ? "order-3 sm:order-1" : "order-1 sm:order-3"
                 } ${
@@ -122,13 +122,13 @@ export default function Hero() {
             ))}
 
             <div className="relative order-2 h-10 min-w-0 flex-1 [container-type:size] sm:h-auto sm:w-full">
-              {/* mx-0 cancels beerCSS's inline margins on .slider */}
+              {/* mx-0 cancels beercss's inline margins on .slider */}
               <label className="slider mx-0 w-full sm:absolute sm:left-1/2 sm:top-1/2 sm:w-[100cqh] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:-rotate-90">
                 <span className="sr-only">
                   Schakel tussen de historische kaart van 1652 en de actuele
                   plattegrond
                 </span>
-                {/* uncontrolled: beercss reads and redraws the native input itself */}
+                {/* uncontrolled because beercss reads and redraws the native input itself */}
                 <input
                   ref={slider}
                   type="range"
@@ -140,7 +140,7 @@ export default function Hero() {
                     glide.current?.stop();
                     setPosition(Number(event.currentTarget.value));
                   }}
-                  /* input fills the label so the thin track is easier to hit */
+                  // input fills the label so the thin track is easier to hit
                   className="[block-size:100%]"
                 />
                 {/* the empty span is the filled part of the slider track */}

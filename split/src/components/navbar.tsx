@@ -17,7 +17,7 @@ import {
 import { useSessionUser, userInitials } from "../data/session.ts";
 import type { NavLink } from "../types.ts";
 
-/* exported for tests */
+// exported for tests
 // oxlint-disable-next-line react/only-export-components
 export const NAV_LINKS: NavLink[] = [
   { label: "Home", to: HOME_PATH },
@@ -57,7 +57,7 @@ export default function Navbar() {
       ref={header}
       className="app-bar sticky top-0 z-50 bg-bar text-on-bar px-0"
     >
-      {/* px-0 cancels beerCSS header padding; .max pushes the actions right */}
+      {/* px-0 cancels the beercss header padding, .max pushes the buttons to the right */}
       <nav className={`${CONTAINER} w-full gap-2 sm:gap-6`}>
         <Link
           to="/"
@@ -89,8 +89,8 @@ export default function Navbar() {
 
         <ThemeToggle />
 
-        {/* .circle only rounds the box; an icon link needs .button for size */}
-        {/* jumps to the route search box; ScrollToTop in App.tsx focuses it */}
+        {/* .circle only rounds the box, an icon link also needs .button for the size */}
+        {/* jumps to the route search box, ScrollToTop in App.tsx focuses it */}
         <Link
           to={{ pathname: ROUTES_PATH, hash: ROUTE_SEARCH_ID }}
           onClick={() => document.getElementById(ROUTE_SEARCH_ID)?.focus()}
@@ -138,7 +138,7 @@ export default function Navbar() {
             className="absolute inset-x-0 top-full overflow-hidden rounded-none bg-bar lg:hidden"
           >
             <Container className="flex w-full flex-col gap-1 pb-4">
-              {/* not inverted: that would be orange on white in light mode */}
+              {/* not inverted, that would be orange on white in light mode */}
               {NAV_LINKS.map((link) => {
                 const active = isActiveLink(pathname, link.to);
 
@@ -187,7 +187,7 @@ function IconSwap({ name }: { name: string }) {
   );
 }
 
-/* the key is also read by index.html's pre-paint script: keep the two in step */
+// index.html reads this key too (before the page paints) so keep them the same
 export const THEME_STORAGE_KEY = "zwolle-routes:theme";
 
 type Theme = "light" | "dark";
@@ -217,7 +217,7 @@ function ThemeToggle() {
     try {
       localStorage.setItem(THEME_STORAGE_KEY, theme);
     } catch {
-      /* remembering the choice is optional; the toggle works without it */
+      // remembering the choice is optional, the toggle still works without it
     }
   }, [theme]);
 

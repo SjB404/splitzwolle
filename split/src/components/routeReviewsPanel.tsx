@@ -40,10 +40,10 @@ export default function RouteReviewsPanel({ route }: RouteReviewsPanelProps) {
   return (
     // same surface as the other cards, so it reads as a card and not as the page background
     <section className="surface-container-low overflow-hidden rounded-box border-2 border-line">
-      {/* one 52px row: with the 28px corner the closed panel is a pill, and a card once it opens */}
+      {/* one 52px row, with the 28px corners it looks like a pill when closed and a card when open */}
       <div className="flex min-h-13 flex-wrap items-center gap-x-4 gap-y-2 rounded-none py-1.5 pl-6 pr-1.5">
         <h2 className="text-lg font-bold">Reviews</h2>
-        {/* on a phone: one star and the score, so the bar stays a single-row pill */}
+        {/* on a phone just one star and the score so the bar stays on one row */}
         <p className="flex items-center gap-x-2 text-sm text-ink-muted">
           <span className="hidden sm:inline-flex">
             <StarRating value={route.rating} />
@@ -173,6 +173,7 @@ function ReviewCard({ review }: { review: RouteReview }) {
 
 type FormStatus = "idle" | "sending" | "sent" | "login" | "error";
 
+// form for a new review, posting needs a login (the api answers 401 otherwise)
 function ReviewForm({
   routeId,
   onPosted,
