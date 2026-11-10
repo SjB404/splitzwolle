@@ -7,7 +7,7 @@ The single source of truth for the visual language of this project.
 > holds the distilled Material 3 spec (component metrics, motion, accessibility). This file is
 > what the project _decided_; where the two differ, §16 says so and why.
 
-> Last updated: 2026-09-25
+> Last updated: 2026-11-09
 
 > **Keep this file current, automatically.** Any change that touches something written down here —
 > a token, a role, a recipe, a class, a path, a name, a rule, a number — updates this file in the
@@ -579,6 +579,45 @@ makes "Contact" (`/#contact`) work from any page.
 
 ---
 
+### Admin navigation
+
+The shared top app bar includes a **Dashboard** link only after `/auth/me` confirms the current
+session has the `admin` role. On the admin page, its own compact navigation sits directly below
+the app bar; it switches between **Overzicht**, **Routes**, and **Contactverzoeken** with a filled
+selected state and the route count beside the Routes label. The admin page keeps this secondary
+navigation in its page shell rather than promoting it to the shared site navigation. The
+Contactverzoeken tab lists contact-page messages with filters for **Nieuw**, **In behandeling**,
+and **Afronden**; choosing **Afronden** opens an in-app Material 3 confirmation dialog, then
+deletes the request from `contact` rather than keeping a completed row.
+[`contactRequests.tsx`](../split/src/pages/admin/contactRequests.tsx) owns this view, and
+[`001_contact_request_status.sql`](../split/backend/migrations/001_contact_request_status.sql)
+adds the persisted status column.
+
+[`Dashboard.tsx`](../split/src/pages/admin/Dashboard.tsx) owns admin authentication, tab navigation,
+and shared page state. The overview and route editor are separated into
+[`overviewTab.tsx`](../split/src/pages/admin/overviewTab.tsx) and
+[`routesTab.tsx`](../split/src/pages/admin/routesTab.tsx); shared admin UI, route-editor pieces,
+icons, and domain data live in [`dashboardComponents.tsx`](../split/src/pages/admin/dashboardComponents.tsx),
+[`routeEditorComponents.tsx`](../split/src/pages/admin/routeEditorComponents.tsx),
+[`dashboardIcons.tsx`](../split/src/pages/admin/dashboardIcons.tsx), and
+[`dashboardTypes.ts`](../split/src/pages/admin/dashboardTypes.ts).
+
+The overview's month picker is a tonal, high-contrast popover with a filled selected month. The
+route editor uses the Zwolle roads image as its canvas: selecting a map point opens the stop form,
+and saved stops retain their normalized `map_x` / `map_y` coordinates in `route_stops`. An orange
+route line connects those points in stop order. Compact numbered markers carry a small icon above
+them for each stop's selected type; legacy stops without coordinates remain visible using their
+existing path shape. Route creation no longer asks for a preset path shape; the clicked map points
+define the route line. New routes ask only for a name and description. Once all stops have map
+positions, the admin API estimates distance from straight-line map segments using an approximate
+2 m per image pixel and a 1.944 walking multiplier, 20% higher than the previous 1.62 estimate.
+Estimated duration is derived from that distance at 3 km/h. Both estimates are labeled because no
+street-routing data is available. Route deletion is available next to the selected route's actions
+and uses a confirmation dialog. Route tiles present distance, walking time, and stop count in a
+compact, single-row metadata strip with icons and separators, without a separate enclosing panel.
+
+---
+
 ## 7. Components
 
 Prefer a BeerCSS component over hand-built styles. These are the canonical shapes, as they appear in
@@ -810,9 +849,11 @@ right rooftop when a card frame crops the picture.
   picture arrives, `loading="lazy"` for anything below the fold, `priority` (eager + `fetchPriority`)
   for the one picture that is on the first screen, and `decorative` for a picture the surrounding
   text already describes.
-- **Overlays are `pointer-events-none` + `aria-hidden`**, and the `<img>`'s `alt` carries the
-  meaning (`alt="Kaart van Zwolle met de route …"`). Choosing a route or a place happens in the
-  React layer — the cards — never on the map itself (§11).
+- **Viewer overlays are `pointer-events-none` + `aria-hidden`**, and the `<img>`'s `alt` carries
+  the meaning (`alt="Kaart van Zwolle met de route …"`). Choosing a route or place happens in the
+  React layer — the cards — never on a viewer map (§11). The admin route editor is the deliberate
+  exception: its map captures clicks to place route stops, while the SVG overlay remains
+  pointer-transparent.
 - **Route drawing:** a white **casing** under the accent line (`stroke-white` at 16 units, then
   `stroke-orange-500` at 9, dashed, round caps and joins), stops as a `fill-orange-500` dot with a
   white halo and a glow at `opacity` 0.22. A single orange line disappears into the red roofs and

@@ -51,5 +51,8 @@ describe("index router", () => {
     expect(res.status).toBe(404);
   });
 
-  it.todo("users.ts (admin) and reviews.ts are not mounted here yet");
+  it("mounts the admin router and protects its routes", async () => {
+    const res = await request(app).get("/api/admin/routes");
+    expect(res.status).toBe(401);
+  });
 });

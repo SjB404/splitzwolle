@@ -2,6 +2,8 @@
 
 import type { ContactDetails, FooterColumn, NavLink } from "../types.ts";
 export const LOGIN_PATH = "/login";
+export const ADMIN_PATH = "/admin";
+export const ADMIN_NAV_LINK: NavLink = { label: "Dashboard", to: ADMIN_PATH };
 export const HOME_PATH = "/";
 export const ROUTES_PATH = "/routes";
 export const PLANNING_PATH = "/planning";

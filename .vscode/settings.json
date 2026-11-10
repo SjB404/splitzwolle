@@ -1,4 +1,7 @@
 {
-    "editor.formatOnSave": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "chat.agent.sandbox.enabled": "on",
+  "chat.disableAIFeatures": false,
+  "github.copilot.chat.anthropic.tools.websearch.enabled": true
 }

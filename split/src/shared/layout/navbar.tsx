@@ -1,13 +1,15 @@
 /* the app bar every page in the shell wears — it reads the router and not page state, so the active link comes from useLocation */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { AnimatePresence, m } from "motion/react";
 import Icon from "../primitives/icon.tsx";
 import ThemeToggle from "./themeToggle.tsx";
 import Container, { CONTAINER } from "./container.tsx";
 import { MOTION_TRANSITION } from "../../motion.ts";
+import { API_BASE } from "../../data/loginData.ts";
 import {
+  ADMIN_NAV_LINK,
   LOGIN_PATH,
   NAV_LINKS,
   ROUTES_PATH,
@@ -17,6 +19,48 @@ import {
 export default function Navbar() {
   const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    async function checkAdminAccess() {
+      try {
+        const response = await fetch(`${API_BASE}/auth/me`, {
+          credentials: "include",
+        });
+        if (!active) return;
+
+        if (!response.ok) {
+          if (response.status !== 401 && response.status !== 403) {
+            console.error(
+              `Could not verify admin navigation visibility (${response.status}).`,
+            );
+          }
+          setIsAdmin(false);
+          return;
+        }
+
+        const session: { user?: { role?: unknown } } = await response.json();
+        if (!active) return;
+        if (typeof session.user?.role !== "string") {
+          console.error("The current session response did not include a user role.");
+          setIsAdmin(false);
+          return;
+        }
+        setIsAdmin(session.user.role === "admin");
+      } catch (error) {
+        if (!active) return;
+        setIsAdmin(false);
+        console.error("Could not verify admin navigation visibility:", error);
+      }
+    }
+
+    void checkAdminAccess();
+    return () => {
+      active = false;
+    };
+  }, [pathname]);
 
   return (
     <header className="app-bar sticky top-0 z-50 bg-bar text-on-bar px-0">
@@ -48,6 +92,21 @@ export default function Navbar() {
             </Link>
           );
         })}
+        {isAdmin && (
+          <Link
+            to={ADMIN_NAV_LINK.to}
+            aria-current={
+              isActiveLink(pathname, ADMIN_NAV_LINK.to) ? "page" : undefined
+            }
+            className={`hidden py-2.5 text-sm text-on-bar lg:inline-flex ${
+              isActiveLink(pathname, ADMIN_NAV_LINK.to)
+                ? "font-semibold underline decoration-2 underline-offset-8"
+                : "hover:underline hover:underline-offset-8"
+            }`}
+          >
+            {ADMIN_NAV_LINK.label}
+          </Link>
+        )}
 
         <div className="max" />
 
@@ -115,6 +174,24 @@ export default function Navbar() {
                     </Link>
                   );
                 })}
+                {isAdmin && (
+                  <Link
+                    to={ADMIN_NAV_LINK.to}
+                    onClick={() => setMenuOpen(false)}
+                    aria-current={
+                      isActiveLink(pathname, ADMIN_NAV_LINK.to)
+                        ? "page"
+                        : undefined
+                    }
+                    className={`button left-align min-h-12 ripple ${
+                      isActiveLink(pathname, ADMIN_NAV_LINK.to)
+                        ? "bg-on-bar/20 text-on-bar"
+                        : "transparent text-on-bar"
+                    }`}
+                  >
+                    {ADMIN_NAV_LINK.label}
+                  </Link>
+                )}
               </div>
             </Container>
           </m.div>

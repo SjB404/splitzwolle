@@ -26,3 +26,8 @@ npm --prefix split/split run build
 npm --prefix split/split run lint
 ```
 
+## Database update
+
+Apply [`split/backend/migrations/001_contact_request_status.sql`](split/backend/migrations/001_contact_request_status.sql)
+once to the `swolla` database before using the admin contact requests tab. Existing contact
+submissions receive the default status `nieuw`.

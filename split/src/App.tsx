@@ -19,17 +19,19 @@ import {
   ROUTES_PATH,
   LOGIN_PATH,
   CONTACT_PATH,
+  ADMIN_PATH,
 } from "./data/navigation.ts";
-
+import ZwolleRoutesOverzicht from "./pages/admin/Dashboard.tsx";
 /* reducedMotion="user" makes every motion animation follow the OS setting, and LazyMotion + domAnimation + strict keeps the layout engine out of the bundle — hence m.div, never motion.div */
 function App() {
   return (
     <LazyMotion features={domAnimation} strict>
       <MotionConfig reducedMotion="user">
-        {/* the paths come from data/navigation.ts, so renaming one re-points the router and every link at once */}
         <BrowserRouter>
           <ScrollToTop />
           <Routes>
+            <Route path={ADMIN_PATH} element={<ZwolleRoutesOverzicht />} />
+            {/* the paths come from data/navigation.ts, so renaming one re-points every link at once */}
             <Route element={<AppLayout />}>
               <Route path={HOME_PATH} element={<HomePage />} />
               <Route path={ROUTES_PATH} element={<RoutesPage />} />

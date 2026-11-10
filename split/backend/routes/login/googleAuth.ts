@@ -30,14 +30,14 @@ interface UserRow extends RowDataPacket {
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const GOOGLE_REDIRECT_URI =
-  process.env.GOOGLE_REDIRECT_URI || "http://localhost:3000/api/auth/google/callback";
+  process.env.GOOGLE_REDIRECT_URI ||
+  "http://localhost:3000/api/auth/google/callback";
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 const oauthClient = new OAuth2Client(
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
-  GOOGLE_REDIRECT_URI
+  GOOGLE_REDIRECT_URI,
 );
-
 router.get("/google", (req: Request, res: Response) => {
   const url = oauthClient.generateAuthUrl({
     access_type: "offline",
@@ -77,7 +77,7 @@ router.get("/google/callback", async (req: Request, res: Response) => {
 
     const [rows] = await pool.query<UserRow[]>(
       "SELECT id, email, name, role FROM users WHERE email = ?",
-      [email]
+      [email],
     );
 
     let user = rows[0];
@@ -89,13 +89,17 @@ router.get("/google/callback", async (req: Request, res: Response) => {
       await pool.query<ResultSetHeader>(
         `INSERT INTO users (id, name, email, password, role, two_factor_secret, two_factor_enabled)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [id, name ?? email, email, randomPasswordHash, "user", null, false]
+        [id, name ?? email, email, randomPasswordHash, "user", null, false],
       );
 
       user = { id, email, name: name ?? email, role: "user" } as UserRow;
     }
 
-    const jwtToken = signToken({ id: user.id, email: user.email, role: user.role });
+    const jwtToken = signToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
 
     res.cookie("token", jwtToken, {
       httpOnly: true,
